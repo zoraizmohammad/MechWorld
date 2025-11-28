@@ -1,4 +1,6 @@
 .venv
 *.dump
 *.png
+*.jpg
 *.data
+__pycache__/*

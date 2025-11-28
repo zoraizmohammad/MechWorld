@@ -1,0 +1,47 @@
+class Atom:
+    def __init__(self, id : int, mol_id : int, atom_type : int, x : float, y : float, z : float):
+        self.id = id;
+        self.mol_id = mol_id;
+        self.atom_type = atom_type;
+        self.x = x;
+        self.y = y;
+        self.z = z;
+        self.has_peptide = False;
+
+    def translate(self, dx, dy, dz):
+        self.x += dx;
+        self.y += dy;
+        self.z += dz;
+
+    def to_datafile(self, f):
+        f.write(f"{self.id} {self.mol_id} {self.atom_type} {self.x:.2f} {self.y:.2f} {self.z:.2f}\n")
+
+    def is_eligible(self,ATOM_TYPE_BINDING_DSU) -> bool:
+        if self.atom_type != ATOM_TYPE_BINDING_DSU:
+            return False;
+    
+        if self.has_peptide:
+            return False;
+
+        return True;
+
+class Bond:
+    def __init__(self, id : int, bond_type : int, atom_id_1 : int, atom_id_2 : int):
+        self.id = id;
+        self.bond_type = bond_type;
+        self.atom_id_1 = atom_id_1;
+        self.atom_id_2 = atom_id_2;
+
+    def to_datafile(self, f):
+        f.write(f"{self.id} {self.bond_type} {self.atom_id_1} {self.atom_id_2}\n")
+
+class Angle:
+    def __init__(self, id : int, angle_type : int, atom_id_1 : int, atom_id_2 : int, atom_id_3 : int):
+        self.id = id;
+        self.angle_type = angle_type;
+        self.atom_id_1 = atom_id_1;
+        self.atom_id_2 = atom_id_2;
+        self.atom_id_3 = atom_id_3;
+
+    def to_datafile(self, f):
+        f.write(f"{self.id} {self.angle_type} {self.atom_id_1} {self.atom_id_2} {self.atom_id_3}\n");
