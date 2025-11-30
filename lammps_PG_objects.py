@@ -1,3 +1,6 @@
+import numpy as np;
+import numpy.typing as npt;
+
 class Atom:
     def __init__(self, id : int, mol_id : int, atom_type : int, x : float, y : float, z : float):
         self.id = id;
@@ -25,15 +28,38 @@ class Atom:
 
         return True;
 
+    def correct_PCB(self, xlo, xhi, xy, ylo, yhi):
+        # Transforms the atom's position to be within the boundary of the original periodic box
+        w = (xhi-xlo);
+        h = (yhi-ylo);
+
+        if self.y > yhi:
+            self.y -= h;
+        elif self.y < ylo:
+            self.y += h;
+
+        triclinic_slope = (h) / (xy);
+
+        if self.x < xlo + (self.y - ylo)/triclinic_slope:
+            self.x += w;
+        elif self.x > xhi + (self.y - ylo)/triclinic_slope:
+            self.x -= w;
+
 class Bond:
     def __init__(self, id : int, bond_type : int, atom_id_1 : int, atom_id_2 : int):
         self.id = id;
         self.bond_type = bond_type;
         self.atom_id_1 = atom_id_1;
         self.atom_id_2 = atom_id_2;
+        self.dist : float | None = None;
+        self.forces : npt.NDArray[np.float64] | None = None;
 
     def to_datafile(self, f):
         f.write(f"{self.id} {self.bond_type} {self.atom_id_1} {self.atom_id_2}\n")
+
+    def add_distance_and_forces(self,dist,fx,fy,fz):
+        self.dist = dist;
+        self.forces = np.array([fx,fy,fz]);
 
 class Angle:
     def __init__(self, id : int, angle_type : int, atom_id_1 : int, atom_id_2 : int, atom_id_3 : int):
