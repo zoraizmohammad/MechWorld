@@ -63,73 +63,59 @@ def assemble_boundary_sets(lst_atoms, consideration_depth, triclinic_bounds) -> 
 boundary_sets_tuple = assemble_boundary_sets(lst_atoms, consideration_depth=5, triclinic_slope=m)
 
 def compute_stress_at_boundary(lst_atoms, lst_bonds : list[Bond], boundary_sets_tuple):
-    # Output order: 
-    # (fx, fy) at lower interface
-    #    ""       upper ""
-    #    ""       left  ""
-    #    ""       right ""
 
-    f_lower = np.zeros(3);
-    f_upper = np.zeros(3);
-    f_left  = np.zeros(3);
-    f_right = np.zeros(3);
+    # Because we are using PBC, only two sets of forces need to be tracked: left/right (surface is slanted), upper/lower (surface || to x-axis)
+    f_U2B = np.zeros(3); # Upper Surface -> Bottom Surface (normal points +y)
+    f_R2L = np.zeros(3); # Right Surface -> Left Surface (normal points +x ISH)
     
-    # Is there even a need to distinguish between upper/lower or left/right surfaces?
+    # Normalization might have to occur, check the signs of the bonds, fx, fy components
+    # https://docs.lammps.org/compute_bond_local.html
+    # The sign of the forces is determined by the locations of the atoms:
+    # Fx, Fy, Fz is the force on atom #1 due to atom #2.
+    # (a1.x < a2.x) -> Fx is positive
+    # (a1.y < a2.y) -> Fy is positive
+    # Fz is zero for these 2D simulations
+    # how to account for this = enforce direction like left2right, = multiply right2left * -1
 
+    (lower_atom_ids, upper_atom_ids, left_atom_ids, right_atom_ids) = boundary_sets_tuple;
+ 
     for b in lst_bonds:
         if (b.id1 in upper_atom_ids) & (b.id2 in lower_atom_ids):
-            f_upper += b.forces;
+            # F is top -> bottom
+            f_U2B += b.forces;
         if (b.id1 in lower_atom_ids) & (b.id2 in upper_atom_ids):
-            f_lower += b.forces;
+            # F is bottom -> top (must flip)
+            f_U2B -= b.forces;
         if (b.id1 in left_atom_ids)  & (b.id2 in right_atom_ids):
-            f_left += b.forces;
+            # F is left -> right (must flip)
+            f_R2L -= b.forces;
         if (b.id1 in right_atom_ids) & (b.id2 in left_atom_ids):
-            f_right += b.forces;
+            # F is right -> left
+            f_R2L += b.forces;
 
     # Compute stresses
 
-
-    (lower_atom_ids, upper_atom_ids, left_atom_ids, right_atom_ids) = boundary_sets_tuple;
-    
-    # Internal angle between x vector and y vector of the box.
-
     # Area
-    area_left_right = ((yhi - ylo)**2 + (xy)**2)**(1/2)
-    area_lower_upper = (xhi - xlo);
+    area_R2L = ((yhi - ylo)**2 + (xy)**2)**(1/2)
+    area_U2B = (xhi - xlo);
 
-    # Normal unit vectors on each boundary
+    # Normal unit vectors on each boundary (that we can about)
     xvect = np.array([xhi-xlo, 0      ,0]);
     yvect = np.array([   xy  , yhi-ylo,0]);
     zvect = np.array([0,0,1]);
 
-    n_left = np.cross(yvect,zvect);
-    n_left = n_left / np.linalg.norm(n_left);
-    n_right = -1 * n_left;
+    n_right = np.cross(yvect,zvect);
+    n_right = n_right / np.linalg.norm(n_right);
 
     n_upper = np.array([0, 1, 0]);
-    n_lower = -1 * n_upper;
 
-    # Internal Angle
+    # Internal angle of box
     cos_theta = np.dot(xvect, yvect) / (np.linalg.norm(xvect) * np.linalg.norm(yvect));
     angle_rad = np.arccos(np.clip(cos_theta, -1.0, 1.0));
     angle_deg = np.degrees(angle_rad);
 
-    normal_stress_left = np.dot([fx_left, fy_left, 0], n_left);
-    shear
+    normal_stress_R2L = np.dot(f_R2L, n_right)/area_R2L;
+    shear_stress_R2L = f_R2L/area_R2L - normal_stress_R2L;
 
-
-             
-# la plan
-
-# Get list of atoms from atom_state.dump
-# Read list of bonds from bond_state.dump 
-
-# Compute 4 sets: upper atoms, lower atoms, left atoms, right atoms
-
-# Loop through the list of bonds
-
-# for bond in lst_bonds:
-# if (bond.id1 in upper_atom_ids) && (bond.id2 in lower_atom_ids)
-# if (bond.id1 in lower_atom_ids) && (bond.id2 in upper_atom_ids)
-# if (bond.id1 in left_atom_ids)  && (bond.id2 in right_atom_ids)
-# if (bond.id1 in right_atom_ids) && (bond.id2 in left_atom_ids)
+    normal_stress_U2B = np.dot(f_U2B, n_upper)/area_U2B;
+    shear_stress_U2B = f_U2B/area_U2B - normal_stress_U2B;
