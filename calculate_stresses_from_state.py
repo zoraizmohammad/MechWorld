@@ -1,39 +1,125 @@
 from lammps_PG_objects import Atom, Bond, Angle;
 import numpy as np;
+import matplotlib as plt;
 
 def import_2D_triclinic_box_bounds_from_dump(filename : str) -> tuple[float, float, float, float, float]:
-    with open(filename,"r") as f:
-        pass
+    """
+    Expected format format:
+        ITEM: TIMESTEP
+        <int>
+        ITEM: NUMBER OF ATOMS
+        <int>
+        ITEM: BOX BOUNDS ...
+        <3 lines of floats>
+        ITEM: ENTRIES index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2] c_2[3] c_2[4]
+        <n lines of floats>
+        <EOF>
+    """
 
-def import_atoms_from_dump(filename : str) -> list[Atom]:
-    lst_atoms : list[Atom] = list();
+    # Break into lines
     with open(filename,"r") as f:
-        pass
+        lines = [line.strip() for line in f]
+
+    i = 4; # go to line number 5
+    if not lines[i].startswith("ITEM: BOX BOUNDS"):
+        raise ValueError("Unexpected format: BOX BOUNDS missing")
+
+    i += 1;
+    box_bounds = []
+    for j in range(3):
+        parts = list(map(float, lines[i+j].split()))
+        box_bounds.append(parts)
+
+    xlo = box_bounds[0][0]
+    xhi = box_bounds[0][1]
+    xy  = box_bounds[0][2]
+    ylo = box_bounds[0][0]
+    yhi = box_bounds[0][1]
+
+    return (xlo, xhi, xy, ylo, yhi)
+
+def import_atoms_from_dump(filename : str, triclinic_bounds) -> list[Atom]:
+    """
+    Expected format format:
+        ITEM: TIMESTEP
+        <int>
+        ITEM: NUMBER OF ATOMS
+        <int>
+        ITEM: BOX BOUNDS ...
+        <3 lines of floats>
+        ITEM: ATOMS <columns...>
+        <atom lines...>
+        <EOF>
+    """
+
+    (xlo, xhi, xy, ylo, yhi) = triclinic_bounds;
+
+    # Break into lines
+    with open(filename,"r") as f:
+        lines = [line.strip() for line in f]
+
+    i = 2; # 3rd Line
+    verify = "ITEM: NUMBER OF ATOMS";
+    if not lines[i].startswith(verify):
+        raise ValueError(f"Expected at line {i+1}: {verify}");
+    n_atoms = int(lines[i+1]);
+
+    i = 8; # 9th line
+    verify = "ITEM: ATOMS id mol type x y";
+    if not lines[i].startswith(verify):
+        raise ValueError(f"Expected at line {i+1}: {verify}");
+
+    lst_atoms : list[Atom] = list();
+    for ai in range(n_atoms):
+        atom_data = list(map(float, lines[i+1+ai].split()));
+        a = Atom(id=int(atom_data[0]), mol_id=int(atom_data[1]), atom_type=int(atom_data[2]), x=atom_data[3], y=atom_data[4], z=0);
+        a.correct_PCB(xlo, xhi, xy, ylo, yhi);
+        lst_atoms.append(a);
+
+    return lst_atoms
 
 def import_bonds_from_dump(filename : str) -> list[Atom]:
-    lst_bonds : list[Bond] = list();
+    """
+    Expected format format:
+        ITEM: TIMESTEP
+        <int>
+        ITEM: NUMBER OF ENTRIES
+        <int>
+        ITEM: BOX BOUNDS ...
+        <3 lines of floats>
+        ITEM: ENTRIES <columns...>
+        <atom lines...>
+        <EOF>
+    """
+
+    # Break into lines
     with open(filename,"r") as f:
-        pass
+        lines = [line.strip() for line in f]
 
-triclinic_bounds = import_2D_triclinic_box_bounds_from_dump("atom_state.dump");
-lst_atoms : list[Atom] = import_atoms_from_dump("atom_state.dump");
-lst_bonds : list[Bond] = import_bonds_from_dump("bond_state.dump");
+    i = 2; # 3rd Line
+    verify = "ITEM: NUMBER OF ENTRIES";
+    if not lines[i].startswith(verify):
+        raise ValueError(f"Expected at line {i+1}: {verify}");
+    n_bonds = int(lines[i+1]);
 
-#for i,a in enumerate(lst_atoms):
-#    lst_bonds[i] = a.
+    i = 8; # 9th line
+    verify = "ITEM: ENTRIES index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2] c_2[3] c_2[4]";
+    if not lines[i].startswith(verify):
+        raise ValueError(f"Expected at line {i+1}: {verify}");
 
-# slope of the triclinic boundary box line (left / right edges)
-(xlo, xhi, xy, ylo, yhi) = triclinic_bounds;
-m = (yhi - ylo) / (xy); # dy/dx
-# y = mx + b
-# a.y = m*a.x + ylo
-# a.x = (a.y - ylo)/m
+    lst_bonds : list[Bond] = list();
+    for j in range(n_bonds):
+        bond_data = list(map(float, lines[i+1+j].split()));
+        b = Bond(id=int(bond_data[0]), bond_type=int(bond_data[1]), atom_id_1=int(bond_data[2]), atom_id_2=int(bond_data[3]));
+        b.add_distance_and_forces(bond_data[4], bond_data[5], bond_data[6], bond_data[7]);
+        lst_bonds.append(b);
+
+    return lst_bonds
 
 def assemble_boundary_sets(lst_atoms, consideration_depth, triclinic_bounds) -> tuple[set[int], set[int], set[int], set[int]]:
     
     # This is our 2D restricted triclinic box
     (xlo, xhi, xy, ylo, yhi) = triclinic_bounds;
-    triclinic_slope = (yhi - ylo) / (xy); # dy/dx
 
     # Output order: Lower, Upper, Left, Right
     lower_atom_ids : set[int] = set();
@@ -49,20 +135,29 @@ def assemble_boundary_sets(lst_atoms, consideration_depth, triclinic_bounds) -> 
         # Top and bottom of the boundary box aren't tilted
         if a.y < ylo + consideration_depth:
             lower_atom_ids.add(a.id);
-        elif a.y > yhi + consideration_depth:
+        elif a.y > yhi - consideration_depth:
             upper_atom_ids.add(a.id);
 
-        # The left and right side walls are tilted, can be represented by a slope
-        if a.x < xlo + (a.y - ylo)/triclinic_slope + consideration_depth:
-            left_atom_ids.add(a.id);
-        elif a.x > xhi + (a.y - ylo)/triclinic_slope - consideration_depth:
-            right_atom_ids.add(a.id);
+        if (xy == 0):
+            # The left and right side walls are not tilted
+            if a.x < xlo + consideration_depth:
+                left_atom_ids.add(a.id);
+            elif a.x > xhi - consideration_depth:
+                right_atom_ids.add(a.id);
+        else:
+            # The left and right side walls are tilted, can be represented by a slope
+            triclinic_slope = (yhi - ylo) / (xy); # dy/dx
+        
+            if a.x < xlo + (a.y - ylo)/triclinic_slope + consideration_depth:
+                left_atom_ids.add(a.id);
+            elif a.x > xhi + (a.y - ylo)/triclinic_slope - consideration_depth:
+                right_atom_ids.add(a.id);
+    
+    print(f"Debug: IDs of atoms in each boundary region: \n Lower: {len(lower_atom_ids)} \n Upper: {len(upper_atom_ids)} \n Left: {len(left_atom_ids)} \n Right: {len(right_atom_ids)}")
 
     return (lower_atom_ids, upper_atom_ids, left_atom_ids, right_atom_ids);
 
-boundary_sets_tuple = assemble_boundary_sets(lst_atoms, consideration_depth=5, triclinic_slope=m)
-
-def compute_stress_at_boundary(lst_atoms, lst_bonds : list[Bond], boundary_sets_tuple):
+def compute_stress_at_boundary(lst_bonds : list[Bond], boundary_sets_tuple, triclinic_bounds):
 
     # Because we are using PBC, only two sets of forces need to be tracked: left/right (surface is slanted), upper/lower (surface || to x-axis)
     f_U2B = np.zeros(3); # Upper Surface -> Bottom Surface (normal points +y)
@@ -78,22 +173,30 @@ def compute_stress_at_boundary(lst_atoms, lst_bonds : list[Bond], boundary_sets_
     # how to account for this = enforce direction like left2right, = multiply right2left * -1
 
     (lower_atom_ids, upper_atom_ids, left_atom_ids, right_atom_ids) = boundary_sets_tuple;
- 
+    
+    boundary_bond_ids = set();
     for b in lst_bonds:
-        if (b.id1 in upper_atom_ids) & (b.id2 in lower_atom_ids):
+        if (b.atom_id_1 in upper_atom_ids) & (b.atom_id_2 in lower_atom_ids):
             # F is top -> bottom
             f_U2B += b.forces;
-        if (b.id1 in lower_atom_ids) & (b.id2 in upper_atom_ids):
+            boundary_bond_ids.add(b);
+        if (b.atom_id_1 in lower_atom_ids) & (b.atom_id_2 in upper_atom_ids):
             # F is bottom -> top (must flip)
             f_U2B -= b.forces;
-        if (b.id1 in left_atom_ids)  & (b.id2 in right_atom_ids):
+            boundary_bond_ids.add(b);
+        if (b.atom_id_1 in left_atom_ids)  & (b.atom_id_2 in right_atom_ids):
             # F is left -> right (must flip)
             f_R2L -= b.forces;
-        if (b.id1 in right_atom_ids) & (b.id2 in left_atom_ids):
+            boundary_bond_ids.add(b);
+        if (b.atom_id_1 in right_atom_ids) & (b.atom_id_2 in left_atom_ids):
             # F is right -> left
             f_R2L += b.forces;
+            boundary_bond_ids.add(b);
+    
+    print(f"Debug: found {len(boundary_bond_ids)} bonds that cross the periodic boundary.")
 
     # Compute stresses
+    (xlo, xhi, xy, ylo, yhi) = triclinic_bounds;
 
     # Area
     area_R2L = ((yhi - ylo)**2 + (xy)**2)**(1/2)
@@ -114,8 +217,54 @@ def compute_stress_at_boundary(lst_atoms, lst_bonds : list[Bond], boundary_sets_
     angle_rad = np.arccos(np.clip(cos_theta, -1.0, 1.0));
     angle_deg = np.degrees(angle_rad);
 
-    normal_stress_R2L = np.dot(f_R2L, n_right)/area_R2L;
-    shear_stress_R2L = f_R2L/area_R2L - normal_stress_R2L;
+    Fn_R2L = (np.dot(f_R2L, n_right))*n_right;
+    Ft_R2L = f_R2L - Fn_R2L;
 
-    normal_stress_U2B = np.dot(f_U2B, n_upper)/area_U2B;
-    shear_stress_U2B = f_U2B/area_U2B - normal_stress_U2B;
+    Fn_U2B = (np.dot(f_U2B, n_upper))*n_upper;
+    Ft_U2B = f_U2B - Fn_U2B;
+
+    #stress_tensor = np.array([
+    #    [np.linalg.norm(Fn_R2L)/area_R2L, np.linalg.norm(Ft_R2L)/area_R2L], # forces on slanted surface
+    #    [np.linalg.norm(Ft_U2B)/area_U2B, np.linalg.norm(Fn_U2B)/area_U2B]  # forces on aligned surface
+    #]);
+
+    euler_stress_tensor = np.array([
+        [f_R2L[0]/area_R2L, f_R2L[1]/area_R2L],         # sigma_xx, tau_xy [Pa]
+        [f_U2B[0]/area_U2B, f_U2B[1]/area_U2B]]) * 1E9; # sigma_yx, sigma_yy [Pa]
+    
+    # F has units of attogram-nanometer/nanosecond^2 = 1E-9 N
+    # A has units of nm*2 = 1E-18 m**2
+    # ... 1 attogram-nanometer/nanosecond^2 * 1/nm**2 = 1E9 Pa
+
+    return euler_stress_tensor;
+
+def visualizeSystem(lst_atoms, lst_bonds, triclinic_bounds):
+    (lower_atom_ids, upper_atom_ids, left_atom_ids, right_atom_ids) = assemble_boundary_sets(lst_atoms, 0, triclinic_bounds)
+    out_of_bound_count = len(lower_atom_ids) + len(upper_atom_ids) + len(left_atom_ids) + len(right_atom_ids)
+    print(f"Debug: {out_of_bound_count} atoms were detected outside the bounding box.")
+    pass
+
+# 
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("atom_file")
+parser.add_argument("bond_file")
+args = parser.parse_args()
+
+if args.atom_file and args.bond_file:
+    atom_file = args.atom_file;
+    bond_file = args.bond_file;
+
+# Read input
+triclinic_bounds = import_2D_triclinic_box_bounds_from_dump(atom_file);
+lst_atoms : list[Atom] = import_atoms_from_dump(atom_file, triclinic_bounds);
+lst_bonds : list[Bond] = import_bonds_from_dump(bond_file);
+
+# Compute: 
+#visualizeSystem(lst_atoms, lst_bonds, triclinic_bounds)
+boundary_sets_tuple = assemble_boundary_sets(lst_atoms, 10, triclinic_bounds)
+stress_tensor = compute_stress_at_boundary(lst_bonds, boundary_sets_tuple, triclinic_bounds)
+
+print(stress_tensor)
+

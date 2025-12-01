@@ -1,5 +1,14 @@
 import numpy as np;
 import numpy.typing as npt;
+from dataclasses import dataclass;
+
+@dataclass
+class TriclinicBounds:
+    xlo : float
+    xhi : float
+    xy  : float
+    ylo : float
+    yhi : float
 
 class Atom:
     def __init__(self, id : int, mol_id : int, atom_type : int, x : float, y : float, z : float):
@@ -71,3 +80,29 @@ class Angle:
 
     def to_datafile(self, f):
         f.write(f"{self.id} {self.angle_type} {self.atom_id_1} {self.atom_id_2} {self.atom_id_3}\n");
+
+    def correct_pcb(self, triclinic_bounds):
+        (xlo, xhi, xy, ylo, yhi) = triclinic_bounds;
+        w = xhi - xlo;
+        h = yhi - ylo;
+
+        # Top and bottom of the boundary box aren't tilted
+        if self.y < ylo:
+            self.y += h;
+        elif self.y > yhi:
+            self.y -= h;
+
+        if (xy == 0):
+            # The left and right side walls are not tilted
+            if self.y < xlo:
+                self.x += w;
+            elif self.y > xhi:
+                self.x -= w;
+        else:
+            # The left and right side walls are tilted, can be represented by a slope
+            triclinic_slope = (yhi - ylo) / (xy); # dy/dx
+        
+            if self.x < xlo + (self.y - ylo)/triclinic_slope:
+                self.x += w;
+            elif self.x > xhi + (self.y - ylo)/triclinic_slope:
+                self.x -= w;

@@ -38,34 +38,35 @@ angle_style harmonic
 angle_coeff 1 4.18E-2 180.0 # btype, K (E/rad^2), theta0 (deg). Note: K is placeholder from slides
 
 # 4) Monitoring
-thermo_style custom step etotal # Tell it to print step and total energy
+thermo_style custom step etotal pe # Tell it to print step and total energy
 thermo 1 # every iteration
 
 # https://docs.lammps.org/dump_image.html 
-dump 1 all image 50 dump.*.jpg type type bond type type atom no
+
 #dump_modify bond color type
 
 # 5) Start with minimized energy
-minimize 1.0e-6 1.0e-6 1000 10000
+dump 1 all image 500 dump.*.jpg type type bond type type atom no
+minimize 1.0e-6 1.0e-6 2000 10000
 
 # 6) Prescribe strain, let positions and velocities update
 fix 1 all nve                                          # Forces from bonds will result in motion 
-fix 2 all deform 10 x delta -5 5 units box remap none # Box deforms, do we want to remap velocity? remap v
-fix 2 all deform 10 xy delta 5 units box remap none # Box deforms, do we want to remap velocity? remap v
-
-run 5000
+fix 2 all deform 1 x delta -5 5 units box remap none # Box deforms, do we want to remap velocity? remap v
+#fix 2 all deform 10 xy delta 5 units box remap none # Box deforms, do we want to remap velocity? remap v
+# Potential Energy decrease solved -> need more run steps + lower mass
+run 20000
 
 #fix 2 all none
 minimize 1.0e-6 1.0e-6 1000 10000
 
 # https://docs.lammps.org/compute_bond_local.html
 # 7) Output for Python
-compute 1 all property/local batom1 batom2 btype
+compute 1 all property/local btype batom1 batom2
 compute 2 all bond/local dist fx fy fz
 run 0 # Computation happens at this step
 
 write_dump all local bond_state.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2] c_2[3] c_2[4]
-write_dump all custom atom_state.dump id mol x y
+write_dump all custom atom_state.dump id mol type x y
 
 # Next Action-Items:
 # 1. Look at examples of how people have computed stress in the past for material studies
