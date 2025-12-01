@@ -4,7 +4,7 @@
 
 # Define the finite deformation size. Try several values of this
 # variable to verify that results do not depend on it.
-variable up equal 0.1
+variable up equal 0.01
  
 # Define the amount of random jiggle for atoms
 # This prevents atoms from staying on saddle points
@@ -34,9 +34,9 @@ variable cfac equal 1.01325e-8 # 1 attogram/(nanometer-nanosecond^2) = E9 Pa = E
 variable cunits string GPa
 
 # Define minimization parameters
-variable etol equal 1.0e-6 
-variable ftol equal 1.0e-6
-variable maxiter equal 1000
+variable etol equal 1.0e-8 
+variable ftol equal 1.0e-8
+variable maxiter equal 10000
 variable maxeval equal 10000
 variable dmax equal 1.0e-2
 

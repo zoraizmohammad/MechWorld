@@ -82,15 +82,15 @@ variable deltayz equal ${up}*yz
 if "${dir} == 1" then &
    "fix 1 all nve" &
    "fix 2 all deform 10 x delta 0 ${delta} units box remap none" &	
-   "run 10000"
+   "run 50000"
 if "${dir} == 2" then &
    "fix 1 all nve" &
    "fix 2 all deform 10 y delta 0 ${delta} units box remap none" &	
-   "run 10000"
+   "run 50000"
 if "${dir} == 3" then &
    "fix 1 all nve" &
    "fix 2 all deform 1 xy delta ${delta} units box remap none" &	
-   "run 20000"
+   "run 50000"
 
 # Relax atoms positions
 

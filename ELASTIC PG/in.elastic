@@ -43,6 +43,12 @@
 #  init.mod. 
 #
 
+# Changes from baseline example:
+# 3x3 Tensor, using only x, y, xy
+# using fix nve + fix deform + run instead of change_box
+# only considering positive displacement (stretching)
+# units nano -> check cfactor
+
 include init.mod
 include potential.mod
 
