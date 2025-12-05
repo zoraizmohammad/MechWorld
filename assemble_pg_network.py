@@ -1,6 +1,5 @@
 # PG Network Assembly Script
 import numpy as np
-import io
 from math import sin, cos, floor
 from random import randrange, random, shuffle
 from collections import defaultdict
@@ -13,22 +12,20 @@ DSU = 2; #nm
 BOND_TYPE_GLYCAN = 1;
 BOND_TYPE_PEPTIDE = 2;
 ANGLE_TYPE_GLYCAN = 1;
-ATOM_TYPE_NOPEP_DSU = 1;
-ATOM_TYPE_BINDING_DSU = 2;
+ATOM_TYPE_POS_DSU = 1; # + orientation
+ATOM_TYPE_NEG_DSU = 2; # - orientation
 
-# Note: Cells are typically rod-shaped, and are about 2.0 μm long and 0.25–1.0 μm in diameter, with a cell volume of 0.6–0.7 μm3. (from Wikipedia)
-# 2um = 2000nm, 0.25-1.0um diameter = 785.40-3141.59nm in circumference.
+# https://en.wikipedia.org/wiki/KT_(energy)
+#E_PEPTIDE_CUTOFF = 4.11E-21 * 1E18; # 1 kT = 4.11E-21 J, 1 J = 1E18 attogram-nm2/ns2
 
-# Options
-rho = 1;                    # float; Higher = More Dense
-isotropic_parameter = 0.65; # 0-1; Higher = Orientation is More Random
-random_displacement_stdev = DSU*(1/(2*np.sqrt(2)));
-probability_that_DSU_can_bind = 0.4; # 0.4 - 0.6
-proportion_of_binding_DSU_simple = 2; # 1 of X DSU will have the ability to bind, spaced evenly not randomly
-glycan_gap = DSU / rho;
-column_gap = DSU / rho;
-SIMBOX_MAX_W = 50*DSU;
-SIMBOX_MAX_H = 50*DSU;
+# https://en.wikipedia.org/wiki/Peptidoglycan
+# https://en.wikipedia.org/wiki/N-Acetylglucosamine
+# https://en.wikipedia.org/wiki/N-Acetylmuramic_acid
+DSU_MOLAR_MASS = (221.21 + 293.272)/2; # g/mol
+A_NUM = 6.02214076E23;
+DSU_MASS_NANOGRAM = DSU_MOLAR_MASS / A_NUM * 1E9;
+
+del DSU_MOLAR_MASS, A_NUM;
 
 # Globals
 simbox_actual_width = 0; # TBD by population
@@ -50,9 +47,6 @@ for i,x in enumerate(DSUs):
     num_entries = floor(num_entries*10);
     distribution += [x] * num_entries;
 
-
-# print(distribution)
-
 def get_DSU_lengths(SIMBOX_MAX_H) -> tuple[list[int], float]:
     DSU_lengths = [];
     while (sum(DSU_lengths)*DSU + (len(DSU_lengths))*glycan_gap <= SIMBOX_MAX_H):
@@ -72,6 +66,8 @@ def get_DSU_lengths(SIMBOX_MAX_H) -> tuple[list[int], float]:
 def build_a_glycan(mol_id,x,y,dx=0,dy=0,numDSUs=1,alpha=0):
     # (x,y) is CENTER of the Molecule
 
+    per_glycan_DSU_orientation_randomizer = randrange(1,4);
+
     for i in range(0,numDSUs):
         xA = x+((i+1)-(numDSUs/2))*DSU*sin(alpha)+dx # nm, Applies rotation to x values, rotation is centered on midpoint.
         yA = y+((i+1)-(numDSUs/2))*DSU*cos(alpha)+dy # nm, Applies rotation to x values, rotation is centered on midpoint.
@@ -79,15 +75,13 @@ def build_a_glycan(mol_id,x,y,dx=0,dy=0,numDSUs=1,alpha=0):
         # Atoms
         atom_id = len(lst_of_atoms)+1;
 
-        #if (random() <= probability_that_DSU_can_bind):
-        #    lst_of_atoms.append(Atom(atom_id, mol_id, 2, xA, yA, 0))
-        #else:
-        #    lst_of_atoms.append(Atom(atom_id, mol_id, 1, xA, yA, 0))
-
-        if (atom_id % proportion_of_binding_DSU_simple == 0):
-            lst_of_atoms.append(Atom(atom_id, mol_id, 2, xA, yA, 0))
+        # Alternate Right-Reaching and Left-Reaching DSUs
+        tmp = (per_glycan_DSU_orientation_randomizer + atom_id) % 4;
+        
+        if (tmp == 1 or tmp == 2):
+            lst_of_atoms.append(Atom(atom_id, mol_id, ATOM_TYPE_NEG_DSU, xA, yA, 0))
         else:
-            lst_of_atoms.append(Atom(atom_id, mol_id, 1, xA, yA, 0))
+            lst_of_atoms.append(Atom(atom_id, mol_id, ATOM_TYPE_POS_DSU, xA, yA, 0))
 
         # Bonds
         if (i >= 1):
@@ -99,7 +93,7 @@ def build_a_glycan(mol_id,x,y,dx=0,dy=0,numDSUs=1,alpha=0):
             angle_id = len(lst_of_atoms)+1;
             lst_of_angles.append(Angle(angle_id, ANGLE_TYPE_GLYCAN, lst_of_atoms[-3].id, lst_of_atoms[-2].id, lst_of_atoms[-1].id))
 
-def row_trot(x):
+def row_trot(x, ):
     # Walk down a row and populate it with rotated glycans
     global molecule_counter;
 
@@ -129,18 +123,6 @@ def row_trot(x):
 
         y += (DSU_length/2)*DSU + new_glycan_gap # nm
 
-x = column_gap/2;
-while True:
-    # Interating across the columns
-    if (x + column_gap > SIMBOX_MAX_W):
-        simbox_actual_height = SIMBOX_MAX_H;
-        simbox_actual_width = x;
-        break
-    
-    row_trot(x);
-
-    x += column_gap;
-
 def put_the_atoms_into_a_spatial_hash_smh(cell_size): # Saw this in a yt video once
     grid = defaultdict(list)
     is_of_eligible_atoms = list();
@@ -149,7 +131,7 @@ def put_the_atoms_into_a_spatial_hash_smh(cell_size): # Saw this in a yt video o
     mcy = floor(simbox_actual_height / cell_size);
 
     for idx, a in enumerate(lst_of_atoms):
-        if a.is_eligible(ATOM_TYPE_BINDING_DSU):
+        if a.is_eligible():
             cx = floor(a.x / cell_size)
             cy = floor(a.y / cell_size)
 
@@ -175,7 +157,7 @@ def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list]
     a : Atom = lst_of_atoms[idx_of_atom];
 
     # It could be ineligible because another bond was formed with it.
-    if not a.is_eligible(ATOM_TYPE_BINDING_DSU):
+    if not a.is_eligible():
         return;
 
     mcx = floor(simbox_actual_width / cell_size);
@@ -210,27 +192,61 @@ def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list]
     # I'm retrieving the entire list so we can implement more complex bonding criteria in the future
     # print(f"{a.id} -> {neighbors_idxs}");
 
+    energy_ideal_neighbor = float("Inf");
+    idx_ideal_neighbor = None;
+
+    # Speed date all the neighbors to see who's the best match
     for idx_of_neighbor in neighbors_idxs:
         neighbor : Atom = lst_of_atoms[idx_of_neighbor]
 
-        if (not neighbor.is_eligible(ATOM_TYPE_BINDING_DSU)):
+        # Disregard if the orientations (+/-) are the same
+        if (a.atom_type == neighbor.atom_type):
             continue;
 
+        # Cannot form bond that connects to the same Glycan strand
         if (neighbor.mol_id == a.mol_id):
-            #print(a.mol_id)
             continue;
-
-        if not periodic_distance_test(neighbor.x, neighbor.y, a.x, a.y, cell_size):
+        
+        # Cannot form bond if the neighbor is ineligible (e.g. it has a peptide already)
+        if (not neighbor.is_eligible()):
             continue;
+        
+        # Cannot form bond if the neighbor is too far away
+        r_neighbor = np.sqrt(periodic_distance_squared(neighbor.x, neighbor.y, a.x, a.y));
+        E_neighbor = peptide_energy_lammps(r_neighbor);
 
-        lst_of_bonds.append(Bond(len(lst_of_bonds)+1, BOND_TYPE_PEPTIDE, a.id, neighbor.id))
+        #print(E_neighbor);
+    
+        if (E_neighbor == None) or (E_neighbor >= E_PEPTIDE_CUTOFF):
+            continue;
+    
+        if E_neighbor < energy_ideal_neighbor:
+            energy_ideal_neighbor = E_neighbor;
+            idx_ideal_neighbor = idx_of_neighbor;
+
+    del idx_of_neighbor
+
+    if (idx_ideal_neighbor == None):
+        # It's a sad lonely life for this DSU...
+        pass
+    else:
+        # We have an ideal neighbor, form a bond!
+        lst_of_bonds.append(Bond(len(lst_of_bonds)+1, BOND_TYPE_PEPTIDE, a.id, lst_of_atoms[idx_ideal_neighbor].id))
         lst_of_atoms[idx_of_atom].has_peptide = True;
-        lst_of_atoms[idx_of_neighbor].has_peptide = True;
-        #print(f"Created bond between {a.id} <> {neighbor.id}")
-        return;
+        lst_of_atoms[idx_ideal_neighbor].has_peptide = True;
 
-def periodic_distance_test(x1,y1,x2,y2,r) -> bool:
+    return;
 
+def peptide_energy_lammps(bond_distance) -> float | None:
+    return lammps_nonlinear(bond_distance, 0.1709, 0.9065, 4.0878)
+
+def lammps_nonlinear(r, esp, r0, lambd) -> float | None:
+    if ((r-r0) >= lambd):
+        return None
+    else:
+        return esp*(r-r0)**2 / (lambd**2 - (r-r0)**2);
+
+def periodic_distance_squared(x1,y1,x2,y2) -> float:
     # The 'aforementioned spaghetti' problem was also because of this
     if (x1 < 0):
         x1 += simbox_actual_width;
@@ -252,11 +268,14 @@ def periodic_distance_test(x1,y1,x2,y2,r) -> bool:
     elif (y2 > simbox_actual_height):
         y2 -= simbox_actual_height;
 
-    return (x1 - x2)**2 + (y1 - y2)**2 < r**2
+    return (x1 - x2)**2 + (y1 - y2)**2
+
+def periodic_distance_test(x1,y1,x2,y2,r) -> bool:
+    return periodic_distance_squared(x1,y1,x2,y2) < r**2
 
 def go_go_gadget_peptide_bonds():
-    peptide_bonding_radius = 4.5; # nm, This is the limit of Peptide length with model we use
-    (grid, idxs_of_eligible_atoms) = put_the_atoms_into_a_spatial_hash_smh(peptide_bonding_radius)
+    peptide_bond_search_radius = PEPTIDE_SEARCH_RADIUS; # nm, this is a greater length 
+    (grid, idxs_of_eligible_atoms) = put_the_atoms_into_a_spatial_hash_smh(peptide_bond_search_radius)
 
     #print(grid)
 
@@ -268,14 +287,11 @@ def go_go_gadget_peptide_bonds():
 
     shuffle(idxs_of_eligible_atoms)
     for i in range(0, len(idxs_of_eligible_atoms)):
-        create_bond_with_nearby_neighbor(idxs_of_eligible_atoms[i], grid, peptide_bonding_radius)
+        create_bond_with_nearby_neighbor(idxs_of_eligible_atoms[i], grid, peptide_bond_search_radius)
 
-# Create Peptide Bonds
-go_go_gadget_peptide_bonds()
 
-# Transform Coordinates of Atoms
-for a in lst_of_atoms:
-    a.translate(-simbox_actual_width/2, -simbox_actual_height/2, 0);
+# Output percentage of cross-linked polymers
+# Plot that compares density to cross-linked polymers
 
 def write_to_laamps_datafile(filename):
     with open(filename, "w") as f:
@@ -296,8 +312,8 @@ def write_to_laamps_datafile(filename):
         f.write("\n")
 
         f.write(f"Masses\n\n")
-        f.write(f"1 1.0\n")
-        f.write(f"2 1.0\n")
+        f.write(f"1 {DSU_MASS_NANOGRAM}\n")
+        f.write(f"2 {DSU_MASS_NANOGRAM}\n")
 
         f.write(f"\nAtoms\n\n")
         for a in lst_of_atoms:
@@ -311,5 +327,68 @@ def write_to_laamps_datafile(filename):
         for c in lst_of_angles:
             c.to_datafile(f)
 
-# Write everything to LAMMPS datafile
-write_to_laamps_datafile("file.data");
+def compute_crosslink_ratio(number_of_atoms : int, lst_of_bonds : list[Bond]):
+    # Count number of cross-links formed
+    crosslink_cnt = 0;
+    for b in lst_of_bonds:
+        if b.bond_type == 2:
+            crosslink_cnt += 1;
+    
+    crosslink_ratio = (2*crosslink_cnt) / number_of_atoms;
+    return crosslink_ratio;
+
+# Note: Cells are typically rod-shaped, and are about 2.0 μm long and 0.25–1.0 μm in diameter, with a cell volume of 0.6–0.7 μm3. (from Wikipedia)
+# 2um = 2000nm, 0.25-1.0um diameter = 785.40-3141.59nm in circumference.
+
+# https://en.wikipedia.org/wiki/KT_(energy)
+# 1 kT = 4.11E-21 J at 298K
+E_PEPTIDE_CUTOFF = 1 * 4.11E-21 * 1E18; 
+PEPTIDE_SEARCH_RADIUS = 1.62; # nm
+
+print(peptide_energy_lammps(PEPTIDE_SEARCH_RADIUS) - E_PEPTIDE_CUTOFF)
+if (peptide_energy_lammps(PEPTIDE_SEARCH_RADIUS) - E_PEPTIDE_CUTOFF < 0):
+    raise ValueError("PEPTIDE SEARCH RADIUS needs to be increased to allow for higher energy peptides to form.")
+
+def generate_pg_network(box_size_DSU : float = 100, rho : float = 1, X : float = 0.65, filename : str = None):
+
+    # Std Deviation of Random Displacement
+    global random_displacement_stdev; random_displacement_stdev = DSU*(1/(2*np.sqrt(2)));
+
+    # Global constants for other functions
+    global isotropic_parameter; isotropic_parameter = X;
+    global glycan_gap; glycan_gap = DSU / rho;
+    global column_gap; column_gap = DSU / rho;
+    global SIMBOX_MAX_W; SIMBOX_MAX_W = box_size_DSU*DSU;
+    global SIMBOX_MAX_H; SIMBOX_MAX_H = box_size_DSU*DSU;
+
+    # Populate Glycans
+    x = column_gap/2;
+    while True:
+        # Interating across the columns
+        if (x + column_gap > SIMBOX_MAX_W):
+            simbox_actual_height = SIMBOX_MAX_H;
+            simbox_actual_width = x;
+            break
+        
+        row_trot(x);
+
+        x += column_gap;
+    
+    # Create Peptide Bonds
+    go_go_gadget_peptide_bonds()
+
+    # Count Cross-Linking
+    crosslink_ratio = compute_crosslink_ratio(len(lst_of_atoms), lst_of_bonds)
+
+    # Transform Coordinates of Atoms
+    for a in lst_of_atoms:
+        a.translate(-simbox_actual_width/2, -simbox_actual_height/2, 0);
+    
+    if not filename == None:
+        # Write everything to LAMMPS datafile
+        write_to_laamps_datafile(filename);
+
+    return crosslink_ratio, lst_of_atoms, lst_of_bonds, lst_of_angles;
+
+#(a, _, _, _ ) = generate_pg_network();
+#print(a)
