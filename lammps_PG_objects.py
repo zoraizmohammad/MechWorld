@@ -28,14 +28,11 @@ class Atom:
     def to_datafile(self, f):
         f.write(f"{self.id} {self.mol_id} {self.atom_type} {self.x:.2f} {self.y:.2f} {self.z:.2f}\n")
 
-    def is_eligible(self,ATOM_TYPE_BINDING_DSU) -> bool:
-        if self.atom_type != ATOM_TYPE_BINDING_DSU:
-            return False;
-    
+    def is_eligible(self) -> bool:    
         if self.has_peptide:
             return False;
-
-        return True;
+        else:
+            return True;
 
     def correct_PCB(self, xlo, xhi, xy, ylo, yhi):
         # Transforms the atom's position to be within the boundary of the original periodic box
@@ -46,13 +43,18 @@ class Atom:
             self.y -= h;
         elif self.y < ylo:
             self.y += h;
-
-        triclinic_slope = (h) / (xy);
-
-        if self.x < xlo + (self.y - ylo)/triclinic_slope:
-            self.x += w;
-        elif self.x > xhi + (self.y - ylo)/triclinic_slope:
-            self.x -= w;
+        
+        if (xy == 0):
+            if self.x < xlo:
+                self.x += w;
+            elif self.x > xhi:
+                self.x -= w;
+        else:
+            triclinic_slope = (h) / (xy);
+            if self.x < xlo + (self.y - ylo)/triclinic_slope:
+                self.x += w;
+            elif self.x > xhi + (self.y - ylo)/triclinic_slope:
+                self.x -= w;
 
 class Bond:
     def __init__(self, id : int, bond_type : int, atom_id_1 : int, atom_id_2 : int):

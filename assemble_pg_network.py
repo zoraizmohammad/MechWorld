@@ -8,7 +8,7 @@ from lammps_PG_objects import Atom, Bond, Angle
 rng = np.random.default_rng()
 
 # Constants
-DSU = 2; #nm
+DSU = 1.03; #nm # Should it be 1.03 or 2? Xioxuan 2024 vs. Nyugen 2015
 BOND_TYPE_GLYCAN = 1;
 BOND_TYPE_PEPTIDE = 2;
 ANGLE_TYPE_GLYCAN = 1;
@@ -26,14 +26,6 @@ A_NUM = 6.02214076E23;
 DSU_MASS_NANOGRAM = DSU_MOLAR_MASS / A_NUM * 1E9;
 
 del DSU_MOLAR_MASS, A_NUM;
-
-# Globals
-simbox_actual_width = 0; # TBD by population
-simbox_actual_height = 0; # TBD by population
-molecule_counter = 0;
-lst_of_atoms : list[Atom] = list(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
-lst_of_bonds : list[Bond] = list();
-lst_of_angles :  list[Angle] = list();
 
 # Random Distribution Array
 # Koch, A. L. (2000a). Length distribution of the peptidoglycan chains in the sacculus of
@@ -224,8 +216,6 @@ def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list]
             energy_ideal_neighbor = E_neighbor;
             idx_ideal_neighbor = idx_of_neighbor;
 
-    del idx_of_neighbor
-
     if (idx_ideal_neighbor == None):
         # It's a sad lonely life for this DSU...
         pass
@@ -334,8 +324,9 @@ def compute_crosslink_ratio(number_of_atoms : int, lst_of_bonds : list[Bond]):
         if b.bond_type == 2:
             crosslink_cnt += 1;
     
+    density_fraction = (number_of_atoms * DSU**2) / (simbox_actual_width * simbox_actual_height);
     crosslink_ratio = (2*crosslink_cnt) / number_of_atoms;
-    return crosslink_ratio;
+    return density_fraction, crosslink_ratio;
 
 # Note: Cells are typically rod-shaped, and are about 2.0 μm long and 0.25–1.0 μm in diameter, with a cell volume of 0.6–0.7 μm3. (from Wikipedia)
 # 2um = 2000nm, 0.25-1.0um diameter = 785.40-3141.59nm in circumference.
@@ -349,17 +340,33 @@ print(peptide_energy_lammps(PEPTIDE_SEARCH_RADIUS) - E_PEPTIDE_CUTOFF)
 if (peptide_energy_lammps(PEPTIDE_SEARCH_RADIUS) - E_PEPTIDE_CUTOFF < 0):
     raise ValueError("PEPTIDE SEARCH RADIUS needs to be increased to allow for higher energy peptides to form.")
 
-def generate_pg_network(box_size_DSU : float = 100, rho : float = 1, X : float = 0.65, filename : str = None):
+# Globals
+simbox_actual_width = 0; # TBD by population
+simbox_actual_height = 0; # TBD by population
+molecule_counter = 0;
+lst_of_atoms : list[Atom] = list(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
+lst_of_bonds : list[Bond] = list();
+lst_of_angles :  list[Angle] = list();
+
+def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : float = 1, X : float = 0.65, filename : str = None):
 
     # Std Deviation of Random Displacement
     global random_displacement_stdev; random_displacement_stdev = DSU*(1/(2*np.sqrt(2)));
 
     # Global constants for other functions
     global isotropic_parameter; isotropic_parameter = X;
-    global glycan_gap; glycan_gap = DSU / rho;
-    global column_gap; column_gap = DSU / rho;
+    global glycan_gap; glycan_gap = DSU / glycan_packing_factor;
+    global column_gap; column_gap = DSU / glycan_packing_factor;
     global SIMBOX_MAX_W; SIMBOX_MAX_W = box_size_DSU*DSU;
     global SIMBOX_MAX_H; SIMBOX_MAX_H = box_size_DSU*DSU;
+
+    # Reset Globals
+    global simbox_actual_height; simbox_actual_height = 0;
+    global simbox_actual_width; simbox_actual_width = 0;
+    global molecule_counter;    molecule_counter = 0;
+    global lst_of_atoms;  lst_of_atoms = list(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
+    global lst_of_bonds;  lst_of_bonds = list();
+    global lst_of_angles; lst_of_angles = list();
 
     # Populate Glycans
     x = column_gap/2;
@@ -378,7 +385,7 @@ def generate_pg_network(box_size_DSU : float = 100, rho : float = 1, X : float =
     go_go_gadget_peptide_bonds()
 
     # Count Cross-Linking
-    crosslink_ratio = compute_crosslink_ratio(len(lst_of_atoms), lst_of_bonds)
+    density_fraction, crosslink_ratio = compute_crosslink_ratio(len(lst_of_atoms), lst_of_bonds)
 
     # Transform Coordinates of Atoms
     for a in lst_of_atoms:
@@ -388,7 +395,4 @@ def generate_pg_network(box_size_DSU : float = 100, rho : float = 1, X : float =
         # Write everything to LAMMPS datafile
         write_to_laamps_datafile(filename);
 
-    return crosslink_ratio, lst_of_atoms, lst_of_bonds, lst_of_angles;
-
-#(a, _, _, _ ) = generate_pg_network();
-#print(a)
+    return density_fraction, crosslink_ratio, lst_of_atoms, lst_of_bonds, lst_of_angles;

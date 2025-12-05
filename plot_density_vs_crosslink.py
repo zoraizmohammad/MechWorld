@@ -2,19 +2,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 from assemble_pg_network import generate_pg_network
 
-n = 5;
-density_sweep = np.linspace(0.1, 5, n)
-link_sweep = np.zeros(n)
+nPacking = 30;
+
+tilt_factor_sweep = np.array([0.33, 0.72, 1.0])
+packing_factor_sweep = np.linspace(0.1, 4, nPacking)
+density_fraction_sweep = np.zeros([nPacking, len(tilt_factor_sweep)])
+link_sweep             = np.zeros([nPacking, len(tilt_factor_sweep)])
 
 #print(density_sweep)
 
-for i, rho in enumerate(density_sweep):
-    (link_sweep[i], _, _, _) = generate_pg_network(100, rho, 0.65, None);
+for j, tilt_factor in enumerate(tilt_factor_sweep):
+    for i, packing_factor in enumerate(packing_factor_sweep):
+        print(tilt_factor, packing_factor)
+        (density_fraction_sweep[i,j], link_sweep[i,j], _, _, _) = generate_pg_network(100, packing_factor, tilt_factor, None);
 
-plt.plot(density_sweep, link_sweep)
+print(link_sweep)
+
+plt.plot(density_fraction_sweep[:,0], link_sweep[:,0])
+plt.plot(density_fraction_sweep[:,1], link_sweep[:,1])
+plt.plot(density_fraction_sweep[:,2], link_sweep[:,2])
 plt.title("Cross Linking vs. Density Parameter")
-plt.xlabel("Density (rho)")
-plt.ylabel("Cross-Linking Percentage (a.u.)")
-plt.show()
+plt.legend([f"X = {tilt_factor_sweep[0]}",f"X = {tilt_factor_sweep[1]}",f"X = {tilt_factor_sweep[2]}"]);
+plt.grid(True);
+plt.xlabel("Density Fraction of Glycans");
+plt.ylabel("Cross-linking Percentage");
+plt.show();
 
 # CHECK CURVE FIT FOR DIMENSIONAL ACCURACY
+# Nyugen 2015 says that the DSU length should be 2 nm
+# Xaoxuan uses 1.03 nm for this value -> what should we proceed with?
