@@ -2,6 +2,24 @@ import numpy as np;
 import numpy.typing as npt;
 from dataclasses import dataclass;
 
+# Constants
+DSU = 1.03; #nm # Should it be 1.03 or 2? Xioxuan 2024 vs. Nyugen 2015
+BOND_TYPE_GLYCAN = 1;
+BOND_TYPE_PEPTIDE = 2;
+ANGLE_TYPE_GLYCAN = 1;
+ATOM_TYPE_POS_DSU = 1; # + orientation
+ATOM_TYPE_NEG_DSU = 2; # - orientation
+
+# https://en.wikipedia.org/wiki/KT_(energy)
+#E_PEPTIDE_CUTOFF = 4.11E-21 * 1E18; # 1 kT = 4.11E-21 J, 1 J = 1E18 attogram-nm2/ns2
+
+# https://en.wikipedia.org/wiki/Peptidoglycan
+# https://en.wikipedia.org/wiki/N-Acetylglucosamine
+# https://en.wikipedia.org/wiki/N-Acetylmuramic_acid
+DSU_MOLAR_MASS = (221.21 + 293.272)/2; # g/mol
+A_NUM = 6.02214076E23;
+DSU_MASS_NANOGRAM = DSU_MOLAR_MASS / A_NUM * 1E9;
+
 @dataclass
 class TriclinicBounds:
     xlo : float
@@ -64,6 +82,7 @@ class Bond:
         self.atom_id_2 = atom_id_2;
         self.dist : float | None = None;
         self.forces : npt.NDArray[np.float64] | None = None;
+        self.force_norm : np.float64 | None = None;
 
     def to_datafile(self, f):
         f.write(f"{self.id} {self.bond_type} {self.atom_id_1} {self.atom_id_2}\n")
@@ -71,6 +90,7 @@ class Bond:
     def add_distance_and_forces(self,dist,fx,fy,fz):
         self.dist = dist;
         self.forces = np.array([fx,fy,fz]);
+        self.force_norm = np.linalg.norm(self.forces);
 
 class Angle:
     def __init__(self, id : int, angle_type : int, atom_id_1 : int, atom_id_2 : int, atom_id_3 : int):

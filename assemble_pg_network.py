@@ -7,25 +7,7 @@ from lammps_PG_objects import Atom, Bond, Angle
 
 rng = np.random.default_rng()
 
-# Constants
-DSU = 1.03; #nm # Should it be 1.03 or 2? Xioxuan 2024 vs. Nyugen 2015
-BOND_TYPE_GLYCAN = 1;
-BOND_TYPE_PEPTIDE = 2;
-ANGLE_TYPE_GLYCAN = 1;
-ATOM_TYPE_POS_DSU = 1; # + orientation
-ATOM_TYPE_NEG_DSU = 2; # - orientation
-
-# https://en.wikipedia.org/wiki/KT_(energy)
-#E_PEPTIDE_CUTOFF = 4.11E-21 * 1E18; # 1 kT = 4.11E-21 J, 1 J = 1E18 attogram-nm2/ns2
-
-# https://en.wikipedia.org/wiki/Peptidoglycan
-# https://en.wikipedia.org/wiki/N-Acetylglucosamine
-# https://en.wikipedia.org/wiki/N-Acetylmuramic_acid
-DSU_MOLAR_MASS = (221.21 + 293.272)/2; # g/mol
-A_NUM = 6.02214076E23;
-DSU_MASS_NANOGRAM = DSU_MOLAR_MASS / A_NUM * 1E9;
-
-del DSU_MOLAR_MASS, A_NUM;
+from lammps_PG_objects import DSU, BOND_TYPE_GLYCAN, BOND_TYPE_PEPTIDE, ANGLE_TYPE_GLYCAN, ATOM_TYPE_POS_DSU, ATOM_TYPE_NEG_DSU, DSU_MASS_NANOGRAM;
 
 # Random Distribution Array
 # Koch, A. L. (2000a). Length distribution of the peptidoglycan chains in the sacculus of

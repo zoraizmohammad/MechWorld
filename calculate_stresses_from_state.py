@@ -1,6 +1,8 @@
 from lammps_PG_objects import Atom, Bond, Angle;
+from lammps_PG_objects import DSU, BOND_TYPE_GLYCAN, BOND_TYPE_PEPTIDE, ANGLE_TYPE_GLYCAN, ATOM_TYPE_POS_DSU, ATOM_TYPE_NEG_DSU, DSU_MASS_NANOGRAM;
 import numpy as np;
-import matplotlib as plt;
+import matplotlib.pyplot as plt;
+import matplotlib as mpl;
 
 def import_2D_triclinic_box_bounds_from_dump(filename : str) -> tuple[float, float, float, float, float]:
     """
@@ -75,6 +77,8 @@ def import_atoms_from_dump(filename : str, triclinic_bounds) -> list[Atom]:
         a = Atom(id=int(atom_data[0]), mol_id=int(atom_data[1]), atom_type=int(atom_data[2]), x=atom_data[3], y=atom_data[4], z=0);
         a.correct_PCB(xlo, xhi, xy, ylo, yhi);
         lst_atoms.append(a);
+    
+    lst_atoms.sort(key=lambda Atom: Atom.id)
 
     return lst_atoms
 
@@ -153,7 +157,7 @@ def assemble_boundary_sets(lst_atoms, consideration_depth, triclinic_bounds) -> 
             elif a.x > xhi + (a.y - ylo)/triclinic_slope - consideration_depth:
                 right_atom_ids.add(a.id);
     
-    print(f"Debug: IDs of atoms in each boundary region: \n Lower: {len(lower_atom_ids)} \n Upper: {len(upper_atom_ids)} \n Left: {len(left_atom_ids)} \n Right: {len(right_atom_ids)}")
+    #print(f"Debug: IDs of atoms in each boundary region: \n Lower: {len(lower_atom_ids)} \n Upper: {len(upper_atom_ids)} \n Left: {len(left_atom_ids)} \n Right: {len(right_atom_ids)}")
 
     return (lower_atom_ids, upper_atom_ids, left_atom_ids, right_atom_ids);
 
@@ -238,15 +242,97 @@ def compute_stress_at_boundary(lst_bonds : list[Bond], boundary_sets_tuple, tric
 
     return euler_stress_tensor;
 
-def visualizeSystem(lst_atoms, lst_bonds, triclinic_bounds):
+def visualizeForceHistogram(lst_bonds : list[Bond]):
+    #https://matplotlib.org/stable/gallery/statistics/hist.html
+
+    fmax = max(lst_bonds, key=lambda x: x.force_norm).force_norm;
+    fmin = min(lst_bonds, key=lambda x: x.force_norm).force_norm;
+
+    force_magnitudes_glycan = list()
+    force_magnitudes_peptide = list()
+
+    for b in lst_bonds: 
+        if b.bond_type == BOND_TYPE_GLYCAN:
+            force_magnitudes_glycan.append(b.force_norm);
+        elif b.bond_type == BOND_TYPE_PEPTIDE:
+            force_magnitudes_peptide.append(b.force_norm);
+        else:
+            continue;
+
+    fig, ax = plt.subplots(2,1,tight_layout=True)
+
+    # We can set the number of bins with the *bins* keyword argument.
+    n_bins = 50;
+    ax[0].hist(force_magnitudes_glycan, bins=n_bins)
+    ax[1].hist(force_magnitudes_peptide, bins=n_bins)
+
+    ax[0].set_xlim(fmin, fmax)
+    ax[0].set_ylabel('Number of Bonds');
+    ax[0].set_xlabel('Bond Force [nN]')
+    ax[0].set_title("Glycan")
+
+    ax[1].set_xlim(fmin, fmax)
+    ax[1].set_ylabel('Number of Bonds');
+    ax[1].set_xlabel('Bond Force [nN]')
+    ax[1].set_title("Peptide")
+
+    plt.show();
+
+def visualizeForceChains(lst_atoms : list[Atom], lst_bonds : list[Bond], triclinic_bounds, boundary_sets_tuple):
+    print(f"Total Number of Atoms: {len(lst_atoms)}")
+    print(f"Total Number of Bonds: {len(lst_bonds)}")
+
     (lower_atom_ids, upper_atom_ids, left_atom_ids, right_atom_ids) = assemble_boundary_sets(lst_atoms, 0, triclinic_bounds)
     out_of_bound_count = len(lower_atom_ids) + len(upper_atom_ids) + len(left_atom_ids) + len(right_atom_ids)
+    
     print(f"Debug: {out_of_bound_count} atoms were detected outside the bounding box.")
-    pass
 
+    (lower_atom_ids, upper_atom_ids, left_atom_ids, right_atom_ids) = boundary_sets_tuple;
+
+    fmax = max(lst_bonds, key=lambda x: x.force_norm).force_norm;
+    fmin = min(lst_bonds, key=lambda x: x.force_norm).force_norm;
+
+    #norm = mpl.colors.LogNorm(vmin=fmin, vmax=fmax)
+    norm = mpl.colors.Normalize(vmin=fmin, vmax=fmax)
+    cmap = plt.cm.afmhot
+    # list(colormaps)
+    # https://matplotlib.org/stable/users/explain/colors/colormaps.html#colormaps
+    # https://matplotlib.org/stable/users/explain/colors/colormapnorms.html
+    # https://matplotlib.org/stable/users/explain/colors/colorbar_only.html#colorbar-attached-next-to-a-pre-existing-axes 
+
+    fig, ax = plt.subplots()
+
+    for b in lst_bonds:
+        
+        if b.atom_id_1 in lower_atom_ids and b.atom_id_2 in upper_atom_ids:
+            continue;
+        elif b.atom_id_1 in upper_atom_ids and b.atom_id_2 in lower_atom_ids:
+            continue;
+        
+        if b.atom_id_1 in left_atom_ids and b.atom_id_2 in right_atom_ids:
+            continue;
+        elif b.atom_id_1 in right_atom_ids and b.atom_id_2 in left_atom_ids:
+            continue;
+            
+        a1 = lst_atoms[b.atom_id_1-1];
+        a2 = lst_atoms[b.atom_id_2-1];
+
+        #print(f"{b.atom_id_1} =?= {a1.id})");
+
+        ax.plot([a1.x,a2.x],[a1.y,a2.y],color=cmap(norm(b.force_norm)));
+
+    fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
+             ax=ax, orientation='vertical', label='Force [nN]')
+    plt.show();
+
+def determineColor(f, fmax, fmin) -> tuple[float,float,float]:
+    # https://matplotlib.org/stable/users/explain/colors/colors.html)
+    fmean = (fmax + fmin) / 2
+    red = (f - fmin)/(fmax-fmin); # Linear
+    # red = np.log(((f - fmin)/(fmax-fmin) + 1)*np.exp(1) / 2) # Log
+    return (red, 0, 0)
 # 
 import argparse
-
 parser = argparse.ArgumentParser()
 parser.add_argument("atom_file")
 parser.add_argument("bond_file")
@@ -262,9 +348,11 @@ lst_atoms : list[Atom] = import_atoms_from_dump(atom_file, triclinic_bounds);
 lst_bonds : list[Bond] = import_bonds_from_dump(bond_file);
 
 # Compute: 
-#visualizeSystem(lst_atoms, lst_bonds, triclinic_bounds)
 boundary_sets_tuple = assemble_boundary_sets(lst_atoms, 10, triclinic_bounds)
-stress_tensor = compute_stress_at_boundary(lst_bonds, boundary_sets_tuple, triclinic_bounds)
+#stress_tensor = compute_stress_at_boundary(lst_bonds, boundary_sets_tuple, triclinic_bounds)
+visualizeForceChains(lst_atoms, lst_bonds, triclinic_bounds, boundary_sets_tuple)
+visualizeForceHistogram(lst_bonds)
 
-print(stress_tensor)
+# Output:
+#print(stress_tensor)
 
