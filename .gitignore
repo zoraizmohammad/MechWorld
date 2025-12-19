@@ -4,3 +4,4 @@
 *.jpg
 *.data
 __pycache__/*
+ELASTIC_2D_ZERO_TEMP/cubic_*
