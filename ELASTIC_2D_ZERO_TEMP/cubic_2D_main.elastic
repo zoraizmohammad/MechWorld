@@ -1,0 +1,114 @@
+include cubic_3D_init.mod
+include cubic_3D_potential.mod
+
+# Compute initial state
+fix 3 all box/relax  aniso 0.0
+write_dump all image dump.raw.jpg type type
+minimize ${etol} ${ftol} ${maxiter} ${maxeval}
+write_dump all image dump.min.jpg type type
+
+run 0
+variable tmp equal pxx
+print "******************************* Current PXX is: ${tmp}"
+variable tmp equal pe
+print "******************************* Current PE is: ${tmp}"
+
+variable tmp equal pxx
+variable pxx0 equal ${tmp}
+variable tmp equal pyy
+variable pyy0 equal ${tmp}
+variable tmp equal pxy
+variable pxy0 equal ${tmp}
+
+variable tmp equal lx
+variable lx0 equal ${tmp}
+variable tmp equal ly
+variable ly0 equal ${tmp}
+variable tmp equal lz
+variable lz0 equal ${tmp}
+
+# These formulas define the derivatives w.r.t. strain components
+# Constants uses $, variables use v_ 
+variable d1 equal -(v_pxx1-${pxx0})/(v_delta/v_len0)*${cfac}
+variable d2 equal -(v_pyy1-${pyy0})/(v_delta/v_len0)*${cfac}
+variable d3 equal -(v_pxy1-${pxy0})/(v_delta/v_len0)*${cfac}
+
+displace_atoms all random ${atomjiggle} ${atomjiggle} 0 87287 units box
+
+# Write restart
+unfix 3
+write_restart restart.equil
+
+# uxx Perturbation
+
+variable dir equal 1
+include cubic_2D_displace.mod
+
+# uyy Perturbation
+
+variable dir equal 2
+include cubic_2D_displace.mod
+
+# uxy Perturbation
+
+variable dir equal 3
+include cubic_2D_displace.mod
+
+# Output final values
+
+variable C11all equal ${C11}
+variable C22all equal ${C22}
+variable C33all equal ${C33}
+
+variable C12all equal 0.5*(${C12}+${C21})
+variable C13all equal 0.5*(${C13}+${C31})
+variable C23all equal 0.5*(${C23}+${C32})
+
+print "${pxx0}"
+print "${pyy0}"
+print "${pxy0}"
+
+print "========================================="
+print "Components of the Elastic Constant Tensor"
+print "========================================="
+
+print "Elastic Constant C11all = ${C11all} ${cunits}"
+print "Elastic Constant C22all = ${C22all} ${cunits}"
+print "Elastic Constant C33all = ${C33all} ${cunits}"
+
+print "Elastic Constant C12all = ${C12all} ${cunits}"
+print "Elastic Constant C13all = ${C13all} ${cunits}"
+print "Elastic Constant C23all = ${C23all} ${cunits}"
+
+# Average moduli for 2D orthotropic material
+# See MIT 3.2 slides
+
+# If C is compliance matrix...
+# https://en.wikipedia.org/wiki/Orthotropic_material#Stiffness_and_compliance_matrices_in_orthotropic_elasticity
+#variable E1 equal 1.0 / ${C11all}
+#variable E2 equal 1.0 / ${C22all}
+#variable v12 equal -${E1}*${C12all}
+#variable G12 equal 1.0 / ${C33all}
+
+# If C is stiffness matrix...
+# See handwritten notes...
+variable DET equal (1 - (${C12all}*${C12all}) / (${C11all}*${C22all}) )
+variable E1  equal ${C11all}*${DET}
+variable E2  equal ${C22all}*${DET}
+variable v12 equal ${C12all} / ${C22all}
+variable G12 equal ${C33all}
+  
+# For Stillinger-Weber silicon, the analytical results
+# are known to be (E. R. Cowley, 1988):
+#               C11 = 151.4 GPa  [GOOD]
+#               C12 = 76.4 GPa   [GOOD]
+#               C44 = 56.4 GPa   [N/A ]
+
+print "========================================="
+print "Average properties for a orthotropic lamina"
+print "========================================="
+
+print "Modulus 1 = ${E1} ${cunits}"
+print "Modulus 2 = ${E2} ${cunits}"
+print "Shear Modulus = ${G12} ${cunits}"
+print "Poisson Ratio = ${v12}"
