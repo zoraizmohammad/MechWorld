@@ -7,7 +7,7 @@ from lammps_PG_objects import Atom, Bond, Angle
 
 rng = np.random.default_rng()
 
-from lammps_PG_objects import DSU, BOND_TYPE_GLYCAN, BOND_TYPE_PEPTIDE, ANGLE_TYPE_GLYCAN, ATOM_TYPE_POS_DSU, ATOM_TYPE_NEG_DSU, DSU_MASS_NANOGRAM;
+from lammps_PG_objects import DSU, BOND_TYPE_GLYCAN, BOND_TYPE_PEPTIDE, ANGLE_TYPE_GLYCAN, ATOM_TYPE_POS_DSU, ATOM_TYPE_NEG_DSU, DSU_MASS_ATTOGRAM;
 
 # Random Distribution Array
 # Koch, A. L. (2000a). Length distribution of the peptidoglycan chains in the sacculus of
@@ -284,8 +284,8 @@ def write_to_laamps_datafile(filename):
         f.write("\n")
 
         f.write(f"Masses\n\n")
-        f.write(f"1 {DSU_MASS_NANOGRAM}\n")
-        f.write(f"2 {DSU_MASS_NANOGRAM}\n")
+        f.write(f"1 {DSU_MASS_ATTOGRAM}\n")
+        f.write(f"2 {DSU_MASS_ATTOGRAM}\n")
 
         f.write(f"\nAtoms\n\n")
         for a in lst_of_atoms:

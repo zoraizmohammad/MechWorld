@@ -3,7 +3,7 @@ import numpy.typing as npt;
 from dataclasses import dataclass;
 
 # Constants
-DSU = 1.03; #nm # Should it be 1.03 or 2? Xioxuan 2024 vs. Nyugen 2015
+DSU = 2; #nm # Should it be 1.03 or 2? Xioxuan 2024 vs. Nyugen 2015
 BOND_TYPE_GLYCAN = 1;
 BOND_TYPE_PEPTIDE = 2;
 ANGLE_TYPE_GLYCAN = 1;
@@ -16,9 +16,10 @@ ATOM_TYPE_NEG_DSU = 2; # - orientation
 # https://en.wikipedia.org/wiki/Peptidoglycan
 # https://en.wikipedia.org/wiki/N-Acetylglucosamine
 # https://en.wikipedia.org/wiki/N-Acetylmuramic_acid
-DSU_MOLAR_MASS = (221.21 + 293.272)/2; # g/mol
-A_NUM = 6.02214076E23;
-DSU_MASS_NANOGRAM = DSU_MOLAR_MASS / A_NUM * 1E9;
+DSU_MOLAR_MASS = (221.21 + 293.272)/2; # grams / mol
+A_NUM = 6.02214076E23;                 # molecules / mol
+DSU_MASS_GRAM = DSU_MOLAR_MASS / A_NUM; # grams / molecule
+DSU_MASS_ATTOGRAM = DSU_MASS_GRAM * 1E18; # ag / molecule
 
 @dataclass
 class TriclinicBounds:
