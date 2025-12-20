@@ -1,5 +1,5 @@
 from lammps_PG_objects import Atom, Bond, Angle;
-from lammps_PG_objects import DSU, BOND_TYPE_GLYCAN, BOND_TYPE_PEPTIDE, ANGLE_TYPE_GLYCAN, ATOM_TYPE_POS_DSU, ATOM_TYPE_NEG_DSU, DSU_MASS_NANOGRAM;
+from simulation_constants_settings import *;
 import numpy as np;
 import matplotlib.pyplot as plt;
 import matplotlib as mpl;
@@ -325,6 +325,43 @@ def visualizeForceChains(lst_atoms : list[Atom], lst_bonds : list[Bond], triclin
              ax=ax, orientation='vertical', label='Force [nN]')
     plt.show();
 
+def visualizeStrainHistogram(lst_bonds : list[Bond]):
+    #https://matplotlib.org/stable/gallery/statistics/hist.html
+
+    fmax = max(lst_bonds, key=lambda x: x.get_strain()).get_strain();
+    fmin = min(lst_bonds, key=lambda x: x.get_strain()).get_strain();
+
+    strain_glycan = list()
+    strain_peptide = list()
+
+    for b in lst_bonds: 
+        if b.bond_type == BOND_TYPE_GLYCAN:
+            strain_glycan.append(b.get_strain());
+            #print(strain_glycan)
+        elif b.bond_type == BOND_TYPE_PEPTIDE:
+            strain_peptide.append(b.get_strain());
+        else:
+            continue;
+
+    fig, ax = plt.subplots(2,1,tight_layout=True)
+
+    # We can set the number of bins with the *bins* keyword argument.
+    n_bins = 50;
+    ax[0].hist(strain_glycan, bins=n_bins)
+    ax[1].hist(strain_peptide, bins=n_bins)
+
+    #ax[0].set_xlim(fmin, fmax)
+    ax[0].set_ylabel('Number of Bonds');
+    ax[0].set_xlabel('Bond Strain [a.u.]')
+    ax[0].set_title("Glycan")
+
+    ax[1].set_xlim(fmin, fmax)
+    ax[1].set_ylabel('Number of Bonds');
+    ax[1].set_xlabel('Bond Strain [a.u.]')
+    ax[1].set_title("Peptide")
+
+    plt.show();
+
 def determineColor(f, fmax, fmin) -> tuple[float,float,float]:
     # https://matplotlib.org/stable/users/explain/colors/colors.html)
     fmean = (fmax + fmin) / 2
@@ -352,7 +389,11 @@ boundary_sets_tuple = assemble_boundary_sets(lst_atoms, 10, triclinic_bounds)
 #stress_tensor = compute_stress_at_boundary(lst_bonds, boundary_sets_tuple, triclinic_bounds)
 visualizeForceChains(lst_atoms, lst_bonds, triclinic_bounds, boundary_sets_tuple)
 visualizeForceHistogram(lst_bonds)
+visualizeStrainHistogram(lst_bonds)
 
 # Output:
 #print(stress_tensor)
+
+# Replicate 2.6B, see how our model differs
+# Plot histogram of strain, instead of bond force for peptides, glycan
 

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from assemble_pg_network import generate_pg_network
 
-nPacking = 30;
+nPacking = 50;
 
 tilt_factor_sweep = np.array([0.33, 0.72, 1.0])
 packing_factor_sweep = np.linspace(0.1, 4, nPacking)

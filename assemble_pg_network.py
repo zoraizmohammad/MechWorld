@@ -4,10 +4,9 @@ from math import sin, cos, floor
 from random import randrange, random, shuffle
 from collections import defaultdict
 from lammps_PG_objects import Atom, Bond, Angle
+from simulation_constants_settings import *
 
 rng = np.random.default_rng()
-
-from lammps_PG_objects import DSU, BOND_TYPE_GLYCAN, BOND_TYPE_PEPTIDE, ANGLE_TYPE_GLYCAN, ATOM_TYPE_POS_DSU, ATOM_TYPE_NEG_DSU, DSU_MASS_ATTOGRAM;
 
 # Random Distribution Array
 # Koch, A. L. (2000a). Length distribution of the peptidoglycan chains in the sacculus of
@@ -209,14 +208,7 @@ def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list]
 
     return;
 
-def peptide_energy_lammps(bond_distance) -> float | None:
-    return lammps_nonlinear(bond_distance, 0.1709, 0.9065, 4.0878)
-
-def lammps_nonlinear(r, esp, r0, lambd) -> float | None:
-    if ((r-r0) >= lambd):
-        return None
-    else:
-        return esp*(r-r0)**2 / (lambd**2 - (r-r0)**2);
+from lammps_PG_objects import peptide_energy_lammps
 
 def periodic_distance_squared(x1,y1,x2,y2) -> float:
     # The 'aforementioned spaghetti' problem was also because of this

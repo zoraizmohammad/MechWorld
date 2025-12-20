@@ -2,24 +2,22 @@ import numpy as np;
 import numpy.typing as npt;
 from dataclasses import dataclass;
 
-# Constants
-DSU = 2; #nm # Should it be 1.03 or 2? Xioxuan 2024 vs. Nyugen 2015
-BOND_TYPE_GLYCAN = 1;
-BOND_TYPE_PEPTIDE = 2;
-ANGLE_TYPE_GLYCAN = 1;
-ATOM_TYPE_POS_DSU = 1; # + orientation
-ATOM_TYPE_NEG_DSU = 2; # - orientation
+from simulation_constants_settings import *
 
-# https://en.wikipedia.org/wiki/KT_(energy)
-#E_PEPTIDE_CUTOFF = 4.11E-21 * 1E18; # 1 kT = 4.11E-21 J, 1 J = 1E18 attogram-nm2/ns2
+def peptide_energy_lammps(bond_distance) -> float | None:
+    return lammps_nonlinear(bond_distance, PEPTIDE_COEFFICIENTS[0], PEPTIDE_COEFFICIENTS[1], PEPTIDE_COEFFICIENTS[2])
 
-# https://en.wikipedia.org/wiki/Peptidoglycan
-# https://en.wikipedia.org/wiki/N-Acetylglucosamine
-# https://en.wikipedia.org/wiki/N-Acetylmuramic_acid
-DSU_MOLAR_MASS = (221.21 + 293.272)/2; # grams / mol
-A_NUM = 6.02214076E23;                 # molecules / mol
-DSU_MASS_GRAM = DSU_MOLAR_MASS / A_NUM; # grams / molecule
-DSU_MASS_ATTOGRAM = DSU_MASS_GRAM * 1E18; # ag / molecule
+def glycan_energy_lammps(bond_distance) -> float | None:
+    return lammps_linear(bond_distance, GLYCAN_COEFFICIENTS[0], GLYCAN_COEFFICIENTS[1])
+
+def lammps_nonlinear(r, esp, r0, lambd) -> float | None:
+    if ((r-r0) >= lambd):
+        return None
+    else:
+        return esp*(r-r0)**2 / (lambd**2 - (r-r0)**2);
+
+def lammps_linear(r, K, r0) -> float | None:
+    return K*(r-r0)**2;
 
 @dataclass
 class TriclinicBounds:
@@ -92,6 +90,14 @@ class Bond:
         self.dist = dist;
         self.forces = np.array([fx,fy,fz]);
         self.force_norm = np.linalg.norm(self.forces);
+
+    def get_strain(self):
+        if self.bond_type == BOND_TYPE_GLYCAN:
+            return (self.dist - GLYCAN_COEFFICIENTS[1]) / GLYCAN_COEFFICIENTS[1]
+        elif self.bond_type == BOND_TYPE_PEPTIDE:
+            return (self.dist - PEPTIDE_COEFFICIENTS[1]) / PEPTIDE_COEFFICIENTS[1]
+        else:
+            return None;
 
 class Angle:
     def __init__(self, id : int, angle_type : int, atom_id_1 : int, atom_id_2 : int, atom_id_3 : int):
