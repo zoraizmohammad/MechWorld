@@ -27,8 +27,3 @@ plt.grid(True);
 plt.xlabel("Density Fraction of Glycans");
 plt.ylabel("Cross-linking Percentage");
 plt.show();
-
-# CHECK CURVE FIT FOR DIMENSIONAL ACCURACY
-# Nyugen 2015 says that the DSU length should be 2 nm
-# Xaoxuan uses 1.03 nm for this value
-#  -> what should we proceed with?

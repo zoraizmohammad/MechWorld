@@ -1,13 +1,17 @@
 # Constants
-DSU = 2; #nm # Should it be 1.03 or 2? Xioxuan 2024 vs. Nyugen 2015
+
+DSU = 1.03; #nm # Should it be 1.03 or 2? Xioxuan 2024 vs. Nyugen 2015
+
+# CHECK CURVE FIT FOR DIMENSIONAL ACCURACY
+# Nyugen 2015 says that the DSU length should be 2 nm
+# Xaoxuan uses 1.03 nm for this value
+#  -> what should we proceed with?
+
 BOND_TYPE_GLYCAN = 1;
 BOND_TYPE_PEPTIDE = 2;
 ANGLE_TYPE_GLYCAN = 1;
 ATOM_TYPE_POS_DSU = 1; # + orientation
 ATOM_TYPE_NEG_DSU = 2; # - orientation
-
-# https://en.wikipedia.org/wiki/KT_(energy)
-#E_PEPTIDE_CUTOFF = 4.11E-21 * 1E18; # 1 kT = 4.11E-21 J, 1 J = 1E18 attogram-nm2/ns2
 
 # https://en.wikipedia.org/wiki/Peptidoglycan
 # https://en.wikipedia.org/wiki/N-Acetylglucosamine
@@ -17,5 +21,11 @@ A_NUM = 6.02214076E23;                 # molecules / mol
 DSU_MASS_GRAM = DSU_MOLAR_MASS / A_NUM; # grams / molecule
 DSU_MASS_ATTOGRAM = DSU_MASS_GRAM * 1E18; # ag / molecule
 
-GLYCAN_COEFFICIENTS = (5.570, 2.00);
-PEPTIDE_COEFFICIENTS = (0.1709, 0.9065, 4.0878);
+GLYCAN_COEFFICIENTS = (5.570, DSU);
+#PEPTIDE_COEFFICIENTS = (0.1709, 0.9065, 4.0878);
+PEPTIDE_COEFFICIENTS = (0.185567402281798, 1.0, 4.035190236993014); # Another curve fit with prescribed slack length instead of best fit to WLC
+
+# https://en.wikipedia.org/wiki/KT_(energy)
+# 1 kT = 4.11E-21 J at 298K
+E_PEPTIDE_CUTOFF = 1 * 4.11E-21 * 1E18; 
+PEPTIDE_SEARCH_RADIUS = 1.62; # nm

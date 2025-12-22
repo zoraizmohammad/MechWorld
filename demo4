@@ -11,6 +11,7 @@ units nano
 # 1 N = kg*m/(s2) = E18 * 1E9 / (E18) = 1E9 attogram-nanometer/nanosecond^2 
 # 1 J = N*m = 1E18 attogram-nm2/ns2
 # 1 N/m = 1 attogram/nanosecond^2 
+# 1 Pa = 1 N/m = 1E9 attogram/(nanometer-nanosecond^2)
 dimension 2
 atom_style angle
 boundary p p p
@@ -22,7 +23,7 @@ boundary p p p
 read_data network1.data
 
 #### 3) Pair/Bond/Angle Settings
-variable up equal 5.0E-1
+variable up equal 0.1E-1
 variable prescribed_strain equal 1 + ${up}
 
 # Set pair_style, required for bonds
@@ -31,7 +32,7 @@ pair_coeff * *    # This non-existant pairs should exist between all types
 
 # Extension Components
 bond_style hybrid harmonic nonlinear
-bond_coeff 1 harmonic 5.570 2.00              # Nguyen 2015
+bond_coeff 1 harmonic 5.570 1.03              # Xaoxuan 2024, Nguyen 2015
 bond_coeff 2 nonlinear 0.1709 0.9065 4.0878   # Curve fit to WLC in Nguyen 2015
 
 # Bending Component :: https://docs.lammps.org/angle_harmonic.html

@@ -337,7 +337,6 @@ def visualizeStrainHistogram(lst_bonds : list[Bond]):
     for b in lst_bonds: 
         if b.bond_type == BOND_TYPE_GLYCAN:
             strain_glycan.append(b.get_strain());
-            #print(strain_glycan)
         elif b.bond_type == BOND_TYPE_PEPTIDE:
             strain_peptide.append(b.get_strain());
         else:
@@ -347,8 +346,8 @@ def visualizeStrainHistogram(lst_bonds : list[Bond]):
 
     # We can set the number of bins with the *bins* keyword argument.
     n_bins = 50;
-    ax[0].hist(strain_glycan, bins=n_bins)
-    ax[1].hist(strain_peptide, bins=n_bins)
+    ax[0].hist(strain_glycan, bins=n_bins, log=True)
+    ax[1].hist(strain_peptide, bins=n_bins, log=True)
 
     #ax[0].set_xlim(fmin, fmax)
     ax[0].set_ylabel('Number of Bonds');

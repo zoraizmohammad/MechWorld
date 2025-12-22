@@ -305,15 +305,6 @@ def compute_crosslink_ratio(number_of_atoms : int, lst_of_bonds : list[Bond]):
 # Note: Cells are typically rod-shaped, and are about 2.0 μm long and 0.25–1.0 μm in diameter, with a cell volume of 0.6–0.7 μm3. (from Wikipedia)
 # 2um = 2000nm, 0.25-1.0um diameter = 785.40-3141.59nm in circumference.
 
-# https://en.wikipedia.org/wiki/KT_(energy)
-# 1 kT = 4.11E-21 J at 298K
-E_PEPTIDE_CUTOFF = 1 * 4.11E-21 * 1E18; 
-PEPTIDE_SEARCH_RADIUS = 1.62; # nm
-
-print(peptide_energy_lammps(PEPTIDE_SEARCH_RADIUS) - E_PEPTIDE_CUTOFF)
-if (peptide_energy_lammps(PEPTIDE_SEARCH_RADIUS) - E_PEPTIDE_CUTOFF < 0):
-    raise ValueError("PEPTIDE SEARCH RADIUS needs to be increased to allow for higher energy peptides to form.")
-
 # Globals
 simbox_actual_width = 0; # TBD by population
 simbox_actual_height = 0; # TBD by population

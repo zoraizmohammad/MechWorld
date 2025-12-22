@@ -1,0 +1,110 @@
+# When using LAMMPS-GUI in your project, please cite: https://arxiv.org/abs/2503.14020
+
+# Purpose of this script is to provide the data needed to produce analogous figures 2.6A,B,C,D,E from Xioxuan's 2024 thesis.
+
+# 1) Initialization
+
+# https://docs.lammps.org/dimension.html
+# How do I convert these?
+# 1 m = 1E9 nm
+# 1 s = 1E9 ns
+# 1 kg = 1E18 attograms
+# 1 N = kg*m/(s2) = E18 * 1E9 / (E18) = 1E9 attogram-nanometer/nanosecond^2 
+# 1 J = N*m = 1E18 attogram-nm2/ns2
+# 1 N/m = 1 attogram/nanosecond^2 
+units nano
+dimension 2
+atom_style angle
+boundary p p p
+
+#### 2) System definition
+read_data network_100.data
+
+#### 3) Pair/Bond/Angle Settings
+variable up equal 0.3
+variable prescribed_strain equal 1 + ${up}
+
+# Set pair_style, required for bonds
+pair_style zero 5 # zero = no interactions, distance to consider neighbors
+pair_coeff * *    # This non-existant pairs should exist between all types
+
+# Extension Components
+bond_style hybrid harmonic nonlinear
+bond_coeff 1 harmonic 5.570 1.03              # Xaoxuan 2024, Nguyen 2015
+bond_coeff 2 nonlinear 0.185567402281798 1.0 4.035190236993014   # Curve fit to WLC in Nguyen 2015
+
+# Bending Component :: https://docs.lammps.org/angle_harmonic.html
+angle_style hybrid harmonic
+angle_coeff 1 harmonic 4.18E-2 180.0 # btype, K (E/rad^2), theta0 (deg). Note: K is placeholder from slides
+
+#### 4) Monitoring
+thermo 1
+thermo_style custom step temp pe press pxx pyy pxy lx ly vol
+thermo_modify norm no
+
+# Output visual snapshots of the system
+dump 1 all image 5000 dump.*.jpg type type bond type type atom no
+
+# Tempory variables so we can print these quantities
+variable p_step   equal step # variables need to be defined for printing values
+variable p_temp   equal temp
+variable p_pe     equal pe
+variable p_press  equal press
+variable p_pxx    equal pxx
+variable p_pyy    equal pyy
+variable p_pxy    equal pxy
+variable p_lx     equal lx
+variable p_ly     equal ly
+variable p_vol    equal vol
+
+variable print_filename string "isoprestrain.data"
+variable runiter equal 15E4
+variable miniter equal 2E3
+
+### 5) Minimize the energy before any deformation is applied
+minimize 1.0e-6 1.0e-6 ${miniter} 10000
+
+# save snapshot of the initial position of all atoms and bonds
+compute 1 all property/local btype batom1 batom2
+compute 2 all bond/local dist fx fy fz
+run 0
+write_dump all local bonds_relaxed.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2] c_2[3] c_2[4]
+write_dump all custom atoms_relaxed.dump id mol type x y
+uncompute 1
+uncompute 2
+
+#https://docs.lammps.org/compute_bond.html
+compute bondE  all bond
+compute angleE all angle
+variable glycan_pe  equal "c_bondE[1]"
+variable angle_pe   equal "c_angleE[1]"
+variable peptide_pe equal "c_bondE[2]"
+
+# Write minimized quantities
+run 0
+#print "${glycan_pe} ${angle_pe} ${peptide_pe}"
+print "step temp pe press pxx pyy pxy lx ly vol glycan_pe angle_pe peptide_pe" file ${print_filename}
+print "${p_step} ${p_temp} ${p_pe} ${p_press} ${p_pxx} ${p_pyy} ${p_pxy} ${p_lx} ${p_ly} ${p_vol} ${glycan_pe} ${angle_pe} ${peptide_pe}" append ${print_filename}
+
+### 6) Prescribe strain, let positions and velocities update
+
+# Deformation specification
+fix 1 all nve                   # Forces from bonds will result in motion 
+fix 2 all deform 1 x scale ${prescribed_strain} y scale ${prescribed_strain} units box remap none
+
+# contin output
+fix 3 all print 1000 "${p_step} ${p_temp} ${p_pe} ${p_press} ${p_pxx} ${p_pyy} ${p_pxy} ${p_lx} ${p_ly} ${p_vol} ${glycan_pe} ${angle_pe} ${peptide_pe}" append ${print_filename}
+run ${runiter}
+
+### 7) Minimize energy of deformed state
+minimize 1.0e-6 1.0e-6 ${miniter} 10000
+
+# write down final stress, strain, energy fraction
+print "${p_step} ${p_temp} ${p_pe} ${p_press} ${p_pxx} ${p_pyy} ${p_pxy} ${p_lx} ${p_ly} ${p_vol} ${glycan_pe} ${angle_pe} ${peptide_pe}" append ${print_filename}
+
+# save final snapshot of all atoms and bonds
+compute 1 all property/local btype batom1 batom2
+compute 2 all bond/local dist fx fy fz
+run 0 # Computation happens at this step
+write_dump all local bonds_deformed.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2] c_2[3] c_2[4]
+write_dump all custom atoms_deformed.dump id mol type x y
