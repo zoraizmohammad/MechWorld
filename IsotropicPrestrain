@@ -18,7 +18,8 @@ atom_style angle
 boundary p p p
 
 #### 2) System definition
-read_data network_100.data
+read_data network_rho1p0_a0p60_w100.data
+variable print_filename string "dense60.out"
 
 #### 3) Pair/Bond/Angle Settings
 variable up equal 0.3
@@ -43,7 +44,7 @@ thermo_style custom step temp pe press pxx pyy pxy lx ly vol
 thermo_modify norm no
 
 # Output visual snapshots of the system
-dump 1 all image 5000 dump.*.jpg type type bond type type atom no
+dump 1 all image 5000 debug/dump.*.jpg type type bond type type atom no
 
 # Tempory variables so we can print these quantities
 variable p_step   equal step # variables need to be defined for printing values
@@ -57,7 +58,7 @@ variable p_lx     equal lx
 variable p_ly     equal ly
 variable p_vol    equal vol
 
-variable print_filename string "isoprestrain.data"
+
 variable runiter equal 15E4
 variable miniter equal 2E3
 
