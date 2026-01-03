@@ -225,8 +225,12 @@ def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list]
         lst_of_atoms[idx_ideal_neighbor].has_peptide = True;
 
         # Update bonding matrix
-        molecule_bonding_matrix[(a.mol_id, ideal_neighbor.mol_id)] = 1;
-        molecule_bonding_matrix[(ideal_neighbor.mol_id, a.mol_id)] = 1;
+        if (a.mol_id, ideal_neighbor.mol_id) not in molecule_bonding_matrix:
+            molecule_bonding_matrix[(a.mol_id, ideal_neighbor.mol_id)] = 1;
+            molecule_bonding_matrix[(ideal_neighbor.mol_id, a.mol_id)] = 1;
+        else:
+            molecule_bonding_matrix[(a.mol_id, ideal_neighbor.mol_id)] += 1;
+            molecule_bonding_matrix[(ideal_neighbor.mol_id, a.mol_id)] += 1;
 
     return;
 
@@ -274,7 +278,13 @@ def go_go_gadget_peptide_bonds():
     for i in range(0, len(idxs_of_eligible_atoms)):
         create_bond_with_nearby_neighbor(idxs_of_eligible_atoms[i], grid, peptide_bond_search_radius, molecule_bonding_matrix)
 
-    #print(molecule_bonding_matrix)
+    
+    pairwise_list = list(molecule_bonding_matrix.values());
+    histo = dict();
+    for i in range(1,max(pairwise_list)+1):
+        histo[i] = floor(pairwise_list.count(i) / 2) # sym matrix => divide by 2
+    print(f"Number of glycan pairs with _ connecting bonds: {histo}") # How many pairs have X crosslinks connecting them?
+
     print(f"Number of unique molecule pairs: {floor(len(molecule_bonding_matrix)/2)}")
     print(f"Extra bonds created via First-Favored Policy: {DEBUG_favored_bonds} ({DEBUG_favored_bonds/len(lst_of_bonds)*100}% of total)")
 

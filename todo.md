@@ -40,6 +40,7 @@ If the vertical gap between glycans is zero, then rho_mesh ~= rho_gap. In this c
 Added a first-favored policy where the first peptide between each glycan pair is allowed to have greater energy than subsequent bonds. 
 * These extra bonds account for ~11% of all bonds in a 0.5 rho_gap network, and ~19% of all bonds in a 1.0 rho_gap network.
 * The 1st bond is allowed to be at 80% of the maximum extension (before minimization of course).
+* Running this on a 500x500 network w/ rho_gap = 0.5, this policy increased the number of unique glycan pairs from 14611 to 21471. Almost +50% variety.
 
 * [ ] Streamline isotropic prestrain to use python lammps library
   
