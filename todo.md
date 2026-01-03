@@ -35,7 +35,11 @@ rho_mesh is defined as (number_of_atoms * DSU**2) / (simbox_actual_width * simbo
 
 If the vertical gap between glycans is zero, then rho_mesh ~= rho_gap. In this case, the space allocated to each Atom is a box with dimensions of 1 DSU (vertical) by 1/rho_gap DSU (horizontal). Therefore Area/Atom = 1/rho_gap, so Atom/Area = rho_gap. There is a commented section of code that shows this and it can be observed the two variables approach as the box grows.
 
-* [ ] Update network assembly script to increase crosslink diversity
+* [x] Update network assembly script to increase crosslink diversity
+
+Added a first-favored policy where the first peptide between each glycan pair is allowed to have greater energy than subsequent bonds. 
+* These extra bonds account for ~11% of all bonds in a 0.5 rho_gap network, and ~19% of all bonds in a 1.0 rho_gap network.
+* The 1st bond is allowed to be at 80% of the maximum extension (before minimization of course).
 
 * [ ] Streamline isotropic prestrain to use python lammps library
   

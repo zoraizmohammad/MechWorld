@@ -5,6 +5,7 @@ from random import randrange, random, shuffle
 from collections import defaultdict
 from lammps_PG_objects import Atom, Bond, Angle
 from simulation_constants_settings import *
+from lammps_PG_objects import peptide_energy_lammps
 
 rng = np.random.default_rng()
 
@@ -99,48 +100,53 @@ def row_trot(x):
 
         y += len_of_glycan_nm/2 + vertical_gap_between_glycans # nm
 
+def spatial_hash_coords(a : Atom, cell_size : float) -> tuple[int,int]:
+    if   (a.x < 0):
+        cx = floor( (a.x + simbox_actual_width) / cell_size);
+    elif (a.x > simbox_actual_width):
+        cx = floor( (a.x - simbox_actual_width) / cell_size);
+    else:
+        cx = floor( a.x / cell_size );
+
+    if   (a.y < 0):
+        cy = floor( (a.y + simbox_actual_height) / cell_size);
+    elif (a.y > simbox_actual_height):
+        cy = floor( (a.y - simbox_actual_height) / cell_size);
+    else:
+        cy = floor( a.y / cell_size );
+
+    return cx, cy;
+
 def put_the_atoms_into_a_spatial_hash_smh(cell_size): # Saw this in a yt video once
     grid = defaultdict(list)
-    is_of_eligible_atoms = list();
-
-    mcx = floor(simbox_actual_width / cell_size);
-    mcy = floor(simbox_actual_height / cell_size);
+    idxs_of_eligible_atoms = list();
 
     for idx, a in enumerate(lst_of_atoms):
         if a.is_eligible():
-            cx = floor(a.x / cell_size)
-            cy = floor(a.y / cell_size)
+            # Slight change to fix potential rounding issue
+            cx, cy = spatial_hash_coords(a, cell_size);
 
-            # Got to consider periodic bonds
-            # When I forgor to add this, the edges pulled apart like delicious spaghetti
-            if ((cx) < 0):
-                cx += mcx;
-            if ((cy) < 0):
-                cy += mcy;
-            if ((cx) > mcx):
-                cx -= mcx;
-            if ((cy) > mcy):
-                cy -= mcy;
-
-            is_of_eligible_atoms.append(idx)
+            idxs_of_eligible_atoms.append(idx)
             grid[(cx, cy)].append(idx) # Holds index, and thus id of the atom
         else:
             continue
-    return grid, is_of_eligible_atoms
+    
+    return grid, idxs_of_eligible_atoms
 
-def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list], cell_size : float):
+def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list], cell_size : float, molecule_bonding_matrix : defaultdict[int]):
     # cell_size = radius
     a : Atom = lst_of_atoms[idx_of_atom];
+
+    global DEBUG_favored_bonds;
 
     # It could be ineligible because another bond was formed with it.
     if not a.is_eligible():
         return;
 
-    mcx = floor(simbox_actual_width / cell_size);
+    mcx = floor(simbox_actual_width / cell_size); # This is the cell index of the furthest-right (thus non-periodic) atom. Searching one to the right should result in searching cx = 0;
     mcy = floor(simbox_actual_height / cell_size);
 
-    cx = floor(a.x / cell_size)
-    cy = floor(a.y / cell_size)
+    cx, cy = spatial_hash_coords(a, cell_size);
 
     neighbors_idxs : list[int] = list()
 
@@ -150,12 +156,10 @@ def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list]
             # Got to consider periodic bonds
             if ((cx + dcx) < 0):
                 cx += mcx;
-                #print(cx)
             if ((cy + dcy) < 0):
                 cy += mcy;
             if ((cx + dcx) > mcx):
                 cx -= mcx;
-                #print(cx)
             if ((cy + dcy) > mcy):
                 cy -= mcy;
             
@@ -164,9 +168,6 @@ def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list]
                 continue;
 
             neighbors_idxs.extend(grid[(cx+dcx,cy+dcy)])
-
-    # I'm retrieving the entire list so we can implement more complex bonding criteria in the future
-    # print(f"{a.id} -> {neighbors_idxs}");
 
     energy_ideal_neighbor = float("Inf");
     idx_ideal_neighbor = None;
@@ -187,31 +188,47 @@ def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list]
         if (not neighbor.is_eligible()):
             continue;
         
-        # Cannot form bond if the neighbor is too far away
+        # There are not any hard restrictions on the neighbor, so compute the energy to bond...
         r_neighbor = np.sqrt(periodic_distance_squared(neighbor.x, neighbor.y, a.x, a.y));
         E_neighbor = peptide_energy_lammps(r_neighbor);
 
-        #print(E_neighbor);
+        # Are these molecules bonded to each other?
+        if (a.mol_id, neighbor.mol_id) not in molecule_bonding_matrix:
+            # NO
+            # number_of_bonds_between_prospective_molecules = 0;
+            if (r_neighbor < E_FIRST_PEPTIDE_MAX_EXTENSION * PEPTIDE_COEFFICIENTS[2]):
+                idx_ideal_neighbor = idx_of_neighbor;
+
+                if (E_neighbor > E_PEPTIDE_CUTOFF):
+                    DEBUG_favored_bonds = DEBUG_favored_bonds + 1;
+
+                break;
+        else:
+            # YES
+            # number_of_bonds_between_prospective_molecules = molecule_bonding_matrix[(a.mol_id, neighbor.mol_id)];
+            if (E_neighbor == None) or (E_neighbor > E_PEPTIDE_CUTOFF):
+                continue;
     
-        if (E_neighbor == None) or (E_neighbor >= E_PEPTIDE_CUTOFF):
-            continue;
-    
-        if E_neighbor < energy_ideal_neighbor:
-            energy_ideal_neighbor = E_neighbor;
-            idx_ideal_neighbor = idx_of_neighbor;
+            if E_neighbor < energy_ideal_neighbor:
+                energy_ideal_neighbor = E_neighbor;
+                idx_ideal_neighbor = idx_of_neighbor;
 
     if (idx_ideal_neighbor == None):
         # It's a sad lonely life for this DSU...
         pass
     else:
+        ideal_neighbor = lst_of_atoms[idx_ideal_neighbor];
+
         # We have an ideal neighbor, form a bond!
-        lst_of_bonds.append(Bond(len(lst_of_bonds)+1, BOND_TYPE_PEPTIDE, a.id, lst_of_atoms[idx_ideal_neighbor].id))
+        lst_of_bonds.append(Bond(len(lst_of_bonds)+1, BOND_TYPE_PEPTIDE, a.id, ideal_neighbor.id))
         lst_of_atoms[idx_of_atom].has_peptide = True;
         lst_of_atoms[idx_ideal_neighbor].has_peptide = True;
 
-    return;
+        # Update bonding matrix
+        molecule_bonding_matrix[(a.mol_id, ideal_neighbor.mol_id)] = 1;
+        molecule_bonding_matrix[(ideal_neighbor.mol_id, a.mol_id)] = 1;
 
-from lammps_PG_objects import peptide_energy_lammps
+    return;
 
 def periodic_distance_squared(x1,y1,x2,y2) -> float:
     # The 'aforementioned spaghetti' problem was also because of this
@@ -244,18 +261,22 @@ def go_go_gadget_peptide_bonds():
     peptide_bond_search_radius = PEPTIDE_SEARCH_RADIUS; # nm, this is a greater length 
     (grid, idxs_of_eligible_atoms) = put_the_atoms_into_a_spatial_hash_smh(peptide_bond_search_radius)
 
-    #print(grid)
-
-    # We're going to form the bonds randomly so certain atoms don't have priority
-    #print(idxs_of_eligible_atoms)
-
     if idxs_of_eligible_atoms == []:
-        return; # None
+        return; # NOOP
 
-    shuffle(idxs_of_eligible_atoms)
+    # Randomize the order of the eligible atoms so bonds don't form based on an arbitrary priority.
+    shuffle(idxs_of_eligible_atoms);
+
+    # This symmetric matrix records how thoroughly bonded each molecule pair is
+    molecule_bonding_matrix = defaultdict(int);
+
+    # Each atom will search for neighbors to bond with
     for i in range(0, len(idxs_of_eligible_atoms)):
-        create_bond_with_nearby_neighbor(idxs_of_eligible_atoms[i], grid, peptide_bond_search_radius)
+        create_bond_with_nearby_neighbor(idxs_of_eligible_atoms[i], grid, peptide_bond_search_radius, molecule_bonding_matrix)
 
+    #print(molecule_bonding_matrix)
+    print(f"Number of unique molecule pairs: {floor(len(molecule_bonding_matrix)/2)}")
+    print(f"Extra bonds created via First-Favored Policy: {DEBUG_favored_bonds} ({DEBUG_favored_bonds/len(lst_of_bonds)*100}% of total)")
 
 # Output percentage of cross-linked polymers
 # Plot that compares density to cross-linked polymers
@@ -312,6 +333,7 @@ def compute_crosslink_ratio(number_of_atoms : int, lst_of_bonds : list[Bond]):
 simbox_actual_width = 0; # TBD by population
 simbox_actual_height = 0; # TBD by population
 molecule_counter = 0;
+DEBUG_favored_bonds = 0;
 lst_of_atoms : list[Atom] = list(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
 lst_of_bonds : list[Bond] = list();
 lst_of_angles :  list[Angle] = list();
