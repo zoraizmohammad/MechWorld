@@ -7,7 +7,7 @@ pair_coeff * *    # This non-existant pairs should exist between all types
 
 # Extension Components
 bond_style hybrid harmonic nonlinear
-bond_coeff 1 harmonic 5.570 2.00              # Nguyen 2015
+bond_coeff 1 harmonic 5.570 1.03              # Xioxuan 2024, Nguyen 2015
 bond_coeff 2 nonlinear 0.1709 0.9065 4.0878   # Curve fit to WLC in Nguyen 2015
 
 neigh_modify delay 0 every 1 check yes

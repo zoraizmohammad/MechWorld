@@ -76,30 +76,37 @@ def get_stress_vs_deformation(filename : str):
 def compare_isotropy_levels():
 
 
-    deformation_low, stress_xx_low, stress_yy_low = get_stress_vs_deformation("isoprestrain_33.data");
-    deformation_medium, stress_xx_medium, stress_yy_medium = get_stress_vs_deformation("isoprestrain_72.data");
-    deformation_high, stress_xx_high, stress_yy_high = get_stress_vs_deformation("isoprestrain_100.data");
+    deformation_33, stress_xx_33, stress_yy_33 = get_stress_vs_deformation("outputs/dense33.out");
+    deformation_60, stress_xx_60, stress_yy_60 = get_stress_vs_deformation("outputs/dense60.out");
+    deformation_72, stress_xx_72, stress_yy_72 = get_stress_vs_deformation("outputs/dense72.out");
+    deformation_100, stress_xx_100, stress_yy_100 = get_stress_vs_deformation("outputs/dense100.out");
 
     fig, ax = plt.subplots(1)
-    ax.set_title("Non-Linear Stress-Strain Relationships")
-    ax.set_xlabel("Deformation")
+    ax.set_title("Non-Linear Stress-Strain Relationships, by Anisotropic Parameter")
+    ax.set_xlabel(r"$\mathcal{E}$, Strain")
     ax.set_ylabel("Stress [N/m]")
     # https://docs.lammps.org/compute_pressure.html
     # Normally, pressure = attogram/(nanometer-nanosecond^2), but because of units in 2D, it is N/m form
-    long1 = ax.plot(deformation_low, stress_xx_low, linestyle="--", color="black")
-    circ1 = ax.plot(deformation_low, stress_yy_low, color="black")
-    long2 = ax.plot(deformation_medium, stress_xx_medium, linestyle="--", color="red")
-    circ2 = ax.plot(deformation_medium, stress_yy_medium, color="red")
-    long3 = ax.plot(deformation_high, stress_xx_high, linestyle="--", color="blue")
-    circ3 = ax.plot(deformation_high, stress_yy_high, color="blue")
+    long33 = ax.plot(deformation_33, stress_xx_33, linestyle="--", color="black")
+    circ33 = ax.plot(deformation_33, stress_yy_33, color="black", label="a = 0.33")
+    long33 = ax.plot(deformation_60, stress_xx_60, linestyle="--", color="green")
+    circ33 = ax.plot(deformation_60, stress_yy_60, color="green", label="a = 0.60")
+    long72 = ax.plot(deformation_72, stress_xx_72, linestyle="--", color="red")
+    circ72 = ax.plot(deformation_72, stress_yy_72, color="red", label="a = 0.72")
+    long100 = ax.plot(deformation_100, stress_xx_100, linestyle="--", color="blue")
+    circ100 = ax.plot(deformation_100, stress_yy_100, color="blue", label="a = 1.00")
     ax.legend()
     plt.grid(True, linestyle=':', alpha=0.6)
     plt.show()
 
     fig, ax = plt.subplots(1)
-    ax.plot(deformation_low, stress_xx_low/stress_yy_low,       color="black");
-    ax.plot(deformation_low, stress_xx_medium/stress_yy_medium, color="red");
-    ax.plot(deformation_low, stress_xx_high/stress_yy_high,     color="blue");
+    ax.set_title("Ratio of Longitudinal to Circumferential Stress, by Anisotropic Parameter")
+    ax.set_ylabel(r"$\sigma_(xx) / \sigma_(yy)$")
+    ax.set_xlabel(r"$\mathcal{E}$, Strain")
+    ax.plot(deformation_33, stress_xx_33/stress_yy_33, color="black");
+    ax.plot(deformation_60, stress_xx_60/stress_yy_60, color="green");
+    ax.plot(deformation_72, stress_xx_72/stress_yy_72, color="red");
+    ax.plot(deformation_100, stress_xx_100/stress_yy_100, color="blue");
     plt.show()
 
 compare_isotropy_levels()

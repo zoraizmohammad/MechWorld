@@ -66,35 +66,38 @@ def build_a_glycan(mol_id,x,y,dx=0,dy=0,numDSUs=1,alpha=0):
             angle_id = len(lst_of_atoms)+1;
             lst_of_angles.append(Angle(angle_id, ANGLE_TYPE_GLYCAN, lst_of_atoms[-3].id, lst_of_atoms[-2].id, lst_of_atoms[-1].id))
 
-def row_trot(x, ):
+def row_trot(x):
     # Walk down a row and populate it with rotated glycans
     global molecule_counter;
 
-    (DSU_lengths, new_glycan_gap) = get_DSU_lengths(SIMBOX_MAX_H)
-    n = len(DSU_lengths)
+    (lst_glycan_lengths, vertical_gap_between_glycans) = get_DSU_lengths(SIMBOX_MAX_H)
+
+    # Experiment: patch the gaps with a new glycan and remove the gap
+    # this causes rho_mesh -> rho_gap as size of mesh -> infinity.
+    #lst_glycan_lengths.append(round((SIMBOX_MAX_H/DSU) - sum(lst_glycan_lengths)))
+    #vertical_gap_between_glycans = 0;
+
     #print(f"Column {x}: new_glycan_gap = {new_glycan_gap}");
     #print(DSU_lengths, new_glycan_gap)
 
-    y = (new_glycan_gap/2) + rng.uniform(-0.5*SIMBOX_MAX_H,0.5*SIMBOX_MAX_H); 
+    y = (vertical_gap_between_glycans/2) + rng.uniform(-0.5*SIMBOX_MAX_H,0.5*SIMBOX_MAX_H); 
     # This shift is a little bit subtle, I am shifting the whole row so the breaks at the tops and bottoms aren't aligned
     # it is easiest to imagine this when there is no rotation
-    for DSU_length in DSU_lengths:
+    for len_of_glycan_DSU in lst_glycan_lengths:
+        len_of_glycan_nm = len_of_glycan_DSU * DSU;
         #print(y)
-        y += (DSU_length/2)*DSU # nm
+        y += len_of_glycan_nm/2; # Move y to the center of the new glycan strand. [nm]
 
-        # To-DO: randomly select rotation and displacement
         dx = rng.normal(0, random_displacement_stdev); # Shape should to be adjusted to match paper, 0.996
         dy = rng.normal(0, random_displacement_stdev);
-        # This shift in y is a bit subtle: I am shifting the 
         alpha = (2*random()-1) * isotropic_parameter * (np.pi)/2; # Uniform distribution
 
-        #dx = 0; dy = 0; 
-        #alpha = 0;
+        #dx = 0; dy = 0; #alpha = 0;
 
         molecule_counter += 1;
-        build_a_glycan(molecule_counter, x, y, dx, dy, DSU_length, alpha);
+        build_a_glycan(molecule_counter, x, y, dx, dy, len_of_glycan_DSU, alpha);
 
-        y += (DSU_length/2)*DSU + new_glycan_gap # nm
+        y += len_of_glycan_nm/2 + vertical_gap_between_glycans # nm
 
 def put_the_atoms_into_a_spatial_hash_smh(cell_size): # Saw this in a yt video once
     grid = defaultdict(list)
@@ -298,9 +301,9 @@ def compute_crosslink_ratio(number_of_atoms : int, lst_of_bonds : list[Bond]):
         if b.bond_type == 2:
             crosslink_cnt += 1;
     
-    density_fraction = (number_of_atoms * DSU**2) / (simbox_actual_width * simbox_actual_height);
+    rho_mesh = (number_of_atoms * DSU**2) / (simbox_actual_width * simbox_actual_height);
     crosslink_ratio = (2*crosslink_cnt) / number_of_atoms;
-    return density_fraction, crosslink_ratio;
+    return rho_mesh, crosslink_ratio;
 
 # Note: Cells are typically rod-shaped, and are about 2.0 μm long and 0.25–1.0 μm in diameter, with a cell volume of 0.6–0.7 μm3. (from Wikipedia)
 # 2um = 2000nm, 0.25-1.0um diameter = 785.40-3141.59nm in circumference.

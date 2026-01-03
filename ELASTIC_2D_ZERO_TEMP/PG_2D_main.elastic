@@ -32,7 +32,7 @@ variable d3 equal -(v_pxy1-${pxy0})/(v_delta/v_len0)*${cfac}
 write_restart restart.equil
 
 # uxx Perturbation
-variable runiter equal 50000
+variable runiter equal 100000
 
 variable dir equal 1
 #include PG_2D_displace_remap.mod
