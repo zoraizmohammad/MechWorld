@@ -364,6 +364,7 @@ def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : floa
     global simbox_actual_height; simbox_actual_height = 0;
     global simbox_actual_width; simbox_actual_width = 0;
     global molecule_counter;    molecule_counter = 0;
+    global DEBUG_favored_bonds; DEBUG_favored_bonds = 0;
     global lst_of_atoms;  lst_of_atoms = list(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
     global lst_of_bonds;  lst_of_bonds = list();
     global lst_of_angles; lst_of_angles = list();

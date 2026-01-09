@@ -42,15 +42,21 @@ Added a first-favored policy where the first peptide between each glycan pair is
 * The 1st bond is allowed to be at 80% of the maximum extension (before minimization of course).
 * Running this on a 500x500 network w/ rho_gap = 0.5, this policy increased the number of unique glycan pairs from 14611 to 21471. Almost +50% variety.
 
-* [ ] Streamline isotropic prestrain to use python lammps library
+* [ ] Build triangular in lammps, then run the stress computation script on it. The results should match the analytical paper on the triangular network.
+
+* [x] Add 95% confidence intervals to the density vs. crosslinking plot
+
+* [...] Streamline isotropic prestrain to use python lammps library
+
+   Work is in progress
+
+  * [x] Implement IsotropicPrestrain lammps script into python
+
+  * [x] Automate creation and running of multiple networks, no manual file moving/renaming.
   
-  * [ ] CLI analysis options, no manual file moving/renaming.
-  
-  * [ ] Multiple-network averaging
-  
-  * [ ] Figures that agree with expected results?
-  
-  
+  * [ ] Network averaging with confidence intervals: Energy fractions
+
+  * [ ] Network averaging with confidence intervals: Stress magnitude and ratio
 
 Concerns/observations/question:
 
