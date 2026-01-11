@@ -135,3 +135,24 @@ class Angle:
                 self.x += w;
             elif self.x > xhi + (self.y - ylo)/triclinic_slope:
                 self.x -= w;
+
+class GlycanMolecule:
+    def __init__(self, id : int): # Important lesson, don't mut set() in default arguments or it gets shared
+        self.id = id;
+        self.atom_ids = set();
+        self.bond_ids = set();
+        self.angle_ids = set();
+
+    def delete_components(self, atoms : dict[int,Atom], bonds : dict[int,Bond], angles : dict[int,Angle]):
+        pass
+        [atoms.pop(x) for x in self.atom_ids];
+        [bonds.pop(x) for x in self.bond_ids];
+        [angles.pop(x) for x in self.angle_ids];
+    
+    def add_atom_id(self, atom_id : int):
+        self.atom_ids.add(atom_id)
+
+    def delete_if_free(self, atoms : dict[int,Atom], bonds : dict[int,Bond], angles : dict[int,Angle]) -> bool:
+        if len(self.bond_ids) == (len(self.atom_ids)-1):
+            self.delete_components(atoms, bonds, angles)
+            #print(f"Deleted free glycan with id = {self.id}")

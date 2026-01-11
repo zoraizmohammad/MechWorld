@@ -3,7 +3,7 @@ import numpy as np
 from math import sin, cos, floor
 from random import randrange, random, shuffle
 from collections import defaultdict
-from lammps_PG_objects import Atom, Bond, Angle
+from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule
 from simulation_constants_settings import *
 from lammps_PG_objects import peptide_energy_lammps
 
@@ -27,8 +27,8 @@ def get_DSU_lengths(SIMBOX_MAX_H) -> tuple[list[int], float]:
         DSU_lengths.append(distribution[randrange(0,len(distribution))])
 
     DSU_lengths.pop(); # Remove the one that pushed it over the edge
-    filler_glycan_length = floor((SIMBOX_MAX_H - sum(DSU_lengths)*DSU - (len(DSU_lengths))*glycan_gap)/DSU)
-    DSU_lengths.append(filler_glycan_length)
+    #filler_glycan_length = floor((SIMBOX_MAX_H - sum(DSU_lengths)*DSU - (len(DSU_lengths))*glycan_gap)/DSU)
+    #DSU_lengths.append(filler_glycan_length)
     # Total gaps = number of glycan. (n-1 between them, then 1 that wraps the periodic box)
     
     # We don't want a bunch of space at the bottom, so we'll spread it evenly by increasing the glycan gap for this column
@@ -37,39 +37,45 @@ def get_DSU_lengths(SIMBOX_MAX_H) -> tuple[list[int], float]:
 
     return DSU_lengths, new_glycan_gap
 
-def build_a_glycan(mol_id,x,y,dx=0,dy=0,numDSUs=1,alpha=0):
+def build_a_glycan(x,y,dx=0,dy=0,numDSUs=1,alpha=0):
     # (x,y) is CENTER of the Molecule
+    mol_id = len(global_glycans)+1;
+    global_glycans[mol_id] = GlycanMolecule(mol_id);
 
     per_glycan_DSU_orientation_randomizer = randrange(1,4);
 
     for i in range(0,numDSUs):
         xA = x+((i+1)-(numDSUs/2))*DSU*sin(alpha)+dx # nm, Applies rotation to x values, rotation is centered on midpoint.
-        yA = y+((i+1)-(numDSUs/2))*DSU*cos(alpha)+dy # nm, Applies rotation to x values, rotation is centered on midpoint.
+        yA = y+((i+1)-(numDSUs/2))*DSU*cos(alpha)+dy # nm, Applies rotation to y values, rotation is centered on midpoint.
 
         # Atoms
-        atom_id = len(lst_of_atoms)+1;
+        atom_id = len(global_atoms)+1;
 
         # Alternate Right-Reaching and Left-Reaching DSUs
         tmp = (per_glycan_DSU_orientation_randomizer + atom_id) % 4;
         
         if (tmp == 1 or tmp == 2):
-            lst_of_atoms.append(Atom(atom_id, mol_id, ATOM_TYPE_NEG_DSU, xA, yA, 0))
+            global_atoms[atom_id] = Atom(atom_id, mol_id, ATOM_TYPE_NEG_DSU, xA, yA, 0);
         else:
-            lst_of_atoms.append(Atom(atom_id, mol_id, ATOM_TYPE_POS_DSU, xA, yA, 0))
+            global_atoms[atom_id] = Atom(atom_id, mol_id, ATOM_TYPE_POS_DSU, xA, yA, 0);
+        
+        # let the glycan know about this atom
+        global_glycans[mol_id].atom_ids.add(atom_id);
 
         # Bonds
         if (i >= 1):
-            bond_id = len(lst_of_atoms)+1;
-            lst_of_bonds.append(Bond(bond_id, BOND_TYPE_GLYCAN, lst_of_atoms[-2].id, lst_of_atoms[-1].id))
+            bond_id = len(global_bonds)+1;
+            global_bonds[bond_id] = Bond(bond_id, BOND_TYPE_GLYCAN, atom_id-1, atom_id);
+            global_glycans[mol_id].bond_ids.add(bond_id);
 
         # Angles
         if (i >= 2):
-            angle_id = len(lst_of_atoms)+1;
-            lst_of_angles.append(Angle(angle_id, ANGLE_TYPE_GLYCAN, lst_of_atoms[-3].id, lst_of_atoms[-2].id, lst_of_atoms[-1].id))
+            angle_id = len(global_angles)+1;
+            global_angles[angle_id] = Angle(angle_id, ANGLE_TYPE_GLYCAN, atom_id-2, atom_id-1, atom_id);
+            global_glycans[mol_id].angle_ids.add(angle_id);
 
 def row_trot(x):
     # Walk down a row and populate it with rotated glycans
-    global molecule_counter;
 
     (lst_glycan_lengths, vertical_gap_between_glycans) = get_DSU_lengths(SIMBOX_MAX_H)
 
@@ -84,6 +90,7 @@ def row_trot(x):
     y = (vertical_gap_between_glycans/2) + rng.uniform(-0.5*SIMBOX_MAX_H,0.5*SIMBOX_MAX_H); 
     # This shift is a little bit subtle, I am shifting the whole row so the breaks at the tops and bottoms aren't aligned
     # it is easiest to imagine this when there is no rotation
+
     for len_of_glycan_DSU in lst_glycan_lengths:
         len_of_glycan_nm = len_of_glycan_DSU * DSU;
         #print(y)
@@ -94,9 +101,7 @@ def row_trot(x):
         alpha = (2*random()-1) * isotropic_parameter * (np.pi)/2; # Uniform distribution
 
         #dx = 0; dy = 0; #alpha = 0;
-
-        molecule_counter += 1;
-        build_a_glycan(molecule_counter, x, y, dx, dy, len_of_glycan_DSU, alpha);
+        build_a_glycan(x, y, dx, dy, len_of_glycan_DSU, alpha);
 
         y += len_of_glycan_nm/2 + vertical_gap_between_glycans # nm
 
@@ -119,25 +124,23 @@ def spatial_hash_coords(a : Atom, cell_size : float) -> tuple[int,int]:
 
 def put_the_atoms_into_a_spatial_hash_smh(cell_size): # Saw this in a yt video once
     grid = defaultdict(list)
-    idxs_of_eligible_atoms = list();
+    ids_of_eligible_atoms = list();
 
-    for idx, a in enumerate(lst_of_atoms):
+    for (a_id, a) in global_atoms.items():
         if a.is_eligible():
             # Slight change to fix potential rounding issue
             cx, cy = spatial_hash_coords(a, cell_size);
 
-            idxs_of_eligible_atoms.append(idx)
-            grid[(cx, cy)].append(idx) # Holds index, and thus id of the atom
+            ids_of_eligible_atoms.append(a_id)
+            grid[(cx, cy)].append(a_id)
         else:
             continue
     
-    return grid, idxs_of_eligible_atoms
+    return grid, ids_of_eligible_atoms
 
-def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list], cell_size : float, molecule_bonding_matrix : defaultdict[int]):
+def create_peptide_with_nearby_neighbor(id_of_atom : int, grid : defaultdict[list], cell_size : float, molecule_bonding_matrix):
     # cell_size = radius
-    a : Atom = lst_of_atoms[idx_of_atom];
-
-    global DEBUG_favored_bonds;
+    a : Atom = global_atoms[id_of_atom];
 
     # It could be ineligible because another bond was formed with it.
     if not a.is_eligible():
@@ -148,12 +151,10 @@ def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list]
 
     cx, cy = spatial_hash_coords(a, cell_size);
 
-    neighbors_idxs : list[int] = list()
+    neighbors_ids : list[int] = list()
 
     for dcx in [-1,0,1]:
         for dcy in [-1,0,1]:
-
-            # Got to consider periodic bonds
             if ((cx + dcx) < 0):
                 cx += mcx;
             if ((cy + dcy) < 0):
@@ -164,17 +165,16 @@ def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list]
                 cy -= mcy;
             
             if (cx+dcx,cy+dcy) not in grid:
-                #print(f"Indices {cx+dcx} {cy+dcy} are undefined")
                 continue;
 
-            neighbors_idxs.extend(grid[(cx+dcx,cy+dcy)])
+            neighbors_ids.extend(grid[(cx+dcx,cy+dcy)])
 
     energy_ideal_neighbor = float("Inf");
-    idx_ideal_neighbor = None;
+    ideal_neighbor_id = None;
 
     # Speed date all the neighbors to see who's the best match
-    for idx_of_neighbor in neighbors_idxs:
-        neighbor : Atom = lst_of_atoms[idx_of_neighbor]
+    for neighbor_id in neighbors_ids:
+        neighbor : Atom = global_atoms.get(neighbor_id)
 
         # Disregard if the orientations (+/-) are the same
         if (a.atom_type == neighbor.atom_type):
@@ -192,45 +192,35 @@ def create_bond_with_nearby_neighbor(idx_of_atom : int, grid : defaultdict[list]
         r_neighbor = np.sqrt(periodic_distance_squared(neighbor.x, neighbor.y, a.x, a.y));
         E_neighbor = peptide_energy_lammps(r_neighbor);
 
-        # Are these molecules bonded to each other?
-        if (a.mol_id, neighbor.mol_id) not in molecule_bonding_matrix:
-            # NO
-            # number_of_bonds_between_prospective_molecules = 0;
-            if (r_neighbor < E_FIRST_PEPTIDE_MAX_EXTENSION * PEPTIDE_COEFFICIENTS[2]):
-                idx_ideal_neighbor = idx_of_neighbor;
+        # number_of_bonds_between_prospective_molecules = molecule_bonding_matrix[(a.mol_id, neighbor.mol_id)];
+        if (E_neighbor == None) or (E_neighbor > E_PEPTIDE_CUTOFF):
+            continue;
 
-                if (E_neighbor > E_PEPTIDE_CUTOFF):
-                    DEBUG_favored_bonds = DEBUG_favored_bonds + 1;
+        if E_neighbor < energy_ideal_neighbor:
+            energy_ideal_neighbor = E_neighbor;
+            ideal_neighbor_id = neighbor_id;
 
-                break;
-        else:
-            # YES
-            # number_of_bonds_between_prospective_molecules = molecule_bonding_matrix[(a.mol_id, neighbor.mol_id)];
-            if (E_neighbor == None) or (E_neighbor > E_PEPTIDE_CUTOFF):
-                continue;
-    
-            if E_neighbor < energy_ideal_neighbor:
-                energy_ideal_neighbor = E_neighbor;
-                idx_ideal_neighbor = idx_of_neighbor;
-
-    if (idx_ideal_neighbor == None):
+    if (ideal_neighbor_id == None):
         # It's a sad lonely life for this DSU...
         pass
     else:
-        ideal_neighbor = lst_of_atoms[idx_ideal_neighbor];
-
         # We have an ideal neighbor, form a bond!
-        lst_of_bonds.append(Bond(len(lst_of_bonds)+1, BOND_TYPE_PEPTIDE, a.id, ideal_neighbor.id))
-        lst_of_atoms[idx_of_atom].has_peptide = True;
-        lst_of_atoms[idx_ideal_neighbor].has_peptide = True;
-
+        ideal_n = global_atoms.get(ideal_neighbor_id);
+        new_bond_id = len(global_bonds)+1;
+        global_bonds[new_bond_id] = (Bond(new_bond_id, BOND_TYPE_PEPTIDE, a.id, ideal_n.id))
+        global_atoms[id_of_atom].has_peptide = True;
+        global_atoms[ideal_neighbor_id].has_peptide = True;
+    
+        global_glycans[a.mol_id].bond_ids.add(new_bond_id);
+        global_glycans[ideal_n.mol_id].bond_ids.add(new_bond_id);
+    
         # Update bonding matrix
-        if (a.mol_id, ideal_neighbor.mol_id) not in molecule_bonding_matrix:
-            molecule_bonding_matrix[(a.mol_id, ideal_neighbor.mol_id)] = 1;
-            molecule_bonding_matrix[(ideal_neighbor.mol_id, a.mol_id)] = 1;
+        if (a.mol_id, ideal_n.mol_id) not in molecule_bonding_matrix:
+            molecule_bonding_matrix[(a.mol_id, ideal_n.mol_id)] = 1;
+            molecule_bonding_matrix[(ideal_n.mol_id, a.mol_id)] = 1;
         else:
-            molecule_bonding_matrix[(a.mol_id, ideal_neighbor.mol_id)] += 1;
-            molecule_bonding_matrix[(ideal_neighbor.mol_id, a.mol_id)] += 1;
+            molecule_bonding_matrix[(a.mol_id, ideal_n.mol_id)] += 1;
+            molecule_bonding_matrix[(ideal_n.mol_id, a.mol_id)] += 1;
 
     return;
 
@@ -263,30 +253,29 @@ def periodic_distance_test(x1,y1,x2,y2,r) -> bool:
 
 def go_go_gadget_peptide_bonds():
     peptide_bond_search_radius = PEPTIDE_SEARCH_RADIUS; # nm, this is a greater length 
-    (grid, idxs_of_eligible_atoms) = put_the_atoms_into_a_spatial_hash_smh(peptide_bond_search_radius)
+    (grid, ids_of_eligible_atoms) = put_the_atoms_into_a_spatial_hash_smh(peptide_bond_search_radius)
 
-    if idxs_of_eligible_atoms == []:
+    if ids_of_eligible_atoms == []:
         return; # NOOP
 
     # Randomize the order of the eligible atoms so bonds don't form based on an arbitrary priority.
-    shuffle(idxs_of_eligible_atoms);
+    shuffle(ids_of_eligible_atoms);
 
     # This symmetric matrix records how thoroughly bonded each molecule pair is
     molecule_bonding_matrix = defaultdict(int);
 
     # Each atom will search for neighbors to bond with
-    for i in range(0, len(idxs_of_eligible_atoms)):
-        create_bond_with_nearby_neighbor(idxs_of_eligible_atoms[i], grid, peptide_bond_search_radius, molecule_bonding_matrix)
-
+    for i in range(0, len(ids_of_eligible_atoms)):
+        create_peptide_with_nearby_neighbor(ids_of_eligible_atoms[i], grid, peptide_bond_search_radius, molecule_bonding_matrix)
     
     pairwise_list = list(molecule_bonding_matrix.values());
     histo = dict();
-    for i in range(1,max(pairwise_list)+1):
-        histo[i] = floor(pairwise_list.count(i) / 2) # sym matrix => divide by 2
-    print(f"Number of glycan pairs with _ connecting bonds: {histo}") # How many pairs have X crosslinks connecting them?
+    if not len(pairwise_list) == 0:
+        for i in range(1,max(pairwise_list)+1):
+            histo[i] = floor(pairwise_list.count(i) / 2) # sym matrix => divide by 2
+        print(f"Number of glycan pairs with _ connecting bonds: {histo}") # How many pairs have X crosslinks connecting them?
 
-    print(f"Number of unique molecule pairs: {floor(len(molecule_bonding_matrix)/2)}")
-    print(f"Extra bonds created via First-Favored Policy: {DEBUG_favored_bonds} ({DEBUG_favored_bonds/len(lst_of_bonds)*100}% of total)")
+    print(f"{floor(len(molecule_bonding_matrix)/2)} unique peptide pairs | {len(global_glycans)} glycans")
 
 # Output percentage of cross-linked polymers
 # Plot that compares density to cross-linked polymers
@@ -295,9 +284,9 @@ def write_to_laamps_datafile(filename):
     with open(filename, "w") as f:
         f.write("LAMMPS Data File. PG System.")
         f.write("\n")
-        f.write(f"{len(lst_of_atoms)} atoms\n")
-        f.write(f"{len(lst_of_bonds)} bonds\n")
-        f.write(f"{len(lst_of_angles)} angles\n")
+        f.write(f"{len(global_atoms)} atoms\n")
+        f.write(f"{len(global_bonds)} bonds\n")
+        f.write(f"{len(global_angles)} angles\n")
         f.write(f"2 atom types\n")
         f.write(f"2 bond types\n")
         f.write(f"1 angle types\n")
@@ -314,21 +303,22 @@ def write_to_laamps_datafile(filename):
         f.write(f"2 {DSU_MASS_ATTOGRAM}\n")
 
         f.write(f"\nAtoms\n\n")
-        for a in lst_of_atoms:
+        for a in global_atoms.values():
             a.to_datafile(f)
 
         f.write(f"\nBonds\n\n")
-        for b in lst_of_bonds:
+        for b in global_bonds.values():
             b.to_datafile(f)
 
         f.write(f"\nAngles\n\n")
-        for c in lst_of_angles:
+        for c in global_angles.values():
             c.to_datafile(f)
 
-def compute_crosslink_ratio(number_of_atoms : int, lst_of_bonds : list[Bond]):
+def compute_crosslink_ratio():
     # Count number of cross-links formed
+    number_of_atoms = len(global_atoms);
     crosslink_cnt = 0;
-    for b in lst_of_bonds:
+    for b in global_bonds.values():
         if b.bond_type == 2:
             crosslink_cnt += 1;
     
@@ -342,11 +332,11 @@ def compute_crosslink_ratio(number_of_atoms : int, lst_of_bonds : list[Bond]):
 # Globals
 simbox_actual_width = 0; # TBD by population
 simbox_actual_height = 0; # TBD by population
-molecule_counter = 0;
 DEBUG_favored_bonds = 0;
-lst_of_atoms : list[Atom] = list(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
-lst_of_bonds : list[Bond] = list();
-lst_of_angles :  list[Angle] = list();
+global_atoms   : dict[int,Atom] = dict(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
+global_bonds   : dict[int,Bond] = dict();
+global_angles  : dict[int,Angle] = dict();
+global_glycans : dict[int,GlycanMolecule] = dict();
 
 def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : float = 1, X : float = 0.65, filename : str = None):
 
@@ -363,11 +353,11 @@ def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : floa
     # Reset Globals
     global simbox_actual_height; simbox_actual_height = 0;
     global simbox_actual_width; simbox_actual_width = 0;
-    global molecule_counter;    molecule_counter = 0;
     global DEBUG_favored_bonds; DEBUG_favored_bonds = 0;
-    global lst_of_atoms;  lst_of_atoms = list(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
-    global lst_of_bonds;  lst_of_bonds = list();
-    global lst_of_angles; lst_of_angles = list();
+    global global_atoms;   global_atoms = dict(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
+    global global_bonds;   global_bonds = dict();
+    global global_angles;  global_angles = dict();
+    global global_glycans; global_glycans = dict();
 
     # Populate Glycans
     x = column_gap/2;
@@ -385,15 +375,19 @@ def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : floa
     # Create Peptide Bonds
     go_go_gadget_peptide_bonds()
 
+    # Delete free-floating glycans
+    for g in global_glycans.values():
+        g.delete_if_free(global_atoms, global_bonds, global_angles);
+
     # Count Cross-Linking
-    density_fraction, crosslink_ratio = compute_crosslink_ratio(len(lst_of_atoms), lst_of_bonds)
+    density_fraction, crosslink_ratio = compute_crosslink_ratio();
 
     # Transform Coordinates of Atoms
-    for a in lst_of_atoms:
+    for a in global_atoms.values():
         a.translate(-simbox_actual_width/2, -simbox_actual_height/2, 0);
     
     if not filename == None:
         # Write everything to LAMMPS datafile
         write_to_laamps_datafile(filename);
 
-    return density_fraction, crosslink_ratio, lst_of_atoms, lst_of_bonds, lst_of_angles;
+    return density_fraction, crosslink_ratio, global_atoms, global_bonds, global_angles;
