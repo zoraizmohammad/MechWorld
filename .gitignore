@@ -3,6 +3,7 @@
 *.png
 *.jpg
 *.data
+*.network
 *.out
 __pycache__/*
 ELASTIC_2D_ZERO_TEMP/cubic_*.*

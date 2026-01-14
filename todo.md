@@ -44,7 +44,14 @@ Added a first-favored policy where the first peptide between each glycan pair is
 
 * [ ] Build triangular in lammps, then run the stress computation script on it. The results should match the analytical paper on the triangular network.
 
+* [x] Revert to baseline rules for network generation
+      * [x] Compare larger patches (500) additional rule -> density vs crosslinking
+      * [x] Add function to delete free-floating glycans
+
 * [x] Add 95% confidence intervals to the density vs. crosslinking plot
+
+* [x] Should peptides be slack when length < "slack length"? Look for other models? We were using nonlinear bonds in LAMMPS for the peptides, but it has higher energy for negative strains, which the WLC doesn't. (Though the positive strains made a good curve fit.) Instead, investigate using lepton-style bonds to directly implement the WLC into lammps.
+   -> Model in Nguyen 2015 DOES have E increase for r < r0 == 1 nm. I was adjusting the wrong parameter in Mondays working meeting. My fit was updated to consider negative strains, but the non-linear model still looks very close to WLC. New coefficents are the same to within 0.1%.
 
 * [...] Streamline isotropic prestrain to use python lammps library
 
@@ -52,11 +59,17 @@ Added a first-favored policy where the first peptide between each glycan pair is
 
   * [x] Implement IsotropicPrestrain lammps script into python
 
-  * [x] Automate creation and running of multiple networks, no manual file moving/renaming.
+  * [x] Automate creation and running of multiple networks, no manual file moving/renaming
+
+  * [x] Takes about 2 hours to run 9 networks (200x200 DSU, rho_gap = 0.5)
+
+  * [ ] Add a bernoulli test to crosslinking rules (expect this to decrease crosslinking ratio, density of CR=0.6 will be higher, hopefully the percolation will be higher for same CR)
+
+  * [ ] Add screenshots of networks before & after deformations
   
   * [ ] Network averaging with confidence intervals: Energy fractions
 
-  * [ ] Network averaging with confidence intervals: Stress magnitude and ratio
+  * [ ] Network averaging with confidence intervals: Stress magnitude and long/hoop ratio
 
 Concerns/observations/question:
 
