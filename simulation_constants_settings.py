@@ -23,7 +23,8 @@ DSU_MASS_ATTOGRAM = DSU_MASS_GRAM * 1E18; # ag / molecule
 
 GLYCAN_COEFFICIENTS = (5.570, DSU);
 #PEPTIDE_COEFFICIENTS = (0.1709, 0.9065, 4.0878);
-PEPTIDE_COEFFICIENTS = (0.185567402281798, 1.0, 4.035190236993014); # Another curve fit with prescribed slack length instead of best fit to WLC
+PEPTIDE_COEFFICIENTS = (0.185328520541486, 1.0, 4.034069292365436); # Another curve fit with prescribed slack length instead of best fit to WLC
+PROBABILITY_DSU_CAN_ATTEMPT_TO_FORM_PEPTIDE = 0.8; # Improves percolation of the network for a given cross-linking ratio by nudging density up.
 
 # https://en.wikipedia.org/wiki/KT_(energy)
 # 1 kT = 4.11E-21 J at 298K

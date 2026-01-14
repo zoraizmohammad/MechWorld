@@ -1,6 +1,7 @@
 import numpy as np;
 import numpy.typing as npt;
 from dataclasses import dataclass;
+from random import random;
 
 from simulation_constants_settings import *
 
@@ -35,6 +36,7 @@ class Atom:
         self.x = x;
         self.y = y;
         self.z = z;
+        self.is_inclined_to_peptide = (random() < PROBABILITY_DSU_CAN_ATTEMPT_TO_FORM_PEPTIDE);
         self.has_peptide = False;
 
     def translate(self, dx, dy, dz):
@@ -45,11 +47,11 @@ class Atom:
     def to_datafile(self, f):
         f.write(f"{self.id} {self.mol_id} {self.atom_type} {self.x:.2f} {self.y:.2f} {self.z:.2f}\n")
 
-    def is_eligible(self) -> bool:    
-        if self.has_peptide:
-            return False;
-        else:
+    def is_eligible(self) -> bool:
+        if self.is_inclined_to_peptide and not self.has_peptide:
             return True;
+        else:
+            return False;
 
     def correct_PCB(self, xlo, xhi, xy, ylo, yhi):
         # Transforms the atom's position to be within the boundary of the original periodic box

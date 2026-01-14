@@ -13,13 +13,35 @@ rng = np.random.default_rng()
 # Koch, A. L. (2000a). Length distribution of the peptidoglycan chains in the sacculus of
 # escherichia coli. Journal of Theoretical Biology, 204(4), 533–541.
 
+MAX_GLYCAN_LENGTH = 30;
 p = 0.9;
-DSUs = range(1,31); # 1-30
+DSUs = range(1,MAX_GLYCAN_LENGTH+1); # 1-30
 distribution = [];
 for i,x in enumerate(DSUs):
-    num_entries = (x)*((1-p)**2)*(p**(x-1))*100;
+    num_entries = (x)*((1-p)**2)*(p**(x-1))*5000;
     num_entries = floor(num_entries*10);
     distribution += [x] * num_entries;
+
+def normalized_length_distribution():
+    dsu_lengths = range(1,MAX_GLYCAN_LENGTH+1);
+    norm_distrib = [0]*len(dsu_lengths)
+    ldist = len(distribution)
+    for i,x in enumerate(dsu_lengths):
+        norm_distrib[i] = distribution.count(x) / ldist;
+
+    return dsu_lengths, norm_distrib
+
+def actual_length_distribution():
+    dsu_lengths = range(1,MAX_GLYCAN_LENGTH+1);
+    actual_distrib = [0]*len(dsu_lengths)
+    ldist = len(global_glycans);
+    for g in global_glycans.values():
+        actual_distrib[len(g.atom_ids)-1] += 1;
+
+    for i in dsu_lengths:
+        actual_distrib[i-1] = actual_distrib[i-1]/ldist;
+
+    return dsu_lengths, actual_distrib
 
 def get_DSU_lengths(SIMBOX_MAX_H) -> tuple[list[int], float]:
     DSU_lengths = [];
@@ -27,8 +49,10 @@ def get_DSU_lengths(SIMBOX_MAX_H) -> tuple[list[int], float]:
         DSU_lengths.append(distribution[randrange(0,len(distribution))])
 
     DSU_lengths.pop(); # Remove the one that pushed it over the edge
-    #filler_glycan_length = floor((SIMBOX_MAX_H - sum(DSU_lengths)*DSU - (len(DSU_lengths))*glycan_gap)/DSU)
-    #DSU_lengths.append(filler_glycan_length)
+    
+    # This filler glycan is also used in Xaoxuan's method of network assembly
+    filler_glycan_length = floor((SIMBOX_MAX_H - sum(DSU_lengths)*DSU - len(DSU_lengths)*glycan_gap)/DSU)
+    DSU_lengths.append(filler_glycan_length)
     # Total gaps = number of glycan. (n-1 between them, then 1 that wraps the periodic box)
     
     # We don't want a bunch of space at the bottom, so we'll spread it evenly by increasing the glycan gap for this column
@@ -84,8 +108,7 @@ def row_trot(x):
     #lst_glycan_lengths.append(round((SIMBOX_MAX_H/DSU) - sum(lst_glycan_lengths)))
     #vertical_gap_between_glycans = 0;
 
-    #print(f"Column {x}: new_glycan_gap = {new_glycan_gap}");
-    #print(DSU_lengths, new_glycan_gap)
+    #print(f"Column {x}: new_glycan_gap = {vertical_gap_between_glycans}");
 
     y = (vertical_gap_between_glycans/2) + rng.uniform(-0.5*SIMBOX_MAX_H,0.5*SIMBOX_MAX_H); 
     # This shift is a little bit subtle, I am shifting the whole row so the breaks at the tops and bottoms aren't aligned
@@ -96,7 +119,8 @@ def row_trot(x):
         #print(y)
         y += len_of_glycan_nm/2; # Move y to the center of the new glycan strand. [nm]
 
-        dx = rng.normal(0, random_displacement_stdev); # Shape should to be adjusted to match paper, 0.996
+        #dx = rng.normal(0, random_displacement_stdev); # Shape should to be adjusted to match paper, 0.996
+        dx = rng.uniform(-column_gap/2, column_gap)
         dy = rng.normal(0, random_displacement_stdev);
         alpha = (2*random()-1) * isotropic_parameter * (np.pi)/2; # Uniform distribution
 
@@ -143,6 +167,7 @@ def create_peptide_with_nearby_neighbor(id_of_atom : int, grid : defaultdict[lis
     a : Atom = global_atoms[id_of_atom];
 
     # It could be ineligible because another bond was formed with it.
+    # There is also a chance that the DSU is not eligible based on a bernoulli test, see constructor.
     if not a.is_eligible():
         return;
 
@@ -275,7 +300,7 @@ def go_go_gadget_peptide_bonds():
             histo[i] = floor(pairwise_list.count(i) / 2) # sym matrix => divide by 2
         print(f"Number of glycan pairs with _ connecting bonds: {histo}") # How many pairs have X crosslinks connecting them?
 
-    print(f"{floor(len(molecule_bonding_matrix)/2)} unique peptide pairs | {len(global_glycans)} glycans")
+    #print(f"{floor(len(molecule_bonding_matrix)/2)} unique peptide pairs | {len(global_glycans)} glycans")
 
 # Output percentage of cross-linked polymers
 # Plot that compares density to cross-linked polymers
@@ -390,4 +415,4 @@ def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : floa
         # Write everything to LAMMPS datafile
         write_to_laamps_datafile(filename);
 
-    return density_fraction, crosslink_ratio, global_atoms, global_bonds, global_angles;
+    return density_fraction, crosslink_ratio, global_glycans, global_atoms, global_bonds, global_angles;
