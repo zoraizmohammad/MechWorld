@@ -1,14 +1,15 @@
 from lammps import lammps
 from simulation_constants_settings import GLYCAN_COEFFICIENTS, PEPTIDE_COEFFICIENTS
+from os.path import splitext
 # https://docs.lammps.org/Python_module.html
 
-def run_isotropic_prestrain(network_filepath : str, max_strain : float, debug_images : bool) -> list[str]:
+def run_isotropic_prestrain(network_filepath : str, max_strain : float, output_images : bool = False, output_dump_of_atoms_bonds : bool = False) -> list[str]:
 
     # max_strain is 0.3 in Xaoxuan's
 
     L = lammps();
 
-    print_filepath = network_filepath.replace(".network",".out")
+    filepath_no_extension = splitext(network_filepath)[0]
     
     #### 1) Simulation Settings
     L.command("units nano")
@@ -18,7 +19,7 @@ def run_isotropic_prestrain(network_filepath : str, max_strain : float, debug_im
 
     #### 2) System definition
     L.command(f"read_data {network_filepath}")
-    L.command(f"variable print_filename string \"{print_filepath}\"")
+    L.command(f"variable print_filename string \"{filepath_no_extension}.out\"")
 
     #### 3) Pair/Bond/Angle Settings
     L.command(f"variable up equal {max_strain}")
@@ -60,17 +61,17 @@ def run_isotropic_prestrain(network_filepath : str, max_strain : float, debug_im
     ### 5) Minimize the energy before any deformation is applied
     L.command("minimize 1.0e-6 1.0e-6 ${miniter} 10000")
 
-    if debug_images:
-        L.command("write_dump all image dump.min.jpg type type bond type type atom no")
+    if output_images:
+        L.command(f"write_dump all image {filepath_no_extension}.relaxed.jpg type type bond type type atom no")
 
-    # save snapshot of the initial position of all atoms and bonds
-    #L.command("compute 1 all property/local btype batom1 batom2")
-    #L.command("compute 2 all bond/local dist fx fy fz")
-    #L.command("run 0")
-    #L.command("write_dump all local bonds_relaxed.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2] c_2[3] c_2[4]")
-    #L.command("write_dump all custom atoms_relaxed.dump id mol type x y")
-    #L.command("uncompute 1")
-    #L.command("uncompute 2")
+    if output_dump_of_atoms_bonds:
+        L.command("compute b1 all property/local btype batom1 batom2")
+        L.command("compute b2 all bond/local dist fx fy fz")
+        L.command("run 0")
+        L.command(f"write_dump all local {filepath_no_extension}.relaxed.bonds index c_b1[1] c_b1[2] c_b1[3] c_b2[1] c_b2[2] c_b2[3] c_b2[4]")
+        L.command(f"write_dump all custom {filepath_no_extension}.relaxed.atoms id mol type x y")
+        L.command("uncompute b1")
+        L.command("uncompute b2")
 
     #https://docs.lammps.org/compute_bond.html
     L.command("compute bondE  all bond")
@@ -98,19 +99,21 @@ def run_isotropic_prestrain(network_filepath : str, max_strain : float, debug_im
     ### 7) Minimize energy of deformed state
     L.command("minimize 1.0e-6 1.0e-6 ${miniter} 10000")
 
-    if debug_images:
-        L.command("write_dump all image dump.final.jpg type type bond type type atom no")
+    if output_images:
+        L.command(f"write_dump all image {splitext(network_filepath)[0]}.final.jpg type type bond type type atom no")
 
     # write down final stress, strain, energy fraction
     L.command("print \"${p_step} ${p_temp} ${p_pe} ${p_press} ${p_pxx} ${p_pyy} ${p_pxy} ${p_lx} ${p_ly} ${p_vol} ${glycan_pe} ${angle_pe} ${peptide_pe}\" append ${print_filename}")
 
-    # save final snapshot of all atoms and bonds
-    #compute 1 all property/local btype batom1 batom2
-    #compute 2 all bond/local dist fx fy fz
-    #run 0 # Computation happens at this step
-    #write_dump all local bonds_deformed.dump index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2] c_2[3] c_2[4]
-    #write_dump all custom atoms_deformed.dump id mol type x y
+    if output_dump_of_atoms_bonds:
+        L.command("compute b1 all property/local btype batom1 batom2")
+        L.command("compute b2 all bond/local dist fx fy fz")
+        L.command("run 0")
+        L.command(f"write_dump all local {filepath_no_extension}.final.bonds index c_b1[1] c_b1[2] c_b1[3] c_b2[1] c_b2[2] c_b2[3] c_b2[4]")
+        L.command(f"write_dump all custom {filepath_no_extension}.final.atoms id mol type x y")
+        L.command("uncompute b1")
+        L.command("uncompute b2")
 
     L.close();
 
-    return print_filepath;
+    return filepath_no_extension + ".out";

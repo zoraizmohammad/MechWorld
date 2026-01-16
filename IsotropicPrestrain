@@ -18,8 +18,8 @@ atom_style angle
 boundary p p p
 
 #### 2) System definition
-read_data network_rho1p0_a0p60_w100.data
-variable print_filename string "dense60.out"
+read_data test1.data
+variable print_filename string "test1.out"
 
 #### 3) Pair/Bond/Angle Settings
 variable up equal 0.3
@@ -32,7 +32,7 @@ pair_coeff * *    # This non-existant pairs should exist between all types
 # Extension Components
 bond_style hybrid harmonic nonlinear
 bond_coeff 1 harmonic 5.570 1.03              # Xaoxuan 2024, Nguyen 2015
-bond_coeff 2 nonlinear 0.185567402281798 1.0 4.035190236993014   # Curve fit to WLC in Nguyen 2015
+bond_coeff 2 nonlinear 0.185567402281798 1.0 4.035190236993014   # Curve fit to WLC in Nguyen 2015 
 
 # Bending Component :: https://docs.lammps.org/angle_harmonic.html
 angle_style hybrid harmonic

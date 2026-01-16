@@ -7,20 +7,17 @@ import pandas as pd
 from stats_helper import get_confidence_intervals
 from assemble_pg_network import generate_pg_network
 import matplotlib.pyplot as plt
-
 from run_lammps_isotropic_strain import run_isotropic_prestrain
 
 from process_isotropic_prestrain import ThermoStruct, import_isotropic_prestrain_data
 
 # Simple Helper Functions
-def create_networks_in_groups_with_varying_isotropic_parameter(working_directory, isotropic_parameters, networks_per_group, rewrite : bool):
-    size = 200;
-    rho_gap = 0.5;
+def create_networks_in_groups_with_varying_isotropic_parameter(working_directory : str, size : int, rho_gap : float, isotropic_parameters : list[float], networks_per_group : int, rewrite : bool):
     for group_index, alpha in enumerate(isotropic_parameters):
         for network_index in range(0,networks_per_group):
-            filename = os.path.join(f"{working_directory}",f"dsu{size}_rho{rho_gap}_a{int(alpha*100)}.network")
+            filename = os.path.join(f"{working_directory}",f"g{group_index}n{network_index}_dsu{size}_rho{int(rho_gap*100)}_a{int(alpha*100)}.network")
             if rewrite or not os.path.exists(filename):
-                (density_fraction, crosslink_ratio, _, _, _, _) = generate_pg_network(size, 0.5, alpha, filename)
+                (density_fraction, crosslink_ratio, _, _, _, _) = generate_pg_network(size, rho_gap, alpha, filename)
             else:
                 print(f"[SKIPPED] Generating network {filename} b/c it already exists")
                 continue;
@@ -60,8 +57,9 @@ def calc_stress_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
     sigma_xx = -(pxx - pxx[0]);
     sigma_yy = -(pyy - pyy[0]);
     sigma_xy = -(pxy - pxy[0]);
+    ratio = sigma_xx / sigma_yy;
 
-    d = {"strain":strain, "sigma_xx":sigma_xx, "sigma_yy":sigma_yy, "sigma_xy":sigma_xy}
+    d = {"strain":strain, "sigma_xx":sigma_xx, "sigma_yy":sigma_yy, "sigma_xy":sigma_xy, "ratio":ratio}
     return pd.DataFrame(d)
 
 def calc_energy_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
@@ -128,7 +126,7 @@ def add_stress_curve(df : pd.DataFrame, color_name : str, labelstr):
     # Longitudinal (Lower)
     ci_df = get_confidence_intervals(df, 0.95, 'strain', 'sigma_xx');
     n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="--")
+    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="--", label = labelstr+", Axial Stress")
     plt.fill_between(
         ci_df.index,
         ci_df['lower'],
@@ -141,7 +139,7 @@ def add_stress_curve(df : pd.DataFrame, color_name : str, labelstr):
     # Hoop (Higher)
     ci_df = get_confidence_intervals(df, 0.95, 'strain', 'sigma_yy');
     n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="-", label = labelstr)
+    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="-", label = labelstr+", Hoop Stress")
     plt.fill_between(
         ci_df.index,
         ci_df['lower'],
@@ -151,34 +149,49 @@ def add_stress_curve(df : pd.DataFrame, color_name : str, labelstr):
     )
 
 def finish_stress_curve():
+    plt.title("Directional Stress during Pre-Strain")
     plt.ylabel("$\sigma$ [N/m]")
     plt.xlabel(r"$\mathcal{E}$, Strain")
     plt.legend()
     plt.show()
 
+def add_stress_ratio_curve(df : pd.DataFrame, color_name : str, labelstr):
+    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'ratio');
+    n = int(len(df)/len(ci_df))
+    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="-", label = labelstr)
+    plt.fill_between(
+        ci_df.index,
+        ci_df['lower'],
+        ci_df['upper'],
+        color=color_name, 
+        alpha=0.2
+    )
+
 def finish_stress_ratio_curve():
-    plt.ylabel("$\sigma$ [N/m]")
+    plt.title("Stress Ratio during Pre-Strain")
+    plt.ylabel("$\sigma_(xx) / \sigma_(yy)$ [a.u.]")
     plt.xlabel(r"$\mathcal{E}$, Strain")
+    plt.legend()
     plt.show()
 
 ### START OF PROGRAM FOR TESTING
 # Settings
-working_dirpath = os.path.join(os.path.curdir,"isostrain2");
+working_dirpath = os.path.join(os.path.curdir,"isostrain_Jan13");
 isotropic_parameters = [0.33, 0.72, 1.0];
-number_networks_per_group = 3;
+number_networks_per_group = 7;
 
 # Subfunction to create folder if it not found
 makedirs(working_dirpath, exist_ok=True)
 
 # Loop to create networks
-#create_networks_in_groups_with_varying_isotropic_parameter(working_dirpath, isotropic_parameters, number_networks_per_group, False)
+create_networks_in_groups_with_varying_isotropic_parameter(working_dirpath, 200, 1.0, isotropic_parameters, number_networks_per_group, False)
 
 network_regex = r".*\.network$";
-#run_networks(working_dirpath, network_regex, False)
+run_networks(working_dirpath, network_regex, True, True)
 
 lst_output_regex : list[str] = [r'.*_a33\.out',r'.*_a72\.out',r'.*_a100.out']
 lst_colorname = ['blue','green','red'];
-lst_label = ["a = 0.33", "a = 0.72", "a = 1.00"]
+lst_label = ["a = 0.33", "a = 0.72", "a = 1.00"];
 
 #dfs = collect_list_of_dataframes(working_dirpath, output_regex)
 
@@ -193,11 +206,24 @@ for i in range(0,len(lst_output_regex)):
         stress_dfs.append(calc_stress_df_from_file_df(file_df));
 
     combined_stress_df = pd.concat(stress_dfs)
-    print(combined_stress_df)
-
     add_stress_curve(combined_stress_df, colorname, labelstr);
 
 finish_stress_curve()
+
+# Plot Stress Ratio vs. Strain...
+for i in range(0,len(lst_output_regex)):
+    output_regex = lst_output_regex[i]
+    colorname = lst_colorname[i]
+    labelstr = lst_label[i]
+    dfs = collect_list_of_dataframes(working_dirpath,output_regex)
+    stress_dfs = list()
+    for file_df in dfs:
+        stress_dfs.append(calc_stress_df_from_file_df(file_df));
+
+    combined_stress_df = pd.concat(stress_dfs)
+    add_stress_ratio_curve(combined_stress_df, colorname, labelstr);
+
+finish_stress_ratio_curve()
 
 # Plot Energy vs. Strain...
 dfs = collect_list_of_dataframes(working_dirpath,r'.*\_a33\.out');

@@ -1,29 +1,120 @@
+from dataclasses import dataclass, asdict
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from assemble_pg_network import generate_pg_network
+from stats_helper import get_confidence_intervals
 
-nPacking = 20;
+# https://rowannicholls.github.io/python/statistics/confidence_intervals.html
 
-tilt_factor_sweep = np.array([0.33, 0.72, 1.0])
-packing_factor_sweep = np.linspace(0.1, 4, nPacking)
-density_fraction_sweep = np.zeros([nPacking, len(tilt_factor_sweep)])
-link_sweep             = np.zeros([nPacking, len(tilt_factor_sweep)])
+@dataclass
+class CrosslinkStruct:
+    size : int; 
+    rho_gap : float;
+    tilt_factor : float;
+    rho_mesh : float;
+    crosslinks : float;
 
-#print(density_sweep)
+def import_crosslinks_data(filename : str) -> pd.DataFrame:
+    # Break into lines
+    with open(filename,"r") as f:
+        lines = [line.strip() for line in f]
 
-for j, tilt_factor in enumerate(tilt_factor_sweep):
-    for i, packing_factor in enumerate(packing_factor_sweep):
-        print(tilt_factor, packing_factor)
-        (density_fraction_sweep[i,j], link_sweep[i,j], _, _, _) = generate_pg_network(200, packing_factor, tilt_factor, None);
+    i = 0; # 1st Line
+    #verify = "size rho_gap tilt_factor rho_mesh crosslinks";
+    #if not lines[i].startswith(verify):
+    #    raise ValueError(f"Expected at line {i+1}: {verify}");
 
-print(link_sweep)
+    lst_structs : list[CrosslinkStruct] = list();
 
-plt.plot(density_fraction_sweep[:,0], link_sweep[:,0])
-plt.plot(density_fraction_sweep[:,1], link_sweep[:,1])
-plt.plot(density_fraction_sweep[:,2], link_sweep[:,2])
-plt.title("Cross Linking vs. Density Parameter")
-plt.legend([f"X = {tilt_factor_sweep[0]}",f"X = {tilt_factor_sweep[1]}",f"X = {tilt_factor_sweep[2]}"]);
-plt.grid(True);
-plt.xlabel("Density Fraction of Glycans");
-plt.ylabel("Cross-linking Percentage");
-plt.show();
+    for i in range(1,len(lines)):
+        if lines[i].startswith("#"): # ignore
+            continue;
+        
+        data = lines[i].split();
+
+        struct = CrosslinkStruct(
+            size        = int(data[0]),
+            rho_gap     = float(data[1]),
+            tilt_factor = float(data[2]),
+            rho_mesh    = float(data[3]),
+            crosslinks  = float(data[4]),
+        );
+
+        lst_structs.append(struct);
+
+    df = pd.DataFrame([asdict(n) for n in lst_structs])
+    return df;
+
+def save_network_results_to_file(filename, size, rho_gap, tilt_factor):
+    (rho_mesh, crosslinks, _, _, _, _) = generate_pg_network(size, rho_gap, tilt_factor, None);
+    with open(filename, "a") as f:
+        f.write(f"{size} {rho_gap} {tilt_factor} {rho_mesh} {crosslinks}\n")
+
+def sweep_data_points(datafile : str, size : int):
+    nPacking = 10;
+    nSamples = 10;
+    tilt_factor_sweep = np.array([0.33, 0.72, 1.0]);
+    rho_gap_sweep = np.linspace(0.2, 2, nPacking);
+    dNetworks = 1;
+    tNetworks = len(tilt_factor_sweep)*len(rho_gap_sweep)*nSamples;
+
+    for i, tilt_factor in enumerate(tilt_factor_sweep):
+        for j, rho_gap in enumerate(rho_gap_sweep):
+            for k in range(0,nSamples):
+                print(f"Generating network {dNetworks}/{tNetworks}...")
+                save_network_results_to_file(datafile, size, rho_gap, tilt_factor);
+                dNetworks += 1;
+
+def plot_crosslinks(crosslinks_df, tilt : float, colorname : str, labelstr : str, linestylestr : str):
+    filtered_crosslinks_df = crosslinks_df[crosslinks_df['tilt_factor'] == tilt]
+    
+    if len(filtered_crosslinks_df) == 0:
+        raise ValueError(f"No networks were found with tilt_factor of {tilt}")
+    
+    ci_df = get_confidence_intervals(filtered_crosslinks_df, 0.95, 'rho_gap', 'crosslinks')
+
+    n = int(len(filtered_crosslinks_df) / len(ci_df));
+    plt.plot(ci_df.index, ci_df['mean'], color=colorname, label=labelstr, linewidth=2, linestyle=linestylestr)
+    plt.fill_between(
+        ci_df.index, 
+        ci_df['lower'], 
+        ci_df['upper'], 
+        color=colorname, 
+        alpha=0.2, 
+        label=f'95% Confidence (nSamples={n})'
+    )
+
+def finish_crosslinks_fig():
+    plt.xlabel(r'$\rho$_gap')
+    plt.ylabel('$Crosslinking$')
+    plt.title('crosslink_fraction vs rho_gap')
+    plt.legend()
+    plt.grid(True, linestyle='--', alpha=0.6)
+    plt.savefig('confidence_interval_plot.png')
+    plt.show()
+
+dsu_100_datafile = "crosslinks100_p80.dump"
+dsu_200_datafile = "crosslinks200_p80.dump"
+dsu_500_datafile = "crosslinks500_p80.dump"
+#sweep_data_points(dsu_100_datafile, 100)
+#sweep_data_points(dsu_200_datafile, 200)
+#sweep_data_points(dsu_500_datafile, 500)
+
+crosslinks_100_df = import_crosslinks_data(dsu_100_datafile);
+print(crosslinks_100_df)
+plot_crosslinks(crosslinks_100_df, 0.33, "red", "X = 0.33, 100 DSU", ":")
+plot_crosslinks(crosslinks_100_df, 0.72, "blue", "X = 0.72, 100 DSU", ":")
+plot_crosslinks(crosslinks_100_df, 1.00, "black", "X = 1.00, 100 DSU", ":")
+
+crosslinks_200_df = import_crosslinks_data(dsu_200_datafile);
+plot_crosslinks(crosslinks_200_df, 0.33, "red", "X = 0.33, 200 DSU", "--")
+plot_crosslinks(crosslinks_200_df, 0.72, "blue", "X = 0.72, 200 DSU", "--")
+plot_crosslinks(crosslinks_200_df, 1.00, "black", "X = 1.00, 200 DSU", "--")
+
+crosslinks_500_df = import_crosslinks_data(dsu_500_datafile);
+plot_crosslinks(crosslinks_500_df, 0.33, "red", "X = 0.33, 500 DSU", "-")
+plot_crosslinks(crosslinks_500_df, 0.72, "blue", "X = 0.72, 500 DSU", "-")
+plot_crosslinks(crosslinks_500_df, 1.00, "black", "X = 1.00, 500 DSU", "-")
+
+finish_crosslinks_fig()
