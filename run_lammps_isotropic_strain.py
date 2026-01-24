@@ -144,7 +144,12 @@ def run_isotropic_prestrain_minimize(network_filepath : str, max_strain : float,
     (xlo, ylo) = read_starting_dimensions(network_filepath)
 
     if number_strain_steps == None:
-        number_strain_steps = int(max(xlo, ylo) / 2) + 1 # Will extend the box by less than 2 DSU with each step, suitable for minimization without remapping?
+        if remap:
+            maximum_length_increase = min(xlo,ylo) * 0.05;
+        else:
+            maximum_length_increase = 2;
+        
+        number_strain_steps = int(max(xlo, ylo) / maximum_length_increase) + 1 # Will extend the box by less than 2 DSU with each step
 
     dx_half = xlo*(1+max_strain)/number_strain_steps;
     dy_half = ylo*(1+max_strain)/number_strain_steps;
