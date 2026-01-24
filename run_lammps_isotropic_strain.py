@@ -149,7 +149,7 @@ def run_isotropic_prestrain_minimize(network_filepath : str, max_strain : float,
         else:
             maximum_length_increase = 2;
         
-        number_strain_steps = int(max(xlo, ylo) / maximum_length_increase) + 1 # Will extend the box by less than 2 DSU with each step
+        number_strain_steps = max(30, int(max(xlo, ylo) / maximum_length_increase) + 1) # Will extend the box by less than 2 DSU with each step
 
     dx_half = xlo*(1+max_strain)/number_strain_steps;
     dy_half = ylo*(1+max_strain)/number_strain_steps;
