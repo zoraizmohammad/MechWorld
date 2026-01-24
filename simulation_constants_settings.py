@@ -16,9 +16,9 @@ ATOM_TYPE_NEG_DSU = 2; # - orientation
 # https://en.wikipedia.org/wiki/Peptidoglycan
 # https://en.wikipedia.org/wiki/N-Acetylglucosamine
 # https://en.wikipedia.org/wiki/N-Acetylmuramic_acid
-DSU_MOLAR_MASS = (221.21 + 293.272)/2; # grams / mol
-A_NUM = 6.02214076E23;                 # molecules / mol
-DSU_MASS_GRAM = DSU_MOLAR_MASS / A_NUM; # grams / molecule
+DSU_MOLAR_MASS = (221.21 + 293.272)/2;    # grams / mol
+A_NUM = 6.02214076E23;                    # molecules / mol
+DSU_MASS_GRAM = DSU_MOLAR_MASS / A_NUM;   # grams / molecule
 DSU_MASS_ATTOGRAM = DSU_MASS_GRAM * 1E18; # ag / molecule
 
 GLYCAN_COEFFICIENTS = (5.570, DSU);
@@ -28,6 +28,8 @@ PROBABILITY_DSU_CAN_ATTEMPT_TO_FORM_PEPTIDE = 0.8; # Improves percolation of the
 
 # https://en.wikipedia.org/wiki/KT_(energy)
 # 1 kT = 4.11E-21 J at 298K
-E_PEPTIDE_CUTOFF = 1 * 4.11E-21 * 1E18; 
-E_FIRST_PEPTIDE_MAX_EXTENSION = 0.75;
+E_PEPTIDE_CUTOFF = 1 * 4.11E-21 * 1E18; # kT -> 
 PEPTIDE_SEARCH_RADIUS = 2; # nm
+
+INITIAL_MINIMIZATION_ITERATIONS = 10E3;
+RUNITER = 200E3;

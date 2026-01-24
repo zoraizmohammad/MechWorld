@@ -73,6 +73,24 @@ def get_stress_vs_deformation(filename : str):
 
     return deformation_array, stress_xx_array, stress_yy_array;
 
+def get_energy_fraction_vs_deformation(filename : str):
+    lst_snaps = import_isotropic_prestrain_data(filename)
+
+    deformation_array    = np.zeros(len(lst_snaps));
+    glycan_S_fraction    = np.zeros(len(lst_snaps));
+    glycan_B_fraction    = np.zeros(len(lst_snaps));
+    peptide_S_fraction   = np.zeros(len(lst_snaps));
+
+    relaxed = lst_snaps[0];
+    for i, snap in enumerate(lst_snaps):
+        deformation_array[i] = (snap.lx - relaxed.lx)/(relaxed.lx);
+        total_PE = snap.angle_pe + snap.glycan_pe + snap.peptide_pe;
+        glycan_S_fraction[i]    = (snap.glycan_pe / total_PE);
+        glycan_B_fraction[i]    = (snap.angle_pe / total_PE);
+        peptide_S_fraction[i]   = (snap.peptide_pe / total_PE);
+
+    return deformation_array, glycan_S_fraction, glycan_B_fraction, peptide_S_fraction;
+
 def compare_isotropy_levels():
 
 
@@ -108,6 +126,3 @@ def compare_isotropy_levels():
     ax.plot(deformation_72, stress_xx_72/stress_yy_72, color="red");
     ax.plot(deformation_100, stress_xx_100/stress_yy_100, color="blue");
     plt.show()
-
-compare_isotropy_levels()
-

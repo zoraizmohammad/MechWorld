@@ -53,8 +53,8 @@ def save_network_results_to_file(filename, size, rho_gap, tilt_factor):
 
 def sweep_data_points(datafile : str, size : int):
     nPacking = 10;
-    nSamples = 10;
-    tilt_factor_sweep = np.array([0.33, 0.72, 1.0]);
+    nSamples = 5;
+    tilt_factor_sweep = np.array([0.33,0.73,1.00]);
     rho_gap_sweep = np.linspace(0.2, 2, nPacking);
     dNetworks = 1;
     tNetworks = len(tilt_factor_sweep)*len(rho_gap_sweep)*nSamples;
@@ -97,12 +97,12 @@ def finish_crosslinks_fig():
 dsu_100_datafile = "crosslinks100_p80.dump"
 dsu_200_datafile = "crosslinks200_p80.dump"
 dsu_500_datafile = "crosslinks500_p80.dump"
-#sweep_data_points(dsu_100_datafile, 100)
+sweep_data_points(dsu_100_datafile, 100)
 #sweep_data_points(dsu_200_datafile, 200)
 #sweep_data_points(dsu_500_datafile, 500)
 
 crosslinks_100_df = import_crosslinks_data(dsu_100_datafile);
-print(crosslinks_100_df)
+#print(crosslinks_100_df)
 plot_crosslinks(crosslinks_100_df, 0.33, "red", "X = 0.33, 100 DSU", ":")
 plot_crosslinks(crosslinks_100_df, 0.72, "blue", "X = 0.72, 100 DSU", ":")
 plot_crosslinks(crosslinks_100_df, 1.00, "black", "X = 1.00, 100 DSU", ":")

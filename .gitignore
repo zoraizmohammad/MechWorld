@@ -1,9 +1,13 @@
 .venv
-*.dump
 *.png
 *.jpg
 *.data
 *.network
+*.atoms
+*.bonds
+*.dump
 *.out
+.vscode
+log.lammps
 __pycache__/*
 ELASTIC_2D_ZERO_TEMP/cubic_*.*

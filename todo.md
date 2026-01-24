@@ -10,21 +10,17 @@ Areas of focus, discussed last time:
 
 * [x] Compare lammps method to force-tally method, should it agree? (Not exactly. lammps gives volume-average, force-tally has one specific plane)\
 
-- [ ] 
-
 Other things:
 
 * [x] New lammps script that applies isotropic strain and output data needed for figures 2.6B, 2.6D, and 2.6E,
 
-* [ ] Produce figure to show relative energies of bonds/angles. This is blocked, lammps is not producing the outputs I'd expect. (analogous to 2.6B)
+* [x] Produce figure to show relative energies of bonds/angles. (analogous to Xaoxuan 2.6B)
 
 * [x] Produce a figure showing non-linear stress-vs-strain curves for different levels of isotropy. (analogous to 2.6D)
 
 * [x] Produce a figure showing ratio of longitudinal (x) and circumferential (y) stresses for different levels of isotropy. (analogous to 2.6E)
 
-- [ ] Notes on these figures: Randomness plays a significant role in these figures. Higher densities lead to more consistent behaviors (fewer large defects), but of course are less representative of PG. A more robust network-averaging sweep would be better.
-
-
+- Notes on these figures: Randomness plays a significant role in these figures. Higher densities lead to more consistent behaviors (fewer large defects), but of course are less representative of PG. A more robust network-averaging sweep would be better.
 
 Next directions:
 
@@ -41,8 +37,6 @@ Added a first-favored policy where the first peptide between each glycan pair is
 * These extra bonds account for ~11% of all bonds in a 0.5 rho_gap network, and ~19% of all bonds in a 1.0 rho_gap network.
 * The 1st bond is allowed to be at 80% of the maximum extension (before minimization of course).
 * Running this on a 500x500 network w/ rho_gap = 0.5, this policy increased the number of unique glycan pairs from 14611 to 21471. Almost +50% variety.
-
-* [ ] Build triangular in lammps, then run the stress computation script on it. The results should match the analytical paper on the triangular network.
 
 * [x] Revert to baseline rules for network generation
       * [x] Compare larger patches (500) additional rule -> density vs crosslinking
@@ -63,27 +57,37 @@ Added a first-favored policy where the first peptide between each glycan pair is
 
   * [x] Takes about 2 hours to run 9 networks (200x200 DSU, rho_gap = 0.5)
 
-  * [ ] Add a bernoulli test to crosslinking rules (expect this to decrease crosslinking ratio, density of CR=0.6 will be higher, hopefully the percolation will be higher for same CR)
+  * [x] Add a bernoulli test to crosslinking rules (expect this to decrease crosslinking ratio, density of CR=0.6 will be higher, hopefully the percolation will be higher for same CR)
 
-  * [ ] Add screenshots of networks before & after deformations
+  * [x] Add screenshots of networks before & after deformations
   
-  * [ ] Network averaging with confidence intervals: Energy fractions
+  * [x] Network averaging with confidence intervals: Energy fractions
 
-  * [ ] Network averaging with confidence intervals: Stress magnitude and long/hoop ratio
+  * [x] Network averaging with confidence intervals: Stress magnitude and axial/hoop ratio
+
+Jan 19th 2026:
+
+[ ] Start a note to approach interpretation of prestrain, relaxed conditions, etc
+    - Reread triangular network paper; it talks about one approach on how to interpret strain on the network
+    - Compute expected stress band for turgor pressure / cell size range, does it match?
+
+[ ] Write version of lammps function that uses a sequence of minimizations
+    - It takes 1 hour to run a 200x200 DSU network, using 50 steps, using remapping for initial position guesses
+    - It takes X hours to run a 200x200 DSU network, using X steps, using no remapping
+    - Comparing this on a sample network between the two methods, 
+
+[ ] Rerun 1.00 ensembles with more minimization iterations (1E4), see if this smoothes the start of stress ratio curves. Another option is to run the deformation for more iterations from strain of 0 to 0.1. (Try: 1E5 for 0 -> 0.1, 1E5 for 0.1 -> 0.3)
+
+[ ] Plot total system energy vs. strain for ensemble networks. You can get second derivative of energy with respect to strain.
+
+[ ] Run initial simulations to examine how patch size influences results
+ - Test a smaller set (3 each) of smaller and larger networks, compare to current 200 DSU standard.
+
+[ ] Add a two functions to show ensemble histograms of strain for peptides: 1) initial state, 2) final state.
 
 Concerns/observations/question:
 
-1. LAMMPS command of `compute bond` is not producing expected output. It seems to return all zeros.
-2. Expected output for non-linear curves for 2.6D and 2.6E, might be a consequence of density.
-3. Now using 1.03 nm from Xaoxuan 2024 as reference length everywhere.
-4. What is the ideal starting density parameter for the network? Current = 0.7
-   - To achieve a cross-linking percentage of 40% - 60%, the density parameter must be between 0.5 (~0.43 cross-linking) and 0.7 (~0.63 cross-linking). This is how Xaoxuan's paper did it.
-   - Comparison against literature suggests that the density parameter should be... to be determined. Variability is very high based on life stage. No concrete numbers from the papers I have access to.
-     - https://academic.oup.com/femsre/article/32/2/149/2683904
-     - https://journals.asm.org/doi/epub/10.1128/mmbr.62.1.181-203.1998
-5. Some random networks can be majorly defective. Regions without bonds may become obvious as deformation happens. This is more likely at lower densities.
-   - Approach? Penalize crosslinks between two glycans with a bunch of crosslinks already. This inflates the percentage. Reward crosslinks between molecules that don't have them, allowing them to have higher initial energy.
-   - Network rejection criteria? Number of bonds in each subarea?
-   - Find regions with few crosslinks and add them in with higher initial energy.
-6- How much prestrain should the network be placed under?
-   1- Xaoxuan's thesis was vague about how this is calculated
+1. Determining prestrain that corresponds to a biological scenerio...
+   - Equating sigma_xx (axial) and sigma_yy (hoop) to turgur pressure?
+
+2. What is a truely "relaxed" state of the network. As strain occurs, I can observe a point where relative energy fraction starts to shifts from peptides to glycans.
