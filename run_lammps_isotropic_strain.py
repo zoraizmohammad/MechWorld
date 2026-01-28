@@ -13,6 +13,7 @@ def read_starting_dimensions(network_filepath : str) -> tuple[float, float]:
 
         contents = f.readlines()
         for i, line in enumerate(contents):
+            line = line.strip()
             if line.endswith("xhi"):
                 xlo = float(line.split()[0]);
             elif line.endswith("yhi"):
@@ -145,14 +146,18 @@ def run_isotropic_prestrain_minimize(network_filepath : str, max_strain : float,
 
     if number_strain_steps == None:
         if remap:
-            maximum_length_increase = min(xlo,ylo) * 0.05;
+            maximum_length_increase_per_step = 2; # DSU
         else:
-            maximum_length_increase = 2;
-        
-        number_strain_steps = max(30, int(max(xlo, ylo) / maximum_length_increase) + 1) # Will extend the box by less than 2 DSU with each step
+            maximum_length_increase_per_step = 1; # DSU
+            
+        total_length_increase = 2*max_strain*max(abs(xlo), abs(ylo));
+        number_strain_steps = int(total_length_increase / maximum_length_increase_per_step) + 1;
+        number_strain_steps = max(30, number_strain_steps); # Minimum of 30 steps even for smaller patches
+        print(f"----- DEBUG ----- :: {number_strain_steps}")
+        # Step size of 2 DSU broke down after a boundary size of 247 DSU (last good energy was ~64) without remaps, might want to do dynamic steps?
 
-    dx_half = xlo*(1+max_strain)/number_strain_steps;
-    dy_half = ylo*(1+max_strain)/number_strain_steps;
+    dx_step = -1*(xlo*max_strain)/number_strain_steps;
+    dy_step = -1*(ylo*max_strain)/number_strain_steps;
     
     L = lammps();
 
@@ -170,7 +175,6 @@ def run_isotropic_prestrain_minimize(network_filepath : str, max_strain : float,
 
     #### 3) Pair/Bond/Angle Settings
     L.command(f"variable up equal {max_strain}")
-    L.command("variable prescribed_strain equal 1 + ${up}")
     L.command("variable prescribed_strain equal 1 + ${up}")
 
     # Set pair_style, required for bonds
@@ -234,14 +238,12 @@ def run_isotropic_prestrain_minimize(network_filepath : str, max_strain : float,
 
     ### 6) Take a series of discrete box deformation steps, minimizing the energy after each, then output parameters
 
-    L.command("variable dx_step equal ${lx} * ${prescribed_strain} / ${}");
-
     for i in range(0,number_strain_steps):
         #L.command(f"change_box all x scale {scaling_factor} y scale {scaling_factor} remap");
         if remap:
-            L.command(f"change_box all x delta -{dx_half} {dx_half} y delta -{dy_half} {dy_half} remap");
+            L.command(f"change_box all x delta {-1*dx_step} {dx_step} y delta {-1*dy_step} {dy_step} remap");
         else:
-            L.command(f"change_box all x delta -{dx_half} {dx_half} y delta -{dy_half} {dy_half}");
+            L.command(f"change_box all x delta {-1*dx_step} {dx_step} y delta {-1*dy_step} {dy_step}");
         
         L.command("minimize 1.0e-6 1.0e-6 ${miniter} 10000")
         L.command("run 0")

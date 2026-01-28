@@ -20,13 +20,7 @@ def import_crosslinks_data(filename : str) -> pd.DataFrame:
     with open(filename,"r") as f:
         lines = [line.strip() for line in f]
 
-    i = 0; # 1st Line
-    #verify = "size rho_gap tilt_factor rho_mesh crosslinks";
-    #if not lines[i].startswith(verify):
-    #    raise ValueError(f"Expected at line {i+1}: {verify}");
-
     lst_structs : list[CrosslinkStruct] = list();
-
     for i in range(1,len(lines)):
         if lines[i].startswith("#"): # ignore
             continue;
@@ -54,7 +48,7 @@ def save_network_results_to_file(filename, size, rho_gap, tilt_factor):
 def sweep_data_points(datafile : str, size : int):
     nPacking = 10;
     nSamples = 5;
-    tilt_factor_sweep = np.array([0.33,0.73,1.00]);
+    tilt_factor_sweep = np.array([0.33,0.72,1.00]);
     rho_gap_sweep = np.linspace(0.2, 2, nPacking);
     dNetworks = 1;
     tNetworks = len(tilt_factor_sweep)*len(rho_gap_sweep)*nSamples;
@@ -66,7 +60,7 @@ def sweep_data_points(datafile : str, size : int):
                 save_network_results_to_file(datafile, size, rho_gap, tilt_factor);
                 dNetworks += 1;
 
-def plot_crosslinks(crosslinks_df, tilt : float, colorname : str, labelstr : str, linestylestr : str):
+def plot_crosslinks_vs_rho_gap(crosslinks_df, tilt : float, colorname : str, labelstr : str, linestylestr : str):
     filtered_crosslinks_df = crosslinks_df[crosslinks_df['tilt_factor'] == tilt]
     
     if len(filtered_crosslinks_df) == 0:
@@ -85,7 +79,7 @@ def plot_crosslinks(crosslinks_df, tilt : float, colorname : str, labelstr : str
         label=f'95% Confidence (nSamples={n})'
     )
 
-def finish_crosslinks_fig():
+def finish_crosslinks_vs_rho_gap_fig():
     plt.xlabel(r'$\rho$_gap')
     plt.ylabel('$Crosslinking$')
     plt.title('crosslink_fraction vs rho_gap')
@@ -97,24 +91,23 @@ def finish_crosslinks_fig():
 dsu_100_datafile = "crosslinks100_p80.dump"
 dsu_200_datafile = "crosslinks200_p80.dump"
 dsu_500_datafile = "crosslinks500_p80.dump"
-sweep_data_points(dsu_100_datafile, 100)
+#sweep_data_points(dsu_100_datafile, 100)
 #sweep_data_points(dsu_200_datafile, 200)
 #sweep_data_points(dsu_500_datafile, 500)
 
 crosslinks_100_df = import_crosslinks_data(dsu_100_datafile);
-#print(crosslinks_100_df)
-plot_crosslinks(crosslinks_100_df, 0.33, "red", "X = 0.33, 100 DSU", ":")
-plot_crosslinks(crosslinks_100_df, 0.72, "blue", "X = 0.72, 100 DSU", ":")
-plot_crosslinks(crosslinks_100_df, 1.00, "black", "X = 1.00, 100 DSU", ":")
+plot_crosslinks_vs_rho_gap(crosslinks_100_df, 0.33, "red", "X = 0.33, 100 DSU", ":")
+plot_crosslinks_vs_rho_gap(crosslinks_100_df, 0.72, "blue", "X = 0.72, 100 DSU", ":")
+plot_crosslinks_vs_rho_gap(crosslinks_100_df, 1.00, "black", "X = 1.00, 100 DSU", ":")
 
 crosslinks_200_df = import_crosslinks_data(dsu_200_datafile);
-plot_crosslinks(crosslinks_200_df, 0.33, "red", "X = 0.33, 200 DSU", "--")
-plot_crosslinks(crosslinks_200_df, 0.72, "blue", "X = 0.72, 200 DSU", "--")
-plot_crosslinks(crosslinks_200_df, 1.00, "black", "X = 1.00, 200 DSU", "--")
+plot_crosslinks_vs_rho_gap(crosslinks_200_df, 0.33, "red", "X = 0.33, 200 DSU", "--")
+plot_crosslinks_vs_rho_gap(crosslinks_200_df, 0.72, "blue", "X = 0.72, 200 DSU", "--")
+plot_crosslinks_vs_rho_gap(crosslinks_200_df, 1.00, "black", "X = 1.00, 200 DSU", "--")
 
-crosslinks_500_df = import_crosslinks_data(dsu_500_datafile);
-plot_crosslinks(crosslinks_500_df, 0.33, "red", "X = 0.33, 500 DSU", "-")
-plot_crosslinks(crosslinks_500_df, 0.72, "blue", "X = 0.72, 500 DSU", "-")
-plot_crosslinks(crosslinks_500_df, 1.00, "black", "X = 1.00, 500 DSU", "-")
+#crosslinks_500_df = import_crosslinks_data(dsu_500_datafile);
+#plot_crosslinks(crosslinks_500_df, 0.33, "red", "X = 0.33, 500 DSU", "-")
+#plot_crosslinks(crosslinks_500_df, 0.72, "blue", "X = 0.72, 500 DSU", "-")
+#plot_crosslinks(crosslinks_500_df, 1.00, "black", "X = 1.00, 500 DSU", "-")
 
-finish_crosslinks_fig()
+finish_crosslinks_vs_rho_gap_fig()

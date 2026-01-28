@@ -1,6 +1,6 @@
 # PG Network Assembly Script
 import numpy as np
-from math import sin, cos, floor
+from math import sin, cos, floor, ceil
 from random import randrange, random, shuffle
 from collections import defaultdict
 from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule
@@ -43,25 +43,28 @@ def actual_length_distribution():
 
     return dsu_lengths, actual_distrib
 
-def get_DSU_lengths(SIMBOX_MAX_H) -> tuple[list[int], float]:
-    DSU_lengths = [];
-    while (sum(DSU_lengths)*DSU + (len(DSU_lengths))*glycan_gap <= SIMBOX_MAX_H):
-        DSU_lengths.append(distribution[randrange(0,len(distribution))])
+def get_DSU_lengths(total_length_nm, spacing_nm) -> tuple[list[int], float]:
+    glycan_lengths_DSU = [];
 
-    DSU_lengths.pop(); # Remove the one that pushed it over the edge
+    # Draw from the distribution until the total desired length is exceeded
+    while (sum(glycan_lengths_DSU)*DSU + (len(glycan_lengths_DSU))*spacing_nm <= total_length_nm):
+        glycan_lengths_DSU.append(distribution[randrange(0,len(distribution))])
+
+    glycan_lengths_DSU.pop(); # Remove the one that pushed it over the edge
+
+    # Create a new glycan, one not drawn form the distribution, that fills the remaining gap
+    filler_glycan_length = floor((total_length_nm - sum(glycan_lengths_DSU)*DSU - len(glycan_lengths_DSU)*glycan_gap)/DSU)
+    glycan_lengths_DSU.append(filler_glycan_length)
     
-    # This filler glycan is also used in Xaoxuan's method of network assembly
-    filler_glycan_length = floor((SIMBOX_MAX_H - sum(DSU_lengths)*DSU - len(DSU_lengths)*glycan_gap)/DSU)
-    DSU_lengths.append(filler_glycan_length)
-    # Total gaps = number of glycan. (n-1 between them, then 1 that wraps the periodic box)
-    
-    # We don't want a bunch of space at the bottom, so we'll spread it evenly by increasing the glycan gap for this column
-    new_glycan_gap = (SIMBOX_MAX_H - sum(DSU_lengths)*DSU)/(len(DSU_lengths));
-    shuffle(DSU_lengths)
+    # If there is extra space at the bottom, spread it evenly by increasing the spacing for this column
+    new_glycan_gap = (total_length_nm - sum(glycan_lengths_DSU)*DSU)/(len(glycan_lengths_DSU));
 
-    return DSU_lengths, new_glycan_gap
+    # Shuffle to place the non-distribution glycan randomly in the column
+    shuffle(glycan_lengths_DSU)
 
-def build_a_glycan(x,y,dx=0,dy=0,numDSUs=1,alpha=0):
+    return glycan_lengths_DSU, new_glycan_gap
+
+def construct_glycan(x,y,dx=0,dy=0,numDSUs=1,alpha=0):
     # (x,y) is CENTER of the Molecule
     mol_id = len(global_glycans)+1;
     global_glycans[mol_id] = GlycanMolecule(mol_id);
@@ -101,7 +104,7 @@ def build_a_glycan(x,y,dx=0,dy=0,numDSUs=1,alpha=0):
 def row_trot(x):
     # Walk down a row and populate it with rotated glycans
 
-    (lst_glycan_lengths, vertical_gap_between_glycans) = get_DSU_lengths(SIMBOX_MAX_H)
+    (lst_glycan_lengths, vertical_gap_between_glycans) = get_DSU_lengths(SIMBOX_MIN_H)
 
     # Experiment: patch the gaps with a new glycan and remove the gap
     # this causes rho_mesh -> rho_gap as size of mesh -> infinity.
@@ -110,7 +113,7 @@ def row_trot(x):
 
     #print(f"Column {x}: new_glycan_gap = {vertical_gap_between_glycans}");
 
-    y = (vertical_gap_between_glycans/2) + rng.uniform(-0.5*SIMBOX_MAX_H,0.5*SIMBOX_MAX_H); 
+    y = (vertical_gap_between_glycans/2) + rng.uniform(-0.5*SIMBOX_MIN_H,0.5*SIMBOX_MIN_H); 
     # This shift is a little bit subtle, I am shifting the whole row so the breaks at the tops and bottoms aren't aligned
     # it is easiest to imagine this when there is no rotation
 
@@ -125,7 +128,7 @@ def row_trot(x):
         alpha = (2*random()-1) * isotropic_parameter * (np.pi)/2; # Uniform distribution
 
         #dx = 0; dy = 0; #alpha = 0;
-        build_a_glycan(x, y, dx, dy, len_of_glycan_DSU, alpha);
+        construct_glycan(x, y, dx, dy, len_of_glycan_DSU, alpha);
 
         y += len_of_glycan_nm/2 + vertical_gap_between_glycans # nm
 
@@ -302,9 +305,6 @@ def go_go_gadget_peptide_bonds():
 
     #print(f"{floor(len(molecule_bonding_matrix)/2)} unique peptide pairs | {len(global_glycans)} glycans")
 
-# Output percentage of cross-linked polymers
-# Plot that compares density to cross-linked polymers
-
 def write_to_laamps_datafile(filename):
     with open(filename, "w") as f:
         f.write("LAMMPS Data File. PG System.")
@@ -351,6 +351,61 @@ def compute_crosslink_ratio():
     crosslink_ratio = (2*crosslink_cnt) / number_of_atoms;
     return rho_mesh, crosslink_ratio;
 
+def populate_glycan_molecules_with_variable_vertical_spacing():
+    x = column_gap/2;
+    while True:
+        # Interating across the columns
+        if (x + column_gap > SIMBOX_MIN_W):
+            simbox_actual_height = SIMBOX_MIN_H;
+            simbox_actual_width = x;
+            break
+        
+        row_trot(x);
+
+        x += column_gap;
+
+def construct_column_of_glycan_molecules(x : float):
+    (lst_glycan_lengths, vertical_gap) = get_DSU_lengths(simbox_actual_height, DSU)
+
+    # Starting y is randomized to prevent gaps at the boundary from being aligned across columns
+    y = (vertical_gap/2) + rng.uniform(-0.5*simbox_actual_height,0.5*simbox_actual_height);
+
+    for len_of_glycan_DSU in lst_glycan_lengths:
+        len_of_glycan_nm = len_of_glycan_DSU * DSU;
+        
+        y += len_of_glycan_nm/2; # Move y to the center of the new glycan strand. [nm]
+
+        #dx = rng.normal(0, random_displacement_stdev); # Shape should to be adjusted to match paper, 0.996
+        #dy = rng.normal(0, random_displacement_stdev); # Shape should to be adjusted to match paper, 0.996
+        dx = rng.uniform(-column_gap/2, column_gap)
+        dy = rng.uniform(-vertical_gap/2, vertical_gap)
+        alpha = (2*random()-1) * isotropic_parameter * (np.pi)/2; # Uniform distribution
+
+        #dx = 0; dy = 0; #alpha = 0;
+        construct_glycan(x, y, dx, dy, len_of_glycan_DSU, alpha);
+
+        y += len_of_glycan_nm/2 + vertical_gap # nm
+
+def populate_glycan_molecules_with_rho_parity():
+    # Designed so that rho_gap == rho_mesh (!!! except for deleted glycans that don't have any bonds).
+    # Rho mesh is DSUs (molecular monomer) per DSU**2 (length scale, 1 DSU = 1.03 nm).
+
+    global simbox_actual_height;
+    global simbox_actual_width;
+
+    simbox_actual_height = ceil(SIMBOX_MIN_H / DSU) * DSU; # If needed, slightly increase the height of the box so it is evenly divisible
+
+    x = column_gap/2; # We place the first glycan away from the periodic boundary
+    while True:
+        # Iterate across the columns
+        if (x + column_gap > SIMBOX_MIN_W):
+            simbox_actual_width = x; # Grow the width so that it is evenly divisible
+            break
+        
+        construct_column_of_glycan_molecules(x);
+
+        x += column_gap;
+
 # Note: Cells are typically rod-shaped, and are about 2.0 μm long and 0.25–1.0 μm in diameter, with a cell volume of 0.6–0.7 μm3. (from Wikipedia)
 # 2um = 2000nm, 0.25-1.0um diameter = 785.40-3141.59nm in circumference.
 
@@ -363,7 +418,7 @@ global_bonds   : dict[int,Bond] = dict();
 global_angles  : dict[int,Angle] = dict();
 global_glycans : dict[int,GlycanMolecule] = dict();
 
-def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : float = 1, X : float = 0.65, filename : str = None):
+def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : float = 1.0, X : float = 0.65, filename : str = None):
 
     # Std Deviation of Random Displacement
     global random_displacement_stdev; random_displacement_stdev = DSU*(1/(2*np.sqrt(2)));
@@ -372,8 +427,8 @@ def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : floa
     global isotropic_parameter; isotropic_parameter = X;
     global glycan_gap; glycan_gap = DSU / glycan_packing_factor;
     global column_gap; column_gap = DSU / glycan_packing_factor;
-    global SIMBOX_MAX_W; SIMBOX_MAX_W = box_size_DSU*DSU;
-    global SIMBOX_MAX_H; SIMBOX_MAX_H = box_size_DSU*DSU;
+    global SIMBOX_MIN_W; SIMBOX_MIN_W = box_size_DSU*DSU;
+    global SIMBOX_MIN_H; SIMBOX_MIN_H = box_size_DSU*DSU;
 
     # Reset Globals
     global simbox_actual_height; simbox_actual_height = 0;
@@ -385,20 +440,10 @@ def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : floa
     global global_glycans; global_glycans = dict();
 
     # Populate Glycans
-    x = column_gap/2;
-    while True:
-        # Interating across the columns
-        if (x + column_gap > SIMBOX_MAX_W):
-            simbox_actual_height = SIMBOX_MAX_H;
-            simbox_actual_width = x;
-            break
-        
-        row_trot(x);
-
-        x += column_gap;
+    populate_glycan_molecules_with_rho_parity();
     
     # Create Peptide Bonds
-    go_go_gadget_peptide_bonds()
+    go_go_gadget_peptide_bonds();
 
     # Delete free-floating glycans
     for g in global_glycans.values():

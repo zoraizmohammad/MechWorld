@@ -67,23 +67,38 @@ Added a first-favored policy where the first peptide between each glycan pair is
 
 Jan 19th 2026:
 
+[x] Write version of lammps function that uses a sequence of minimizations
+    - It takes 1 hour to run a 200x200 DSU network, using 30 steps, using remapping for initial position guesses
+    - It takes X hours to run a 200x200 DSU network, using X steps, using no remapping
+    - Comparing this on a sample network between the two change_box and one nve method 
+
+[x] Rerun 1.00 ensembles with more minimization iterations (1E4), see if this smoothes the start of stress ratio curves. Another option is to run the deformation for more iterations from strain of 0 to 0.1. (Try: 1E5 for 0 -> 0.1, 1E5 for 0.1 -> 0.3)
+   - This helped reduce the craziness at the start, but didn't eliminate it all-together. I think the method going forward should be the "sequence of minimizations"
+
+[x] Plot total system energy vs. strain for ensemble networks.
+   [ ] Energy Density metric = E / (lx*ly)
+   [ ] See early equations in Triangular network paper. You can get second derivative of energy with respect to strain -> This will give you...
+
+[x] Run initial simulations to examine how patch size influences results
+ - Test a smaller set (3 each) of smaller and larger networks, compare to current 200 DSU standard
+ - After running, a larger sample size might be necessary...
+
+[x] Add a functions to show ensemble histograms of strain for peptides: 1) initial state, 2) final state
+
+Jan 26th 2026:
+
+[ ] Eliminate vertical gap between glycans in the same column. Why? rho_gap = rho_mesh in the limit, reduces impact of network size?
+   - New network function: 
+
+[ ] Examine DSU of size 100,200,300,400 (3 samples, at least, more if time)
+
 [ ] Start a note to approach interpretation of prestrain, relaxed conditions, etc
     - Reread triangular network paper; it talks about one approach on how to interpret strain on the network
     - Compute expected stress band for turgor pressure / cell size range, does it match?
 
-[ ] Write version of lammps function that uses a sequence of minimizations
-    - It takes 1 hour to run a 200x200 DSU network, using 50 steps, using remapping for initial position guesses
-    - It takes X hours to run a 200x200 DSU network, using X steps, using no remapping
-    - Comparing this on a sample network between the two methods, 
-
-[ ] Rerun 1.00 ensembles with more minimization iterations (1E4), see if this smoothes the start of stress ratio curves. Another option is to run the deformation for more iterations from strain of 0 to 0.1. (Try: 1E5 for 0 -> 0.1, 1E5 for 0.1 -> 0.3)
-
-[ ] Plot total system energy vs. strain for ensemble networks. You can get second derivative of energy with respect to strain.
-
-[ ] Run initial simulations to examine how patch size influences results
- - Test a smaller set (3 each) of smaller and larger networks, compare to current 200 DSU standard.
-
-[ ] Add a two functions to show ensemble histograms of strain for peptides: 1) initial state, 2) final state.
+[ ] See triangular network interpretation of continuum description and how to extract stress
+   - 22/23 gives a way to find M from making incremental changes, note that current stress has an impact through R
+   - How does young's modulus, poison ratio, etc, change based on the prestrain?
 
 Concerns/observations/question:
 

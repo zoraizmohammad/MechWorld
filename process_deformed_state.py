@@ -107,9 +107,9 @@ def import_bonds_from_dump(filename : str) -> list[Atom]:
     n_bonds = int(lines[i+1]);
 
     i = 8; # 9th line
-    verify = "ITEM: ENTRIES index c_1[1] c_1[2] c_1[3] c_2[1] c_2[2] c_2[3] c_2[4]";
+    verify = "ITEM: ENTRIES index c_b1[1] c_b1[2] c_b1[3] c_b2[1] c_b2[2] c_b2[3] c_b2[4]";
     if not lines[i].startswith(verify):
-        raise ValueError(f"Expected at line {i+1}: {verify}");
+        raise ValueError(f"Couldn't process {filename}: expected at line {i+1}: {verify}");
 
     lst_bonds : list[Bond] = list();
     for j in range(n_bonds):
@@ -368,27 +368,27 @@ def determineColor(f, fmax, fmin) -> tuple[float,float,float]:
     # red = np.log(((f - fmin)/(fmax-fmin) + 1)*np.exp(1) / 2) # Log
     return (red, 0, 0)
 # 
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("atom_file")
-parser.add_argument("bond_file")
-args = parser.parse_args()
+#import argparse
+#parser = argparse.ArgumentParser()
+#parser.add_argument("atom_file")
+#parser.add_argument("bond_file")
+#args = parser.parse_args()
 
-if args.atom_file and args.bond_file:
-    atom_file = args.atom_file;
-    bond_file = args.bond_file;
+#if args.atom_file and args.bond_file:
+#    atom_file = args.atom_file;
+#    bond_file = args.bond_file;
 
 # Read input
-triclinic_bounds = import_2D_triclinic_box_bounds_from_dump(atom_file);
-lst_atoms : list[Atom] = import_atoms_from_dump(atom_file, triclinic_bounds);
-lst_bonds : list[Bond] = import_bonds_from_dump(bond_file);
+#triclinic_bounds = import_2D_triclinic_box_bounds_from_dump(atom_file);
+#lst_atoms : list[Atom] = import_atoms_from_dump(atom_file, triclinic_bounds);
+#lst_bonds : list[Bond] = import_bonds_from_dump(bond_file);
 
 # Compute: 
-boundary_sets_tuple = assemble_boundary_sets(lst_atoms, 10, triclinic_bounds)
+#boundary_sets_tuple = assemble_boundary_sets(lst_atoms, 10, triclinic_bounds)
 #stress_tensor = compute_stress_at_boundary(lst_bonds, boundary_sets_tuple, triclinic_bounds)
-visualizeForceChains(lst_atoms, lst_bonds, triclinic_bounds, boundary_sets_tuple)
-visualizeForceHistogram(lst_bonds)
-visualizeStrainHistogram(lst_bonds)
+#visualizeForceChains(lst_atoms, lst_bonds, triclinic_bounds, boundary_sets_tuple)
+#visualizeForceHistogram(lst_bonds)
+#visualizeStrainHistogram(lst_bonds)
 
 # Output:
 #print(stress_tensor)

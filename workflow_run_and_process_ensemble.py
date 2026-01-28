@@ -73,5 +73,5 @@ for file_df in dfs:
 
 combined_energy_df = pd.concat(energy_dfs)
 print(combined_energy_df)
-add_energy_curves(combined_energy_df, "black", "combined");
-finish_energy_curve();
+add_energy_ratio_curves(combined_energy_df, "black", "combined");
+finish_energy_ratio_curve();
