@@ -303,8 +303,6 @@ def go_go_gadget_peptide_bonds():
             histo[i] = floor(pairwise_list.count(i) / 2) # sym matrix => divide by 2
         print(f"Number of glycan pairs with _ connecting bonds: {histo}") # How many pairs have X crosslinks connecting them?
 
-    #print(f"{floor(len(molecule_bonding_matrix)/2)} unique peptide pairs | {len(global_glycans)} glycans")
-
 def write_to_laamps_datafile(filename):
     with open(filename, "w") as f:
         f.write("LAMMPS Data File. PG System.")

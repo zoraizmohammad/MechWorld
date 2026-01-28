@@ -92,6 +92,9 @@ Jan 26th 2026:
 [ ] New task! Move things onto Hoffman2 so I can run a crap ton of networks w/o my laptop!
    - Reorganize filesystem a bit
    - Python workflow with CLI
+   - Test script with qrsh
+      - Single-core works correctly, 100 DSU network gave: 133.9% CPU use with 1 MPI tasks x 1 OpenMP threads, Total wall time: 0:07:33. Requires more than 2G per core.
+      - Multi-core (-pe shared 4) worked too, 551.4% CPU use with 1 MPI tasks x 4 OpenMP threads, Total wall time: 0:04:28.
    - Job submission script for SGE, use job array
       - $ qsub hoffman2-submission-scripts/pg-network-dsu100-sweep-isotropy.sh
    - Monitor jobs:

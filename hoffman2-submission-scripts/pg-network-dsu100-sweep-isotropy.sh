@@ -24,9 +24,10 @@ echo "Job $JOB_ID started on:   " `hostname -s`
 echo "Job $JOB_ID started on:   " `date `
 echo " "
 
-# Load job environment...
+# Load job environment... (python & intel libs)
 . /u/local/Modules/default/init/modules.sh
 module load python
+module load intel
 
 cd ~/Eldredge-PG-Sim
 echo "Loading venv from $(pwd)..."
