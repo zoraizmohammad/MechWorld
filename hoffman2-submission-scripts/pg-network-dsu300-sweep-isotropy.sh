@@ -7,7 +7,7 @@
 
 ## Resource Allocation...
 ## When testing with qrsh, this sequence worked with one core and 3G of memory
-#$ -l h_rt=0:20:00,h_data=4G
+#$ -l h_rt=3:00:00,h_data=4G
 #$ -pe shared 8
 
 ## Notify this Email Address...
@@ -38,7 +38,7 @@ params=(0 0.33 0.72 1.00) # 0 is dummy with idx 0
 c_isotropic_parameter=${params[$SGE_TASK_ID]}
 echo "Running Task ${SGE_TASK_ID} with parameter: ${c_isotropic_parameter}"
 
-python src/create_and_process_single_network.py 100 1.0 ${c_isotropic_parameter} results/
+python src/create_and_process_single_network.py 300 1.0 ${c_isotropic_parameter} results/
 
 # echo job info on joblog:
 echo "Job $JOB_ID ended on:   " `hostname -s`
