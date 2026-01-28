@@ -24,8 +24,11 @@ echo "Job $JOB_ID started on:   " `date `
 echo " "
 
 # Load job environment...
-# . /u/local/Modules/default/init/modules.sh
+. /u/local/Modules/default/init/modules.sh
+module load python
+
 cd ~/Eldredge-PG-Sim
+echo "Loading venv from $(pwd)..."
 source .venv/bin/activate
 
 ## Select isotropy based on task id using an array

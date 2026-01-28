@@ -87,8 +87,15 @@ Jan 19th 2026:
 
 Jan 26th 2026:
 
-[ ] Eliminate vertical gap between glycans in the same column. Why? rho_gap = rho_mesh in the limit, reduces impact of network size?
-   - New network function: 
+[x] Eliminate vertical gap between glycans in the same column. Why? rho_gap = rho_mesh in the limit, reduces impact of network size?
+
+[ ] New task! Move things onto Hoffman2 so I can run a crap ton of networks w/o my laptop!
+   - Reorganize filesystem a bit
+   - Python workflow with CLI
+   - Job submission script for SGE, use job array
+      - $ qsub hoffman2-submission-scripts/pg-network-dsu100-sweep-isotropy.sh
+   - Monitor jobs:
+      - $ qstat -u jrrm
 
 [ ] Examine DSU of size 100,200,300,400 (3 samples, at least, more if time)
 
