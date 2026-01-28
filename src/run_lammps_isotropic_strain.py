@@ -1,6 +1,7 @@
 from lammps import lammps
 from simulation_constants_settings import GLYCAN_COEFFICIENTS, PEPTIDE_COEFFICIENTS, RUNITER, INITIAL_MINIMIZATION_ITERATIONS
 from os.path import splitext
+from typing import Union;
 # https://docs.lammps.org/Python_module.html
 
 def read_starting_dimensions(network_filepath : str) -> tuple[float, float]:
@@ -137,7 +138,7 @@ def run_isotropic_prestrain_nve(network_filepath : str, max_strain : float, outp
 
     return filepath_no_extension + ".out";
 
-def run_isotropic_prestrain_minimize(network_filepath : str, max_strain : float, number_strain_steps : int | None, output_images : bool = False, output_dump_of_atoms_bonds : bool = False, remap : bool = False) -> list[str]:
+def run_isotropic_prestrain_minimize(network_filepath : str, max_strain : float, number_strain_steps : Union[int, None], output_images : bool = False, output_dump_of_atoms_bonds : bool = False, remap : bool = False) -> list[str]:
 
     # This is the scaling factor that needs to
     # scaling_factor = (1+max_strain)**(1/number_strain_steps)

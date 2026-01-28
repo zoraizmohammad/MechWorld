@@ -1,23 +1,25 @@
 import numpy as np;
 import numpy.typing as npt;
+from typing import Union;
 from dataclasses import dataclass;
 from random import random;
 
 from simulation_constants_settings import *
 
-def peptide_energy_lammps(bond_distance) -> float | None:
+# Hoffman supports up to python 3.9.6, must use union
+def peptide_energy_lammps(bond_distance) -> Union[float,None]:
     return lammps_nonlinear(bond_distance, PEPTIDE_COEFFICIENTS[0], PEPTIDE_COEFFICIENTS[1], PEPTIDE_COEFFICIENTS[2])
 
-def glycan_energy_lammps(bond_distance) -> float | None:
+def glycan_energy_lammps(bond_distance) -> Union[float,None]:
     return lammps_linear(bond_distance, GLYCAN_COEFFICIENTS[0], GLYCAN_COEFFICIENTS[1])
 
-def lammps_nonlinear(r, esp, r0, lambd) -> float | None:
+def lammps_nonlinear(r, esp, r0, lambd) -> Union[float,None]:
     if ((r-r0) >= lambd):
         return None
     else:
         return esp*(r-r0)**2 / (lambd**2 - (r-r0)**2);
 
-def lammps_linear(r, K, r0) -> float | None:
+def lammps_linear(r, K, r0) -> Union[float,None]:
     return K*(r-r0)**2;
 
 @dataclass
@@ -81,9 +83,9 @@ class Bond:
         self.bond_type = bond_type;
         self.atom_id_1 = atom_id_1;
         self.atom_id_2 = atom_id_2;
-        self.dist : float | None = None;
-        self.forces : npt.NDArray[np.float64] | None = None;
-        self.force_norm : np.float64 | None = None;
+        self.dist : Union[float,None] = None;
+        self.forces : Union[npt.NDArray[np.float64], None] = None;
+        self.force_norm : Union[np.float64, None] = None;
 
     def to_datafile(self, f):
         f.write(f"{self.id} {self.bond_type} {self.atom_id_1} {self.atom_id_2}\n")
