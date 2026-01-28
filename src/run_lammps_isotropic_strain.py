@@ -137,7 +137,7 @@ def run_isotropic_prestrain_nve(network_filepath : str, max_strain : float, outp
 
     return filepath_no_extension + ".out";
 
-def run_isotropic_prestrain_minimize(network_filepath : str, max_strain : float, number_strain_steps : int, output_images : bool = False, output_dump_of_atoms_bonds : bool = False, remap : bool = False) -> list[str]:
+def run_isotropic_prestrain_minimize(network_filepath : str, max_strain : float, number_strain_steps : int | None, output_images : bool = False, output_dump_of_atoms_bonds : bool = False, remap : bool = False) -> list[str]:
 
     # This is the scaling factor that needs to
     # scaling_factor = (1+max_strain)**(1/number_strain_steps)
