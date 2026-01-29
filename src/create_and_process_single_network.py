@@ -14,15 +14,17 @@ parser.add_argument("size")
 parser.add_argument("rho")
 parser.add_argument("alpha")
 parser.add_argument("output_directory")
-parser.add_argument("sge_id")
+parser.add_argument("sge_job_id")
+parser.add_argument("sge_task_id")
 args = parser.parse_args()
 
-if args.size and args.rho and args.alpha and args.output_directory and args.sge_id:
+if args.size and args.rho and args.alpha and args.output_directory and args.sge_job_id and args.sge_task_id:
     size = int(args.size);
     rho_gap = float(args.rho);
     alpha = float(args.alpha);
     outdir = args.output_directory;
-    id = args.sge_id;
+    id1 = args.sge_job_id;
+    id2 = args.sge_task_id;
 
 # SGE job and task id? add
 
@@ -34,7 +36,7 @@ os.makedirs(outdir, exist_ok=True)
 #timestr = now.strftime("%Y-%m-%d-%H-%M-%S")
 #hostname = platform.node()
 
-filename = os.path.join(f"{outdir}",f"job{id}_dsu{size}_rho{int(rho_gap*100)}_a{int(alpha*100)}.network")
+filename = os.path.join(f"{outdir}",f"job{id1}.{id2}_dsu{size}_rho{int(rho_gap*100)}_a{int(alpha*100)}.network")
 
 # Create Network
 (density_fraction, crosslink_ratio, _, _, _, _) = generate_pg_network(size, rho_gap, alpha, filename)
