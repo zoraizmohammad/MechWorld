@@ -33,9 +33,12 @@ cd ~/Eldredge-PG-Sim
 echo "Loading venv from $(pwd)..."
 source .venv/bin/activate
 
-## Select isotropy based on task id using an array
-params=(0 0.33 0.72 1.00) # 0 is dummy with idx 0
-c_isotropic_parameter=${params[$SGE_TASK_ID]}
+# Select isotropy based on task id using an array
+# Divide tasks evenly across the specified params, ex 30 tasks / 3 params = 10 networks of each isotropy
+params=(0.33 0.72 1.00)
+params_length=${#c_params[@]}
+c_isotropic_parameter=${params[$SGE_TASK_ID % $params_length]}
+
 echo "Running Task ${SGE_TASK_ID} with parameter: ${c_isotropic_parameter}"
 
 python src/create_and_process_single_network.py 100 1.0 ${c_isotropic_parameter} results/
