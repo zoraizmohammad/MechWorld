@@ -7,7 +7,7 @@
 
 ## Resource Allocation...
 ## When testing with qrsh, this sequence worked with one core and 3G of memory
-#$ -l h_rt=0:20:00,h_data=4G
+#$ -l h_rt=1:00:00,h_data=4G
 #$ -pe shared 8
 
 ## Notify this Email Address...

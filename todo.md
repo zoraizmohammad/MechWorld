@@ -89,16 +89,18 @@ Jan 26th 2026:
 
 [x] Eliminate vertical gap between glycans in the same column. Why? rho_gap = rho_mesh in the limit, reduces impact of network size?
 
-[ ] New task! Move things onto Hoffman2 so I can run a crap ton of networks w/o my laptop!
+[x] New task! Move things onto Hoffman2 so I can run a crap ton of networks w/o my laptop!
    - Reorganize filesystem a bit
    - Python workflow with CLI
    - Test script with qrsh
       - Single-core works correctly, 100 DSU network gave: 133.9% CPU use with 1 MPI tasks x 1 OpenMP threads, Total wall time: 0:07:33. Requires more than 2G per core.
       - Multi-core (-pe shared 4) worked too, 551.4% CPU use with 1 MPI tasks x 4 OpenMP threads, Total wall time: 0:04:28.
    - Job submission script for SGE, use job array
+      - I need TWO modulefiles: python, intel
       - $ qsub hoffman2-submission-scripts/pg-network-dsu100-sweep-isotropy.sh
    - Monitor jobs:
       - $ qstat -u jrrm
+   - Behold! It works!!!
 
 [ ] Examine DSU of size 100,200,300,400 (3 samples, at least, more if time)
 
