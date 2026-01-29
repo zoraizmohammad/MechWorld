@@ -17,7 +17,7 @@
 #$ -m bea
 
 ## Run multiple copies of the script, one for each isotropy level [0.33, 0.72, 1.00]
-#$ -t 1-3:1
+#$ -t 1-15:1
 
 # echo job info on joblog:
 echo "Job $JOB_ID started on:   " `hostname -s`
@@ -33,12 +33,15 @@ cd ~/Eldredge-PG-Sim
 echo "Loading venv from $(pwd)..."
 source .venv/bin/activate
 
-## Select isotropy based on task id using an array
-params=(0 0.33 0.72 1.00) # 0 is dummy with idx 0
-c_isotropic_parameter=${params[$SGE_TASK_ID]}
+# Select isotropy based on task id using an array
+# Divide tasks evenly across the specified params, ex 30 tasks / 3 params = 10 networks of each isotropy
+params=(0.33 0.72 1.00)
+params_length=${#params[@]}
+c_isotropic_parameter=${params[$SGE_TASK_ID % $params_length]}
+
 echo "Running Task ${SGE_TASK_ID} with parameter: ${c_isotropic_parameter}"
 
-python src/create_and_process_single_network.py 400 1.0 ${c_isotropic_parameter} results/ ${JOB_ID}.${$SGE_TASK_ID}
+python src/create_and_process_single_network.py 400 1.0 ${c_isotropic_parameter} results/ ${JOB_ID} ${SGE_TASK_ID}
 
 # echo job info on joblog:
 echo "Job $JOB_ID ended on:   " `hostname -s`

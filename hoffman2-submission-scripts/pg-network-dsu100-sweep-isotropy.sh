@@ -17,7 +17,7 @@
 #$ -m bea
 
 ## Run multiple copies of the script, one for each isotropy level [0.33, 0.72, 1.00]
-#$ -t 1-3:1
+#$ -t 1-15:1
 
 # echo job info on joblog:
 echo "Job $JOB_ID started on:   " `hostname -s`
