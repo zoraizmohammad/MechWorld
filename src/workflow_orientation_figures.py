@@ -1,0 +1,6 @@
+from ensemble_isotropic_strain import full_orientation_delta_figure
+
+working_dir = "C:\\Users\\jrrm5\\Desktop\\Eldredge\\PG-sims\\Github\\results\\hoffman\\results"
+filename_no_ext = "job12247243.9_dsu400_rho100_a33"
+
+full_orientation_delta_figure(working_dir, filename_no_ext)
