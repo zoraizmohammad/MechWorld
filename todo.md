@@ -96,13 +96,19 @@ Jan 26th 2026:
       - Single-core works correctly, 100 DSU network gave: 133.9% CPU use with 1 MPI tasks x 1 OpenMP threads, Total wall time: 0:07:33. Requires more than 2G per core.
       - Multi-core (-pe shared 4) worked too, 551.4% CPU use with 1 MPI tasks x 4 OpenMP threads, Total wall time: 0:04:28.
    - Job submission script for SGE, use job array
-      - I need TWO modulefiles: python, intel
+      - I need load TWO modulefiles: python, intel
       - $ qsub hoffman2-submission-scripts/pg-network-dsu100-sweep-isotropy.sh
+      - $ grep --binary-files=text "wall time" joblogs/joblog.12236817
    - Monitor jobs:
       - $ qstat -u jrrm
    - Behold! It works!!!
 
-[ ] Examine DSU of size 100,200,300,400 (3 samples, at least, more if time)
+[x] Examine DSU of size 100,200,300,400 (3 samples, at least, more if time)
+
+[x] Plot ratio of stress for 400 DSU vs 100 DSU, 400 vs 200 DSU, ... 
+   - Is the difference due to force chains? Percolation?
+
+[ ] Glycan angle and orientation plots? This would be a big task...
 
 [ ] Start a note to approach interpretation of prestrain, relaxed conditions, etc
     - Reread triangular network paper; it talks about one approach on how to interpret strain on the network

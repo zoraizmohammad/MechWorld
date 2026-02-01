@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from assemble_pg_network import generate_pg_network
-from stats_helper import get_confidence_intervals
+from math_helpers import get_confidence_intervals
 
 # https://rowannicholls.github.io/python/statistics/confidence_intervals.html
 

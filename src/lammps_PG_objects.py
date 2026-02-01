@@ -3,6 +3,7 @@ import numpy.typing as npt;
 from typing import Union;
 from dataclasses import dataclass;
 from random import random;
+from math_helpers import get_angle_between_vectors;
 
 from simulation_constants_settings import *
 
@@ -154,9 +155,31 @@ class GlycanMolecule:
         [angles.pop(x) for x in self.angle_ids];
     
     def add_atom_id(self, atom_id : int):
-        self.atom_ids.add(atom_id)
+        self.atom_ids.add(atom_id);
+
+    def add_bond_id(self, bond_id : int):
+        self.bond_ids.add(bond_id);
 
     def delete_if_free(self, atoms : dict[int,Atom], bonds : dict[int,Bond], angles : dict[int,Angle]) -> bool:
         if len(self.bond_ids) == (len(self.atom_ids)-1):
             self.delete_components(atoms, bonds, angles)
             #print(f"Deleted free glycan with id = {self.id}")
+
+    def get_orientation_vector(self, atoms : dict[int,Atom]):
+        dx = atoms[max(self.atom_ids)].x - atoms[min(self.atom_ids)].x;
+        dy = atoms[max(self.atom_ids)].y - atoms[min(self.atom_ids)].y;
+        glycan_vector = np.array([dx,dy])
+        return glycan_vector;
+
+    def get_orientation_with_respect_to_hoop(self, atoms : dict[int,Atom]) -> float:
+        hoop_vector = np.array([0,1])
+        glycan_vector = self.get_orientation_vector(atoms)
+        angle = get_angle_between_vectors(hoop_vector, glycan_vector);
+        if glycan_vector[0] > 0: 
+            return -1 * angle;
+        else:
+            return angle; # If (Top_x - Bottom_x) > 0 -> Flip angle b/c glycan is tilted in -Z direction
+        return angle;
+
+    def get_length(self) -> int:
+        return len(self.atom_ids);

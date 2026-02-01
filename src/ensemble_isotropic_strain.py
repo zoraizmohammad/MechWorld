@@ -6,12 +6,13 @@ import os.path
 import re
 import numpy as np
 import pandas as pd
-from stats_helper import get_confidence_intervals
+from math_helpers import get_confidence_intervals
 from assemble_pg_network import generate_pg_network
 import matplotlib.pyplot as plt
 from run_lammps_isotropic_strain import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
 from lammps_PG_objects import Bond
-from process_deformed_state import import_bonds_from_dump, visualizeStrainHistogram
+from process_deformed_state import visualizeStrainHistogram
+from import_data_from_dumps import import_2D_triclinic_box_bounds_from_dump, import_atoms_from_dump, import_bonds_from_dump, reconstruct_molecule_objects, calculate_length_and_orientation_of_glycan_molecules, calculate_strain_and_relative_orientation_of_peptide_bonds
 
 from process_isotropic_prestrain import ThermoStruct, import_isotropic_prestrain_data
 
@@ -51,6 +52,7 @@ def run_networks_minimize(dirpath, regex_pattern, rerun : bool = False, remap : 
                 print(f"[SKIPPED] Running {filename} b/c existing output file was found")
                 continue;
 
+### Dataframe Manipulation
 def collect_list_of_dataframes(dirpath : str, regex_pattern : str) -> list[pd.DataFrame]:
     # Returns a list of dataframes, one from each file
     dfs = list();
@@ -82,6 +84,7 @@ def calc_stress_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
 
 def calc_energy_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
     lx  = file_df['lx'].to_numpy()
+    ly  = file_df['ly'].to_numpy()
     pe  = file_df['pe'].to_numpy()
     glycan_pe  = file_df['glycan_pe'].to_numpy()
     angle_pe   = file_df['angle_pe'].to_numpy()
@@ -92,9 +95,21 @@ def calc_energy_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
     glycan_pe_frac  = glycan_pe  / total_pe;
     angle_pe_frac   = angle_pe   / total_pe;
     peptide_pe_frac = peptide_pe / total_pe;
+    energy_density = pe / (lx * ly)
 
-    d = {"strain":strain, "glycan_pe_frac":glycan_pe_frac, "angle_pe_frac":angle_pe_frac, "peptide_pe_frac":peptide_pe_frac,"pe":pe}
+    d = {"strain":strain, "glycan_pe_frac":glycan_pe_frac, "angle_pe_frac":angle_pe_frac, "peptide_pe_frac":peptide_pe_frac,"energy_density":energy_density}
     return pd.DataFrame(d)
+
+def file_dfs_to_combined_stress_df(file_dfs : pd.DataFrame) -> pd.DataFrame:
+    stress_dfs = list()
+    for file_df in file_dfs:
+        stress_dfs.append(calc_stress_df_from_file_df(file_df));
+
+    if len(stress_dfs) == 0:
+        return None;
+    else:
+        return pd.concat(stress_dfs)
+
 
 def add_energy_ratio_curves(df : pd.DataFrame, color_name : str, labelstr):
     # Elastic of Glycan
@@ -139,10 +154,11 @@ def finish_energy_ratio_curve():
     plt.title("Fraction of Potential Energy vs Strain")
     plt.ylabel("Energy Fraction [a.u.]")
     plt.xlabel(r"$\mathcal{E}$, Strain [a.u.]")
+    plt.grid(True);
     plt.show();
 
-def add_PE_curve(df : pd.DataFrame, colorname : str, labelstr : str):
-    ci_df = get_confidence_intervals(df, 0.95, "strain", "pe")
+def add_PE_density_curve(df : pd.DataFrame, colorname : str, labelstr : str):
+    ci_df = get_confidence_intervals(df, 0.95, "strain", "energy_density")
 
     plt.plot(
         ci_df.index, 
@@ -158,11 +174,12 @@ def add_PE_curve(df : pd.DataFrame, colorname : str, labelstr : str):
         alpha = 0.2
     )
 
-def finish_PE_curve():
+def finish_PE_density_curve():
     plt.legend()
-    plt.title("Total Potential Energy")
-    plt.ylabel("Potential Energy [...]")
+    plt.title("Potential Energy Density")
+    plt.ylabel("Potential Energy Density [aJ/nm2]")
     plt.xlabel(r"$\mathcal{E}$, Strain [a.u.]")
+    plt.grid(True);
     plt.show()
 
 def add_stress_curve(df : pd.DataFrame, color_name : str, labelstr):
@@ -294,9 +311,9 @@ def full_PE_figure(working_dirpath : str, curves_information : list[tuple[str, s
         else:
             combined_PE_df = pd.concat(PE_dfs)
 
-        add_PE_curve(combined_PE_df, colorname, labelstr);
+        add_PE_density_curve(combined_PE_df, colorname, labelstr);
 
-    finish_PE_curve();
+    finish_PE_density_curve();
 
 #### Peptide Strain Histograms
 def full_bonds_strain_figure(working_dirpath : str, regex_pattern_no_extension : str):
@@ -412,3 +429,111 @@ def plot_combined_histogram(bonds_in_relaxed_state : list[Bond], bonds_in_final_
     print(f"(Mean, Std) of Peptide in deformed network: ({np.mean(peptide_strain_f)}, {np.std(peptide_strain_f)})")
 
     plt.show();
+
+#### Compare Two Networks of Different Sizes
+
+def add_network_ratio(df, colornamestr, labelstr):
+    # sigma_xx
+    ci_df = get_confidence_intervals(df, 0.95, "strain", "comparison_ratio_xx")
+    n = int(len(df)/len(ci_df))
+    plt.plot(ci_df.index, ci_df['mean'], color=colornamestr, linestyle="-", label=labelstr+", $\sigma_(xx)$")
+    plt.fill_between(
+        ci_df.index,
+        ci_df['lower'],
+        ci_df['upper'],
+        color=colornamestr, 
+        alpha=0.2, 
+        label=f'95% Confidence (nSamples={n})'
+    )
+
+    # sigma_yy
+    ci_df = get_confidence_intervals(df, 0.95, "strain", "comparison_ratio_yy")
+    n = int(len(df)/len(ci_df))
+    plt.plot(ci_df.index, ci_df['mean'], color=colornamestr, linestyle="--", label=labelstr+", $\sigma_(yy)$")
+    plt.fill_between(
+        ci_df.index,
+        ci_df['lower'],
+        ci_df['upper'],
+        color=colornamestr, 
+        alpha=0.2, 
+        label=f'95% Confidence (nSamples={n})'
+    )
+
+def finish_network_ratio():
+    plt.title("Ratio of Stresses Between Network Types")
+    plt.legend()
+    plt.grid(True)
+    plt.ylabel("Ratio of Networks")
+    plt.xlabel(r"$\mathcal{E}$, Strain")
+    plt.show()
+
+def plot_comparison_of_ensembles(working_dirpath : str, curves_info : list[tuple[str, str, str, str]]):
+    # tuple = (regex_numer, regex_denom, colorname, labelstr)
+    
+    for i in range(0,len(curves_info)):
+        (output_regex_A, output_regex_B, colornamestr, labelstr) = curves_info[i];
+        
+        dfs_A = collect_list_of_dataframes(working_dirpath, output_regex_A)
+        dfs_B = collect_list_of_dataframes(working_dirpath, output_regex_B)
+
+        stress_df_A = file_dfs_to_combined_stress_df(dfs_A)
+        stress_df_B = file_dfs_to_combined_stress_df(dfs_B)
+
+        if not isinstance(stress_df_A,pd.DataFrame) or not isinstance(stress_df_B,pd.DataFrame):
+            continue;
+        
+        strain_A   = stress_df_A["strain"].to_numpy();
+        sigma_xx_A = stress_df_A["sigma_xx"].to_numpy();
+        sigma_yy_A = stress_df_A["sigma_yy"].to_numpy();
+
+        strain_B   = stress_df_B["strain"].to_numpy();
+        sigma_xx_B = stress_df_B["sigma_xx"].to_numpy();
+        sigma_yy_B = stress_df_B["sigma_yy"].to_numpy();
+
+        sigma_xx_B_interp = np.interp(strain_A, strain_B, sigma_xx_B)
+        sigma_yy_B_interp = np.interp(strain_A, strain_B, sigma_yy_B)
+
+        print(sigma_xx_B_interp)
+
+        comparison_ratio_xx = sigma_xx_A / sigma_xx_B_interp;
+        comparison_ratio_yy = sigma_yy_A / sigma_yy_B_interp;
+
+        print(strain_A)
+        print(comparison_ratio_xx)
+
+        stress_df_A["comparison_ratio_xx"] = comparison_ratio_xx;
+        stress_df_A["comparison_ratio_yy"] = comparison_ratio_yy;
+    
+        add_network_ratio(stress_df_A, colornamestr, labelstr)
+
+    finish_network_ratio();
+
+#### Produce a figure comparing the initial and final state of orientation, like Xaoxuan Figure 4B-D
+
+def full_orientation_delta_figure(working_directory, filename_no_extension):
+    # skeleton of figure
+    fig, ax = plt.subplots(2,2)
+
+    # data
+    filepath_initial_atoms = os.path.join(working_directory, filename_no_extension + ".relaxed.atoms");
+    filepath_initial_bounds = os.path.join(working_directory, filename_no_extension + ".relaxed.bonds");
+
+    bounds = import_2D_triclinic_box_bounds_from_dump(filepath_initial_bounds)
+    atoms = import_atoms_from_dump(filepath_initial_atoms, bounds);
+    bonds = import_bonds_from_dump(filepath_initial_bounds);
+    molecules = reconstruct_molecule_objects(atoms, bonds);
+    [lengths, abs_orientations] = calculate_length_and_orientation_of_glycan_molecules(atoms, molecules)
+    [strains, rel_orientations] = calculate_strain_and_relative_orientation_of_peptide_bonds(atoms, bonds, molecules)
+
+    print(abs_orientations)
+    print(lengths)
+    ax[0, 0].scatter(lengths, abs_orientations, alpha=0.01);
+    ax[0, 1].scatter(strains, rel_orientations, alpha=0.01);
+
+    #filepath_final = os.join(working_directory, filename_no_extension + ".final.atoms");
+    #atoms = import_atoms_from_dump(filepath_final);
+    #bonds = import_bonds_from_dump(filepath_final);
+    #molecules = reconstruct_molecule_objects(atoms, bonds);
+
+    # display figure
+    plt.show()

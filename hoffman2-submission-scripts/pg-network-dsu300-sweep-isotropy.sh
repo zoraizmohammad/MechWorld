@@ -29,7 +29,7 @@ echo " "
 module load python
 module load intel
 
-cd ~/Eldredge-PG-Sim
+cd /u/home/j/jrrm/Eldredge-PG-Sim
 echo "Loading venv from $(pwd)..."
 source .venv/bin/activate
 
