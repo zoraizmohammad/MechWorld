@@ -174,12 +174,11 @@ class GlycanMolecule:
     def get_orientation_with_respect_to_hoop(self, atoms : dict[int,Atom]) -> float:
         hoop_vector = np.array([0,1])
         glycan_vector = self.get_orientation_vector(atoms)
-        angle = get_angle_between_vectors(hoop_vector, glycan_vector);
+        angle = get_angle_between_vectors(hoop_vector, (glycan_vector[0], np.abs(glycan_vector[1])));
         if glycan_vector[0] > 0: 
             return -1 * angle;
         else:
             return angle; # If (Top_x - Bottom_x) > 0 -> Flip angle b/c glycan is tilted in -Z direction
-        return angle;
 
     def get_length(self) -> int:
         return len(self.atom_ids);

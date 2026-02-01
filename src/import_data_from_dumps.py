@@ -152,7 +152,7 @@ def calculate_length_and_orientation_of_glycan_molecules(atoms : dict[int,Glycan
 
     return list_orientations, list_lengths;
 
-def calculate_strain_and_relative_orientation_of_peptide_bonds(atoms : dict[int,Atom], bonds : dict[int,Bond], molecules : dict[int,GlycanMolecule]):
+def calculate_strain_and_relative_glycan_orientation(atoms : dict[int,Atom], bonds : dict[int,Bond], molecules : dict[int,GlycanMolecule]):
 
     list_rel_orientation = list();
     list_peptide_strain = list();
@@ -161,10 +161,37 @@ def calculate_strain_and_relative_orientation_of_peptide_bonds(atoms : dict[int,
         if not b.bond_type == BOND_TYPE_PEPTIDE:
             continue;
 
-        m1 = atoms[b.atom_id_1].mol_id;
-        m2 = atoms[b.atom_id_1].mol_id;
+        m1 = molecules[atoms[b.atom_id_1].mol_id];
+        m2 = molecules[atoms[b.atom_id_2].mol_id];
 
-        list_rel_orientation.append(get_angle_between_vectors(m1,m2));
+        o1 = m1.get_orientation_vector(atoms);
+        o2 = m2.get_orientation_vector(atoms);
+
+        relative_orientation = get_angle_between_vectors(o1, o2);
+        list_rel_orientation.append(relative_orientation);
         list_peptide_strain.append(b.get_strain());
 
+    return list_rel_orientation, list_peptide_strain;
+
+def calculate_strain_and_attachment_orientation(atoms : dict[int,Atom], bonds : dict[int,Bond], molecules : dict[int,GlycanMolecule]):
+
+    list_rel_orientation = list();
+    list_peptide_strain = list();
+    
+    for b in bonds.values():
+        if not b.bond_type == BOND_TYPE_PEPTIDE:
+            continue;
+
+        a1 = atoms[b.atom_id_1];
+        a2 = atoms[b.atom_id_2];
+
+        peptide_vector = np.array([a2.x - a1.x, a2.y - a1.y])
+        o1 = molecules[a1.mol_id].get_orientation_vector(atoms);
+        o2 = molecules[a2.mol_id].get_orientation_vector(atoms);
+
+        list_rel_orientation.append(get_angle_between_vectors(peptide_vector, o1));
+        list_rel_orientation.append(get_angle_between_vectors(peptide_vector, o2));
+        list_peptide_strain.append(b.get_strain());
+        list_peptide_strain.append(b.get_strain());
+    
     return list_rel_orientation, list_peptide_strain;
