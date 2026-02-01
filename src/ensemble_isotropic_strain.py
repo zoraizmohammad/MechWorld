@@ -543,6 +543,7 @@ def full_orientation_delta_figure(working_directory, filename_no_extension):
     del bounds, atoms, bonds
 
     #### Plots
+    # add labels and titles
 
     # Top-Left Plot: Relaxed Length vs Glycan Orientation
     ax[0, 0].scatter(abs_orientations_0, lengths_0, alpha=1E-2, color="black");

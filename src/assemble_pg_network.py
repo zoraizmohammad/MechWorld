@@ -22,27 +22,6 @@ for i,x in enumerate(DSUs):
     num_entries = floor(num_entries*10);
     distribution += [x] * num_entries;
 
-def normalized_length_distribution():
-    dsu_lengths = range(1,MAX_GLYCAN_LENGTH+1);
-    norm_distrib = [0]*len(dsu_lengths)
-    ldist = len(distribution)
-    for i,x in enumerate(dsu_lengths):
-        norm_distrib[i] = distribution.count(x) / ldist;
-
-    return dsu_lengths, norm_distrib
-
-def actual_length_distribution():
-    dsu_lengths = range(1,MAX_GLYCAN_LENGTH+1);
-    actual_distrib = [0]*len(dsu_lengths)
-    ldist = len(global_glycans);
-    for g in global_glycans.values():
-        actual_distrib[len(g.atom_ids)-1] += 1;
-
-    for i in dsu_lengths:
-        actual_distrib[i-1] = actual_distrib[i-1]/ldist;
-
-    return dsu_lengths, actual_distrib
-
 def get_DSU_lengths(total_length_nm, spacing_nm) -> tuple[list[int], float]:
     glycan_lengths_DSU = [];
 
@@ -101,37 +80,6 @@ def construct_glycan(x,y,dx=0,dy=0,numDSUs=1,alpha=0):
             global_angles[angle_id] = Angle(angle_id, ANGLE_TYPE_GLYCAN, atom_id-2, atom_id-1, atom_id);
             global_glycans[mol_id].angle_ids.add(angle_id);
 
-def row_trot(x):
-    # Walk down a row and populate it with rotated glycans
-
-    (lst_glycan_lengths, vertical_gap_between_glycans) = get_DSU_lengths(SIMBOX_MIN_H)
-
-    # Experiment: patch the gaps with a new glycan and remove the gap
-    # this causes rho_mesh -> rho_gap as size of mesh -> infinity.
-    #lst_glycan_lengths.append(round((SIMBOX_MAX_H/DSU) - sum(lst_glycan_lengths)))
-    #vertical_gap_between_glycans = 0;
-
-    #print(f"Column {x}: new_glycan_gap = {vertical_gap_between_glycans}");
-
-    y = (vertical_gap_between_glycans/2) + rng.uniform(-0.5*SIMBOX_MIN_H,0.5*SIMBOX_MIN_H); 
-    # This shift is a little bit subtle, I am shifting the whole row so the breaks at the tops and bottoms aren't aligned
-    # it is easiest to imagine this when there is no rotation
-
-    for len_of_glycan_DSU in lst_glycan_lengths:
-        len_of_glycan_nm = len_of_glycan_DSU * DSU;
-        #print(y)
-        y += len_of_glycan_nm/2; # Move y to the center of the new glycan strand. [nm]
-
-        #dx = rng.normal(0, random_displacement_stdev); # Shape should to be adjusted to match paper, 0.996
-        dx = rng.uniform(-column_gap/2, column_gap)
-        dy = rng.normal(0, random_displacement_stdev);
-        alpha = (2*random()-1) * isotropic_parameter * (np.pi)/2; # Uniform distribution
-
-        #dx = 0; dy = 0; #alpha = 0;
-        construct_glycan(x, y, dx, dy, len_of_glycan_DSU, alpha);
-
-        y += len_of_glycan_nm/2 + vertical_gap_between_glycans # nm
-
 def spatial_hash_coords(a : Atom, cell_size : float) -> tuple[int,int]:
     if   (a.x < 0):
         cx = floor( (a.x + simbox_actual_width) / cell_size);
@@ -170,17 +118,20 @@ def create_peptide_with_nearby_neighbor(id_of_atom : int, grid : defaultdict[lis
     a : Atom = global_atoms[id_of_atom];
 
     # It could be ineligible because another bond was formed with it.
-    # There is also a chance that the DSU is not eligible based on a bernoulli test, see constructor.
+    # There is also a X% chance that the DSU is not eligible based on a Bernoulli trial, see constructor.
     if not a.is_eligible():
         return;
 
-    mcx = floor(simbox_actual_width / cell_size); # This is the cell index of the furthest-right (thus non-periodic) atom. Searching one to the right should result in searching cx = 0;
-    mcy = floor(simbox_actual_height / cell_size);
-
-    cx, cy = spatial_hash_coords(a, cell_size);
-
     neighbors_ids : list[int] = list()
 
+    # 'max' cx and cy, useful to wrap around in PCB
+    mcx = floor(simbox_actual_width / cell_size); 
+    mcy = floor(simbox_actual_height / cell_size);
+
+    # what cell is this atom in?
+    cx, cy = spatial_hash_coords(a, cell_size);
+
+    # look into the cells of the atom + adjacent cells -> get a list of could-be neighbors
     for dcx in [-1,0,1]:
         for dcy in [-1,0,1]:
             if ((cx + dcx) < 0):
@@ -197,6 +148,7 @@ def create_peptide_with_nearby_neighbor(id_of_atom : int, grid : defaultdict[lis
 
             neighbors_ids.extend(grid[(cx+dcx,cy+dcy)])
 
+    # which could-be neighbor is the best?
     energy_ideal_neighbor = float("Inf");
     ideal_neighbor_id = None;
 
@@ -212,7 +164,7 @@ def create_peptide_with_nearby_neighbor(id_of_atom : int, grid : defaultdict[lis
         if (neighbor.mol_id == a.mol_id):
             continue;
         
-        # Cannot form bond if the neighbor is ineligible (e.g. it has a peptide already)
+        # Cannot form bond if the neighbor is ineligible (e.g. it has a peptide already, failed Bernoulli trial)
         if (not neighbor.is_eligible()):
             continue;
         
@@ -220,10 +172,11 @@ def create_peptide_with_nearby_neighbor(id_of_atom : int, grid : defaultdict[lis
         r_neighbor = np.sqrt(periodic_distance_squared(neighbor.x, neighbor.y, a.x, a.y));
         E_neighbor = peptide_energy_lammps(r_neighbor);
 
-        # number_of_bonds_between_prospective_molecules = molecule_bonding_matrix[(a.mol_id, neighbor.mol_id)];
+        # if the energy is undefined (past singularity) or too high, no bond
         if (E_neighbor == None) or (E_neighbor > E_PEPTIDE_CUTOFF):
             continue;
 
+        # It is eligible, so see if it is the BEST neighbor
         if E_neighbor < energy_ideal_neighbor:
             energy_ideal_neighbor = E_neighbor;
             ideal_neighbor_id = neighbor_id;
@@ -233,22 +186,22 @@ def create_peptide_with_nearby_neighbor(id_of_atom : int, grid : defaultdict[lis
         pass
     else:
         # We have an ideal neighbor, form a bond!
-        ideal_n = global_atoms.get(ideal_neighbor_id);
+        ideal_neighbor : Atom = global_atoms.get(ideal_neighbor_id);
         new_bond_id = len(global_bonds)+1;
-        global_bonds[new_bond_id] = (Bond(new_bond_id, BOND_TYPE_PEPTIDE, a.id, ideal_n.id))
+        global_bonds[new_bond_id] = (Bond(new_bond_id, BOND_TYPE_PEPTIDE, a.id, ideal_neighbor.id))
         global_atoms[id_of_atom].has_peptide = True;
         global_atoms[ideal_neighbor_id].has_peptide = True;
     
         global_glycans[a.mol_id].bond_ids.add(new_bond_id);
-        global_glycans[ideal_n.mol_id].bond_ids.add(new_bond_id);
+        global_glycans[ideal_neighbor.mol_id].bond_ids.add(new_bond_id);
     
         # Update bonding matrix
-        if (a.mol_id, ideal_n.mol_id) not in molecule_bonding_matrix:
-            molecule_bonding_matrix[(a.mol_id, ideal_n.mol_id)] = 1;
-            molecule_bonding_matrix[(ideal_n.mol_id, a.mol_id)] = 1;
+        if (a.mol_id, ideal_neighbor.mol_id) not in molecule_bonding_matrix:
+            molecule_bonding_matrix[(a.mol_id, ideal_neighbor.mol_id)] = 1;
+            molecule_bonding_matrix[(ideal_neighbor.mol_id, a.mol_id)] = 1;
         else:
-            molecule_bonding_matrix[(a.mol_id, ideal_n.mol_id)] += 1;
-            molecule_bonding_matrix[(ideal_n.mol_id, a.mol_id)] += 1;
+            molecule_bonding_matrix[(a.mol_id, ideal_neighbor.mol_id)] += 1;
+            molecule_bonding_matrix[(ideal_neighbor.mol_id, a.mol_id)] += 1;
 
     return;
 
@@ -279,7 +232,7 @@ def periodic_distance_squared(x1,y1,x2,y2) -> float:
 def periodic_distance_test(x1,y1,x2,y2,r) -> bool:
     return periodic_distance_squared(x1,y1,x2,y2) < r**2
 
-def go_go_gadget_peptide_bonds():
+def form_peptide_bonds():
     peptide_bond_search_radius = PEPTIDE_SEARCH_RADIUS; # nm, this is a greater length 
     (grid, ids_of_eligible_atoms) = put_the_atoms_into_a_spatial_hash_smh(peptide_bond_search_radius)
 
@@ -349,19 +302,6 @@ def compute_crosslink_ratio():
     crosslink_ratio = (2*crosslink_cnt) / number_of_atoms;
     return rho_mesh, crosslink_ratio;
 
-def populate_glycan_molecules_with_variable_vertical_spacing():
-    x = column_gap/2;
-    while True:
-        # Interating across the columns
-        if (x + column_gap > SIMBOX_MIN_W):
-            simbox_actual_height = SIMBOX_MIN_H;
-            simbox_actual_width = x;
-            break
-        
-        row_trot(x);
-
-        x += column_gap;
-
 def construct_column_of_glycan_molecules(x : float):
     (lst_glycan_lengths, vertical_gap) = get_DSU_lengths(simbox_actual_height, DSU)
 
@@ -371,28 +311,34 @@ def construct_column_of_glycan_molecules(x : float):
     for len_of_glycan_DSU in lst_glycan_lengths:
         len_of_glycan_nm = len_of_glycan_DSU * DSU;
         
-        y += len_of_glycan_nm/2; # Move y to the center of the new glycan strand. [nm]
+        # Move y to the center of the new glycan strand. [nm]
+        y += len_of_glycan_nm/2;
 
+        # Gaussian displacement, doesn't scale with density (Xaoxuan)
         #dx = rng.normal(0, random_displacement_stdev); # Shape should to be adjusted to match paper, 0.996
         #dy = rng.normal(0, random_displacement_stdev); # Shape should to be adjusted to match paper, 0.996
-        dx = rng.uniform(-column_gap/2, column_gap)
-        dy = rng.uniform(-vertical_gap/2, vertical_gap)
-        alpha = (2*random()-1) * isotropic_parameter * (np.pi)/2; # Uniform distribution
 
-        #dx = 0; dy = 0; #alpha = 0;
+        # Uniform displacement
+        dx = rng.uniform(-column_gap/2, column_gap/2);
+        dy = rng.uniform(-vertical_gap/2, vertical_gap/2);
+
+        # Uniform distribution of angles
+        alpha = (2*random()-1) * isotropic_parameter * (np.pi)/2;
+
         construct_glycan(x, y, dx, dy, len_of_glycan_DSU, alpha);
 
         y += len_of_glycan_nm/2 + vertical_gap # nm
 
 def populate_glycan_molecules_with_rho_parity():
-    # Designed so that rho_gap == rho_mesh (!!! except for deleted glycans that don't have any bonds).
+    # Designed so that rho_gap == rho_mesh (except for deleted glycans that don't have any bonds).
     # Rho mesh is DSUs (molecular monomer) per DSU**2 (length scale, 1 DSU = 1.03 nm).
 
+    # If needed, slightly increase the height of the box so it is evenly divisible by DSU
     global simbox_actual_height;
     global simbox_actual_width;
+    simbox_actual_height = ceil(SIMBOX_MIN_H / DSU) * DSU; 
 
-    simbox_actual_height = ceil(SIMBOX_MIN_H / DSU) * DSU; # If needed, slightly increase the height of the box so it is evenly divisible
-
+    # Work though each column
     x = column_gap/2; # We place the first glycan away from the periodic boundary
     while True:
         # Iterate across the columns
@@ -404,17 +350,15 @@ def populate_glycan_molecules_with_rho_parity():
 
         x += column_gap;
 
-# Note: Cells are typically rod-shaped, and are about 2.0 μm long and 0.25–1.0 μm in diameter, with a cell volume of 0.6–0.7 μm3. (from Wikipedia)
-# 2um = 2000nm, 0.25-1.0um diameter = 785.40-3141.59nm in circumference.
-
 # Globals
 simbox_actual_width = 0; # TBD by population
 simbox_actual_height = 0; # TBD by population
-DEBUG_favored_bonds = 0;
 global_atoms   : dict[int,Atom] = dict(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
 global_bonds   : dict[int,Bond] = dict();
 global_angles  : dict[int,Angle] = dict();
 global_glycans : dict[int,GlycanMolecule] = dict();
+
+#### MAIN FUNCTION FOR MAKING NETWORKS
 
 def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : float = 1.0, X : float = 0.65, filename : str = None):
 
@@ -431,7 +375,6 @@ def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : floa
     # Reset Globals
     global simbox_actual_height; simbox_actual_height = 0;
     global simbox_actual_width; simbox_actual_width = 0;
-    global DEBUG_favored_bonds; DEBUG_favored_bonds = 0;
     global global_atoms;   global_atoms = dict(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
     global global_bonds;   global_bonds = dict();
     global global_angles;  global_angles = dict();
@@ -441,7 +384,7 @@ def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : floa
     populate_glycan_molecules_with_rho_parity();
     
     # Create Peptide Bonds
-    go_go_gadget_peptide_bonds();
+    form_peptide_bonds();
 
     # Delete free-floating glycans
     for g in global_glycans.values():
@@ -459,3 +402,25 @@ def generate_pg_network(box_size_DSU : float = 100, glycan_packing_factor : floa
         write_to_laamps_datafile(filename);
 
     return density_fraction, crosslink_ratio, global_glycans, global_atoms, global_bonds, global_angles;
+
+# Functions to compare network distribution to theory distribution
+def normalized_length_distribution():
+    dsu_lengths = range(1,MAX_GLYCAN_LENGTH+1);
+    norm_distrib = [0]*len(dsu_lengths)
+    len_dist = len(distribution)
+    for i,x in enumerate(dsu_lengths):
+        norm_distrib[i] = distribution.count(x) / len_dist;
+
+    return dsu_lengths, norm_distrib
+
+def actual_length_distribution():
+    dsu_lengths = range(1,MAX_GLYCAN_LENGTH+1);
+    actual_distrib = [0]*len(dsu_lengths)
+    len_dist = len(global_glycans);
+    for g in global_glycans.values():
+        actual_distrib[len(g.atom_ids)-1] += 1;
+
+    for i in dsu_lengths:
+        actual_distrib[i-1] = actual_distrib[i-1]/len_dist;
+
+    return dsu_lengths, actual_distrib
