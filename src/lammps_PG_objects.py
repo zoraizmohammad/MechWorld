@@ -39,8 +39,30 @@ class Atom:
         self.x = x;
         self.y = y;
         self.z = z;
-        self.is_inclined_to_peptide = (random() < PROBABILITY_DSU_CAN_ATTEMPT_TO_FORM_PEPTIDE);
+        self.is_inclined_to_peptide = True;
         self.has_peptide = False;
+
+        # Can be set by set_stem_vector()
+        self.v_glycan = None;
+        self.v_stem = None;
+    
+    def run_bernoulli_trial(self, p : float):
+        self.is_inclined_to_peptide = (random() < p);
+    
+    def set_stem_vector(self, glycan_angle : float):
+        self.v_glycan = np.array([-np.sin(glycan_angle), np.cos(glycan_angle)]);
+
+        if self.atom_type == ATOM_TYPE_POS_DSU:
+            # Right-Reaching, rotate by -90 degrees k
+            rot_k = -np.pi/2
+        else:
+            # Left-Reaching, rotate by +90 degrees k
+            rot_k = np.pi/2
+
+        cos_r = np.cos(rot_k);
+        sin_r = np.sin(rot_k);
+
+        self.v_stem = np.matmul(np.array([[cos_r, -sin_r], [sin_r, cos_r]]), self.v_glycan);
 
     def translate(self, dx, dy, dz):
         self.x += dx;
@@ -179,6 +201,33 @@ class GlycanMolecule:
             return -1 * angle;
         else:
             return angle; # If (Top_x - Bottom_x) > 0 -> Flip angle b/c glycan is tilted in -Z direction
+
+    def displace_by_const(self, atoms : dict[int,Atom], dx, dy):
+        for aid in self.atom_ids:
+            atoms[aid].x += dx;
+            atoms[aid].y += dy;
+    
+    def set_cm(self, x, y):
+        self.cm_x = x;
+        self.cm_y = y;
+    
+    def displace_by_strain(self, atoms : dict[int,Atom], strain_x, strain_y, simbox_lx, simbox_ly):
+        dx = (self.cm_x % simbox_lx) * (strain_x);
+        dy = (self.cm_y % simbox_ly) * (strain_y);
+        self.displace_by_const(atoms, dx,dy);
+    
+    def rotate_wrt_cm(self, atoms : dict[int,Atom], alpha):
+        cosa = np.cos(alpha);
+        sina = np.sin(alpha);
+        rotation_matrix = np.array([[cosa, -sina],[sina, cosa]])
+
+        for aid in self.atom_ids:
+            r_relative = np.array([atoms[aid].x, atoms[aid].y]) - np.array([self.cm_x, self.cm_y])
+            r_rotated_relative = np.matmul(rotation_matrix, r_relative)
+            r_abs_new = r_rotated_relative + np.array([self.cm_x, self.cm_y])
+            atoms[aid].x = r_abs_new[0];
+            atoms[aid].y = r_abs_new[1];
+            atoms[aid].set_stem_vector(alpha);
 
     def get_length(self) -> int:
         return len(self.atom_ids);

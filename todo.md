@@ -118,6 +118,29 @@ Jan 26th 2026:
    - 22/23 gives a way to find M from making incremental changes, note that current stress has an impact through R
    - How does young's modulus, poison ratio, etc, change based on the prestrain?
 
+Notes on Octavio's Network Code (2/2/2026):
+1. he starts with square grid separated by 1 DSU ("initial unitary grid")
+2. Ny is given, so is "density". Nx (length is X direction) is determined based by rho and Ny
+3. He enforces that wy = wx
+4. Transformation occurs later, as does the number of nodes
+
+Two inputs: Ny [DSU] & density [ATOMS / DSU_LEN**2]
+A) as an input to his assembly function, he gives density = 1/((1+esp_x)(1+esp_y))
+B) esp_y = esp_x / (1 + avg_rod_length)
+C) Nx = np.floor( ((1+esp_y)/(1+esp_x))*Ny )
+
+* The main difference is spacing in the y-direction
+* His max displacement is 1/2 of a DSU
+* He directly measures the angle between the axes of the glycan
+* [!!!] He compares stem vectors against the peptide bond. You can perform a optimization with this knowledge too.
+   * Atoms should contain molecule angle and stem vector
+
+It is a square patch in the physical dimension sense (X nm by X nm)
+
+Good idea for me: add length_distribution function with more obvious inputs
+
+Note: He doesn't delete any glycans that have no peptides, he just allows them to float.
+
 Concerns/observations/question:
 
 1. Determining prestrain that corresponds to a biological scenerio...
