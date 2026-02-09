@@ -12,6 +12,7 @@ BOND_TYPE_PEPTIDE = 2;
 ANGLE_TYPE_GLYCAN = 1;
 ATOM_TYPE_POS_DSU = 1; # + orientation
 ATOM_TYPE_NEG_DSU = 2; # - orientation
+ANG_TOL_DEGREES = 85;
 
 # https://en.wikipedia.org/wiki/Peptidoglycan
 # https://en.wikipedia.org/wiki/N-Acetylglucosamine

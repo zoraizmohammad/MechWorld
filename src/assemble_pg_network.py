@@ -105,7 +105,7 @@ def spatial_hash_coords(a : Atom, cell_size : float, simbox_lx, simbox_ly) -> tu
 
     return cx, cy;
 
-def verify_stem_alignment(a1 : Atom, a2 : Atom, ALIGNMENT_TOL, simbox_lx, simbox_ly, check_PCB : bool):
+def verify_stem_alignment(a1 : Atom, a2 : Atom, COS_ALIGNMENT_TOL : float, simbox_lx, simbox_ly, check_PCB : bool):
     v_a2_to_a1 = np.array([a1.x - a2.x, a1.y - a2.y]);
 
     if check_PCB:
@@ -123,12 +123,12 @@ def verify_stem_alignment(a1 : Atom, a2 : Atom, ALIGNMENT_TOL, simbox_lx, simbox
 
     n_a2_to_a1 = v_a2_to_a1 / np.linalg.norm(v_a2_to_a1); # unit
 
-    d1 = np.dot(a1.v_stem, -1*n_a2_to_a1);
-    if (d1 < ALIGNMENT_TOL):
+    d1_unit = np.dot(a1.v_stem, -1*n_a2_to_a1);
+    if (d1_unit < COS_ALIGNMENT_TOL):
         return False
     
-    d2 = np.dot(a2.v_stem, n_a2_to_a1);
-    if (d2 < ALIGNMENT_TOL):
+    d2_unit = np.dot(a2.v_stem, n_a2_to_a1);
+    if (d2_unit < COS_ALIGNMENT_TOL):
         return False
 
     return True
@@ -155,8 +155,8 @@ def create_peptide_with_nearby_neighbor(
     cx, cy = spatial_hash_coords(a, cell_size, simbox_lx, simbox_ly);
 
     PERIODIC_RISK : bool = ((cx == 0) or (cy == 0) or (cx == mcx) or (cx == mcy));
-    ALIGNMENT_TOL = np.acos(np.deg2rad(45));
-    SIN_ALIGNMENT_TOL = np.sin(ALIGNMENT_TOL)
+    COS_ALIGNMENT_TOL = np.cos(np.deg2rad(ANG_TOL_DEGREES));
+    SIN_ALIGNMENT_TOL = np.sin(np.deg2rad(ANG_TOL_DEGREES));
 
     dcx_set = {-1,0,1};
     dcy_set = {-1,0,1};
@@ -209,7 +209,7 @@ def create_peptide_with_nearby_neighbor(
             continue;
 
         # Ensure that the stems are pointing toward each other, each stem must be aligned within 45 degrees of the new peptide
-        if (not verify_stem_alignment(a, neighbor, ALIGNMENT_TOL, simbox_lx, simbox_ly, PERIODIC_RISK)):
+        if (not verify_stem_alignment(a, neighbor, COS_ALIGNMENT_TOL, simbox_lx, simbox_ly, PERIODIC_RISK)):
             #print("> Failed: Stems not aligned")
             continue;
         
@@ -442,14 +442,10 @@ def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float
     # displacing glycans based on center of mass CANNOT WORK in a periodic box, as there is no origin
     # so instead I am adjusting the gap to match overall height and be even, same with width
 
-    print(epsilon_x,epsilon_y,Nx)
+    #print(epsilon_x,epsilon_y,Nx)
 
     simbox_ly = (1+epsilon_y) * DSU * Ny;
     simbox_lx = (1+epsilon_x) * DSU * Nx;
-
-    if not (simbox_lx == simbox_ly):
-        print(simbox_lx, simbox_ly)
-        #Warning("Patch is not square within floating point precision!")
 
     populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx, Ny, epsilon_x, epsilon_y);
 
@@ -512,10 +508,8 @@ def test_unit_grid_rules_1():
 
     # Conditions
     epsilon_x = np.sqrt( (1 + (1/2)*l)**2 + ((1/mesh_density) - 1)*(1 + l) ) - (1+(1/2)*l); # B-> A, solve for epsilon_x
-    epsilon_y = epsilon_x/(1+l); #condition for isotropic separation of rods
+    epsilon_y = epsilon_x/(1+l); # Approximation of isotropic separation of rods
     Nx = np.floor((1+epsilon_y)/(1+epsilon_x)*Ny); #condition for a square patch
-
-    print(epsilon_x,epsilon_y,Nx)
 
     hl = l/2;
 

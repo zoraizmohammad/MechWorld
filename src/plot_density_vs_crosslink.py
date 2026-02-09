@@ -110,14 +110,14 @@ def finish_crosslinks_vs_rho_gap_fig():
 dsu_100_datafile = "results\\crosslinks100_stems.dump"
 #dsu_200_datafile = "results\\crosslinks200_stems.dump"
 #dsu_500_datafile = "results\\crosslinks500_stems.dump"
-sweep_data_points(dsu_100_datafile, 100)
+#sweep_data_points(dsu_100_datafile, 100)
 #sweep_data_points(dsu_200_datafile, 200)
 #sweep_data_points(dsu_500_datafile, 500)
 
 crosslinks_100_df = import_crosslinks_data(dsu_100_datafile);
-plot_crosslinks_vs_rho_mesh(crosslinks_100_df, 0.33, "red", "X = 0.33, 100 DSU", ":")
-plot_crosslinks_vs_rho_mesh(crosslinks_100_df, 0.72, "blue", "X = 0.72, 100 DSU", ":")
-plot_crosslinks_vs_rho_mesh(crosslinks_100_df, 1.00, "black", "X = 1.00, 100 DSU", ":")
+plot_crosslinks_vs_rho_gap(crosslinks_100_df, 0.33, "red", "X = 0.33, 100 DSU", ":")
+plot_crosslinks_vs_rho_gap(crosslinks_100_df, 0.72, "blue", "X = 0.72, 100 DSU", ":")
+plot_crosslinks_vs_rho_gap(crosslinks_100_df, 1.00, "black", "X = 1.00, 100 DSU", ":")
 
 #crosslinks_200_df = import_crosslinks_data(dsu_200_datafile);
 #plot_crosslinks_vs_rho_gap(crosslinks_200_df, 0.33, "red", "X = 0.33, 200 DSU", "--")
