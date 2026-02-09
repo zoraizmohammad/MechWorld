@@ -29,20 +29,28 @@ def get_sample_of_DSU_lengths_simple(Ny) -> list[int]:
     glycan_lengths_DSU = [];
 
     # Draw from the distribution until the total desired length is exceeded
-    while (sum(glycan_lengths_DSU) + len(glycan_lengths_DSU)) <= Ny:
+    while (sum(glycan_lengths_DSU) + len(glycan_lengths_DSU)) < Ny:
         glycan_lengths_DSU.append(distribution[randrange(0,len(distribution))])
 
-    glycan_lengths_DSU.pop();                          # Remove the glycan that pushed it over the edge
+    glycan_lengths_DSU.pop(); # Remove the glycan that pushed it over the edge
     glycan_lengths_DSU.append(Ny - sum(glycan_lengths_DSU) - len(glycan_lengths_DSU)); # Add a filler glycan to make up the difference
+
+    if (0 in glycan_lengths_DSU) or (1 in glycan_lengths_DSU):
+        return get_sample_of_DSU_lengths_simple(Ny) # bad, so try again from scratch
 
     shuffle(glycan_lengths_DSU)
 
     return glycan_lengths_DSU
 
-def add_simple_glycan(global_atoms : dict[int,Atom], global_bonds, global_angles, global_glycans : dict[int,GlycanMolecule], cm_x, cm_y, numDSUs):
-    molecule_id = len(global_glycans)+1;
-    global_glycans[molecule_id] = GlycanMolecule(molecule_id);
-    global_glycans[molecule_id].set_cm(cm_x, cm_y)
+def add_simple_glycan(atoms : dict[int,Atom], bonds : dict[int,Bond], angles : dict[int,Angle], glycans : dict[int,GlycanMolecule], cm_x, cm_y, numDSUs : int):
+    if (numDSUs == 0):
+        print("Warning: numDSU len of 0 was passed!")
+        return;
+    
+    # Create add a new glycan object to the dictionary
+    molecule_id = len(glycans)+1;
+    glycans[molecule_id] = GlycanMolecule(molecule_id);
+    glycans[molecule_id].set_cm(cm_x, cm_y)
 
     orientation_randomizer = randrange(1,4);
 
@@ -50,35 +58,35 @@ def add_simple_glycan(global_atoms : dict[int,Atom], global_bonds, global_angles
     for i in range(0,numDSUs):
         # First atom (with lowest index) is placed at the 'bottom' of the glycan
         xA = cm_x
-        yA = cm_y + ((i+1)-(numDSUs/2))*DSU # nm
+        yA = cm_y + (i - (numDSUs-1)/2)*DSU # nm
 
         ### Atom
-        atom_id = len(global_atoms)+1;
+        new_aid = len(atoms)+1;
 
         # Alternate Right-Reaching and Left-Reaching DSUs
-        tmp = (orientation_randomizer + atom_id) % 4;
+        tmp = (orientation_randomizer + new_aid) % 4;
         if (tmp == 1 or tmp == 2):
-            global_atoms[atom_id] = Atom(atom_id, molecule_id, ATOM_TYPE_POS_DSU, xA, yA, 0);
+            atoms[new_aid] = Atom(new_aid, molecule_id, ATOM_TYPE_POS_DSU, xA, yA, 0);
         else:
-            global_atoms[atom_id] = Atom(atom_id, molecule_id, ATOM_TYPE_NEG_DSU, xA, yA, 0);
+            atoms[new_aid] = Atom(new_aid, molecule_id, ATOM_TYPE_NEG_DSU, xA, yA, 0);
         
         # Set stem vector (it will change when rotating later)
-        global_atoms[atom_id].set_stem_vector(0);
+        atoms[new_aid].set_stem_vector(0);
         
         # Tell the glycan object about this atom
-        global_glycans[molecule_id].atom_ids.add(atom_id);
+        glycans[molecule_id].atom_ids.add(new_aid);
 
         ### Bond?
         if (i >= 1):
-            bond_id = len(global_bonds)+1;
-            global_bonds[bond_id] = Bond(bond_id, BOND_TYPE_GLYCAN, atom_id-1, atom_id);
-            global_glycans[molecule_id].bond_ids.add(bond_id);
+            bond_id = len(bonds)+1;
+            bonds[bond_id] = Bond(bond_id, BOND_TYPE_GLYCAN, new_aid-1, new_aid);
+            glycans[molecule_id].bond_ids.add(bond_id);
 
         ### Angle?
         if (i >= 2):
-            angle_id = len(global_angles)+1;
-            global_angles[angle_id] = Angle(angle_id, ANGLE_TYPE_GLYCAN, atom_id-2, atom_id-1, atom_id);
-            global_glycans[molecule_id].angle_ids.add(angle_id);
+            angle_id = len(angles)+1;
+            angles[angle_id] = Angle(angle_id, ANGLE_TYPE_GLYCAN, new_aid-2, new_aid-1, new_aid);
+            glycans[molecule_id].angle_ids.add(angle_id);
 
 def spatial_hash_coords(a : Atom, cell_size : float, simbox_lx, simbox_ly) -> tuple[int,int]:
     if   (a.x < 0):
@@ -147,19 +155,21 @@ def create_peptide_with_nearby_neighbor(
     cx, cy = spatial_hash_coords(a, cell_size, simbox_lx, simbox_ly);
 
     PERIODIC_RISK : bool = ((cx == 0) or (cy == 0) or (cx == mcx) or (cx == mcy));
+    ALIGNMENT_TOL = np.acos(np.deg2rad(45));
+    SIN_ALIGNMENT_TOL = np.sin(ALIGNMENT_TOL)
 
     dcx_set = {-1,0,1};
     dcy_set = {-1,0,1};
 
     # Optimization to ignore cells that point away from the stem vector
-    if a.v_stem[0] < 0:
+    if a.v_stem[0] < -SIN_ALIGNMENT_TOL:
         dcx_set.discard(1);
-    else:
+    elif a.v_stem[0] > SIN_ALIGNMENT_TOL:
         dcx_set.discard(-1);
     
-    if a.v_stem[1] < 0:
+    if a.v_stem[1] < -SIN_ALIGNMENT_TOL:
         dcy_set.discard(1);
-    else:
+    elif a.v_stem[1] > SIN_ALIGNMENT_TOL:
         dcy_set.discard(-1);
 
     # look into the cells of the atom + (relevant) adjacent cells -> get a list of could-be neighbors
@@ -199,7 +209,6 @@ def create_peptide_with_nearby_neighbor(
             continue;
 
         # Ensure that the stems are pointing toward each other, each stem must be aligned within 45 degrees of the new peptide
-        ALIGNMENT_TOL = np.acos(np.deg2rad(45));
         if (not verify_stem_alignment(a, neighbor, ALIGNMENT_TOL, simbox_lx, simbox_ly, PERIODIC_RISK)):
             #print("> Failed: Stems not aligned")
             continue;
@@ -370,14 +379,27 @@ def populate_glycans_on_unitary_grid(atoms, bonds, angles, glycans, Nx : int, Ny
             add_simple_glycan(atoms, bonds, angles, glycans, cm_x, cm_y, length_of_glycan_DSU)
             cm_y += DSU*(length_of_glycan_DSU/2) + DSU;
 
-def get_back_in_the_box_riiight_nooow(atoms : dict[int,Atom], simbox_lx : float, simbox_ly : float):
-    for aid in atoms.keys():
-        atoms[aid].correct_PCB(0, simbox_lx, 0, 0, simbox_ly);
+def populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx : int, Ny : int, epsilon_x : float, epsilon_y : float):
+    for column_idx in range(0,Nx):
+        glycan_lengths_for_this_column = get_sample_of_DSU_lengths_simple(Ny);
+        vertical_gap_between_glycans = (Ny*DSU*(1+epsilon_y) - sum(glycan_lengths_for_this_column)*DSU) \
+            / len(glycan_lengths_for_this_column);
+
+        cm_x = (DSU/2 + column_idx*DSU)         *(1+epsilon_x);
+        cm_y = (vertical_gap_between_glycans/2 + rng.uniform(0,Ny*DSU/2))*(1+epsilon_y);
+
+        for length_of_glycan_DSU in get_sample_of_DSU_lengths_simple(Ny):
+            cm_y += DSU*(length_of_glycan_DSU/2);
+            add_simple_glycan(atoms, bonds, angles, glycans, cm_x, cm_y, length_of_glycan_DSU)
+            cm_y += DSU*(length_of_glycan_DSU/2) + vertical_gap_between_glycans;
 
 #### DEBUG INSPECTION FUNCTIONS
 
-def visualizeBonds(atoms : dict[int, Atom], bonds : dict[int,Bond], xlo, xhi, ylo, yhi):
+def visualizeBonds(atoms : dict[int, Atom], bonds : dict[int,Bond], glycans : dict[int,GlycanMolecule], xlo, xhi, ylo, yhi):
     fig, ax = plt.subplots()
+
+    for g in glycans.values():
+        plt.scatter(g.cm_x, g.cm_y, color='red');
 
     for b in bonds.values():
             
@@ -385,8 +407,8 @@ def visualizeBonds(atoms : dict[int, Atom], bonds : dict[int,Bond], xlo, xhi, yl
         a2 = atoms[b.atom_id_2];
 
         if shortest_path_is_periodic_x(a1, a2, xhi-xlo) or shortest_path_is_periodic_y(a1, a2, yhi-ylo):
-            #continue;
-            pass
+            continue;
+            #pass
 
         #print(f"{b.atom_id_1} =?= {a1.id})");
         color_arr = ["","black","green"]
@@ -416,16 +438,20 @@ def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float
     epsilon_y = epsilon_x/(1+mean_of_distribution);
     Nx = floor((1+epsilon_y)/(1+epsilon_x)*Ny);
 
+    # I spent forever debugging until I realized 
+    # displacing glycans based on center of mass CANNOT WORK in a periodic box, as there is no origin
+    # so instead I am adjusting the gap to match overall height and be even, same with width
+
+    print(epsilon_x,epsilon_y,Nx)
+
     simbox_ly = (1+epsilon_y) * DSU * Ny;
     simbox_lx = (1+epsilon_x) * DSU * Nx;
 
     if not (simbox_lx == simbox_ly):
         print(simbox_lx, simbox_ly)
-        raise Warning("Patch is not square within floating point precision!")
+        #Warning("Patch is not square within floating point precision!")
 
-    populate_glycans_on_unitary_grid(atoms, bonds, angles, glycans, Nx, Ny, simbox_lx);
-    get_back_in_the_box_riiight_nooow(atoms, simbox_lx, simbox_ly)
-    #visualizeBonds(atoms, bonds, 0, DSU*Nx, 0, DSU*Ny)
+    populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx, Ny, epsilon_x, epsilon_y);
 
     for g in glycans.values():
         dx = 0.8*(random()-1);
@@ -433,15 +459,11 @@ def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float
         alpha = (2*random()-1) * X * (np.pi)/2;
 
         g.displace_by_const(atoms, dx, dy)
-        g.displace_by_strain(atoms, epsilon_x, epsilon_y, simbox_lx, simbox_ly)
         g.rotate_wrt_cm(atoms, alpha)
-
-        glycans[g.id] = g;
-    
-    #visualizeBonds(atoms, bonds, 0, simbox_lx, 0, simbox_ly)
+        g.correct_orthogonal_PCB(atoms, 0, simbox_lx, 0, simbox_ly);
 
     form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly);
-    visualizeBonds(atoms, bonds, 0, simbox_lx, 0, simbox_ly)
+    #visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly);
 
     # Count Cross-Linking
     density_fraction, crosslink_ratio = compute_crosslink_ratio(atoms, bonds, simbox_lx, simbox_ly);
@@ -615,13 +637,14 @@ def generate_pg_network_displacement_field(Ny : float = 100, mesh_density : floa
     # I am suspicious of Condition B: it works for a unitary grid but I think it won't work for translation of CMs
     # After poking at the math, condition B has a flaw in that it creates differently-sized vertical gaps when the lengths of glycans are different. See handwritten note.
     # This can also be seen in the two examples:
-    test_unit_grid_rules_1()
-    test_unit_grid_rules_2()
+    pass
+    #test_unit_grid_rules_1()
+    #test_unit_grid_rules_2()
 
     # Condition C works as intended to create a square patch 
 
     # I'm going to use a modified form of Condition B so that the overall box is deformed by epsilion_y, but the glycans are spaced s.t. the gap between them is equal
-    pass
+    #pass
 
 # Functions to compare network distribution to theory distribution
 def normalized_length_distribution():

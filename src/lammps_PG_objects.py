@@ -4,6 +4,7 @@ from typing import Union;
 from dataclasses import dataclass;
 from random import random;
 from math_helpers import get_angle_between_vectors;
+from math import floor, ceil
 
 from simulation_constants_settings import *
 
@@ -78,7 +79,7 @@ class Atom:
         else:
             return False;
 
-    def correct_PCB(self, xlo, xhi, xy, ylo, yhi):
+    def correct_triclinic_PCB(self, xlo, xhi, xy, ylo, yhi):
         # Transforms the atom's position to be within the boundary of the original periodic box
         w = (xhi-xlo);
         h = (yhi-ylo);
@@ -99,6 +100,19 @@ class Atom:
                 self.x += w;
             elif self.x > xhi + (self.y - ylo)/triclinic_slope:
                 self.x -= w;
+
+    def correct_orthogonal_PCB(self, xlo, xhi, ylo, yhi):
+        while (self.x < xlo):
+            self.x += (xhi - xlo);
+        
+        while (self.x > xhi):
+            self.x -= (xhi - xlo);
+
+        while (self.y < ylo):
+            self.y += (yhi - ylo);
+    
+        while (self.y > yhi):
+            self.y -= (yhi - ylo);
 
 class Bond:
     def __init__(self, id : int, bond_type : int, atom_id_1 : int, atom_id_2 : int):
@@ -207,27 +221,87 @@ class GlycanMolecule:
             atoms[aid].x += dx;
             atoms[aid].y += dy;
     
+        self.cm_x += dx;
+        self.cm_y += dy;
+    
     def set_cm(self, x, y):
         self.cm_x = x;
         self.cm_y = y;
     
-    def displace_by_strain(self, atoms : dict[int,Atom], strain_x, strain_y, simbox_lx, simbox_ly):
-        dx = (self.cm_x % simbox_lx) * (strain_x);
-        dy = (self.cm_y % simbox_ly) * (strain_y);
-        self.displace_by_const(atoms, dx,dy);
+    def recalculate_cm(self, atoms : dict[int,Atom], xlo, xhi, ylo, yhi):
+
+        w = xhi - xlo;
+        h = yhi - ylo;
+    
+        median_aid = np.median(list(self.atom_ids))
+
+        tmp_x = self.cm_x;
+        tmp_y = self.cm_y;
+
+        #print(self.id, self.atom_ids, median_aid)
+
+        if (median_aid % 1 == 0):
+            # Length is odd, there's a single atom at cm
+            self.cm_x = atoms[median_aid].x;
+            self.cm_y = atoms[median_aid].y;
+        else:
+            # The length is even, need to average two glycans and account for PCB
+            a1 = atoms[floor(median_aid)]
+            a2 = atoms[ceil(median_aid)]
+
+            if abs(a1.x - a2.x) > w/2:
+                # Periodic across the left/right sides of the box
+                self.cm_x = (a1.x + a2.x + w)/2;     
+                while (self.cm_x > xhi): self.cm_x -= w;
+                print(f"cm is periodic in x: ({self.cm_x},{self.cm_y})")
+            else:
+                self.cm_x = (a1.x + a2.x)/2;
+            
+            if abs(a1.y - a2.y) > h/2:
+                # Periodic across the top/bottom sides of the box
+                self.cm_y = (a1.y + a2.y + h)/2;     
+                while (self.cm_y > yhi): self.cm_y -= h;
+                print(f"cm is periodic in y: ({self.cm_x},{self.cm_y})")
+            else:
+                self.cm_y = (a1.y + a2.y)/2;
+    
+            if tmp_x != self.cm_x:
+                print(f"cm x changed: {tmp_x} -> {self.cm_x}")
+
+            if tmp_y != self.cm_y:
+                print(f"cm y changed: {tmp_y} -> {self.cm_y}")
     
     def rotate_wrt_cm(self, atoms : dict[int,Atom], alpha):
         cosa = np.cos(alpha);
         sina = np.sin(alpha);
         rotation_matrix = np.array([[cosa, -sina],[sina, cosa]])
+        r_cm = np.array([self.cm_x, self.cm_y]);
 
         for aid in self.atom_ids:
-            r_relative = np.array([atoms[aid].x, atoms[aid].y]) - np.array([self.cm_x, self.cm_y])
+            a = atoms[aid];
+            r_relative = np.array([a.x, a.y]) - r_cm
             r_rotated_relative = np.matmul(rotation_matrix, r_relative)
-            r_abs_new = r_rotated_relative + np.array([self.cm_x, self.cm_y])
-            atoms[aid].x = r_abs_new[0];
-            atoms[aid].y = r_abs_new[1];
-            atoms[aid].set_stem_vector(alpha);
+            r_rotated_absolute = r_rotated_relative + r_cm
+
+            a.x, a.y = r_rotated_absolute;
+            a.set_stem_vector(alpha);
 
     def get_length(self) -> int:
         return len(self.atom_ids);
+
+    def correct_orthogonal_PCB(self, atoms : dict[int,Atom], xlo, xhi, ylo, yhi):
+        
+        for id in self.atom_ids:
+            atoms[id].correct_orthogonal_PCB(xlo, xhi, ylo, yhi)
+
+        while (self.cm_x < xlo):
+            self.cm_x += (xhi - xlo);
+        
+        while (self.cm_x > xhi):
+            self.cm_x -= (xhi - xlo);
+
+        while (self.cm_y < ylo):
+            self.cm_y += (yhi - ylo);
+        
+        while (self.cm_y > yhi):
+            self.cm_y -= (yhi - ylo);
