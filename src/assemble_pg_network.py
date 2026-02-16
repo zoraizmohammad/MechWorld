@@ -1,6 +1,6 @@
 # PG Network Assembly Script
 import numpy as np
-from math import sin, cos, floor, ceil
+from math import floor, ceil
 from random import randrange, random, shuffle
 from collections import defaultdict
 from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule
@@ -25,7 +25,8 @@ def create_FlorySchulz_distribution(min_DSU, max_DSU, p : float, entries : int):
 
 distribution, mean_of_distribution = create_FlorySchulz_distribution(2,30,0.9,1E7)
 
-def get_sample_of_DSU_lengths_simple(Ny) -> list[int]:
+def get_sample_of_DSU_lengths_simple(Ny : int) -> list[int]:
+    # Ny includes the gaps between glycans
     glycan_lengths_DSU = [];
 
     # Draw from the distribution until the total desired length is exceeded
@@ -33,10 +34,34 @@ def get_sample_of_DSU_lengths_simple(Ny) -> list[int]:
         glycan_lengths_DSU.append(distribution[randrange(0,len(distribution))])
 
     glycan_lengths_DSU.pop(); # Remove the glycan that pushed it over the edge
-    glycan_lengths_DSU.append(Ny - sum(glycan_lengths_DSU) - len(glycan_lengths_DSU)); # Add a filler glycan to make up the difference
 
-    if (0 in glycan_lengths_DSU) or (1 in glycan_lengths_DSU):
-        return get_sample_of_DSU_lengths_simple(Ny) # bad, so try again from scratch
+    # Fill the deficit with a new glycan (or extend a random glycan if we need exactly 1 DSU)
+    DSU_deficit = Ny - sum(glycan_lengths_DSU) - len(glycan_lengths_DSU);
+    if (DSU_deficit == 1):
+        glycan_lengths_DSU[0] += 1;
+    else:
+        glycan_lengths_DSU.append(DSU_deficit);
+
+    shuffle(glycan_lengths_DSU)
+
+    return glycan_lengths_DSU
+
+def get_sample_of_DSU_lengths_no_gaps(Ny : int) -> list[int]:
+    # Ny excludes the gaps between glycans
+    glycan_lengths_DSU = [];
+
+    # Draw from the distribution until the total desired length is exceeded
+    while (sum(glycan_lengths_DSU)) < Ny:
+        glycan_lengths_DSU.append(distribution[randrange(0,len(distribution))])
+
+    glycan_lengths_DSU.pop(); # Remove the glycan that pushed it over the edge
+
+    # Fill the deficit with a new glycan (or extend a random glycan if we need exactly 1 DSU)
+    DSU_deficit = Ny - sum(glycan_lengths_DSU);
+    if (DSU_deficit == 1):
+        glycan_lengths_DSU[0] += 1;
+    else:
+        glycan_lengths_DSU.append(DSU_deficit);
 
     shuffle(glycan_lengths_DSU)
 
@@ -155,8 +180,8 @@ def create_peptide_with_nearby_neighbor(
     cx, cy = spatial_hash_coords(a, cell_size, simbox_lx, simbox_ly);
 
     PERIODIC_RISK : bool = ((cx == 0) or (cy == 0) or (cx == mcx) or (cx == mcy));
-    COS_ALIGNMENT_TOL = np.cos(np.deg2rad(ANG_TOL_DEGREES));
-    SIN_ALIGNMENT_TOL = np.sin(np.deg2rad(ANG_TOL_DEGREES));
+    COS_ALIGNMENT_TOL = np.cos(np.deg2rad(PEPTIDE_ANG_TOL_DEGREES));
+    SIN_ALIGNMENT_TOL = np.sin(np.deg2rad(PEPTIDE_ANG_TOL_DEGREES));
 
     dcx_set = {-1,0,1};
     dcy_set = {-1,0,1};
@@ -381,14 +406,14 @@ def populate_glycans_on_unitary_grid(atoms, bonds, angles, glycans, Nx : int, Ny
 
 def populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx : int, Ny : int, epsilon_x : float, epsilon_y : float):
     for column_idx in range(0,Nx):
-        glycan_lengths_for_this_column = get_sample_of_DSU_lengths_simple(Ny);
+        glycan_lengths_for_this_column = get_sample_of_DSU_lengths_no_gaps(Ny);
         vertical_gap_between_glycans = (Ny*DSU*(1+epsilon_y) - sum(glycan_lengths_for_this_column)*DSU) \
             / len(glycan_lengths_for_this_column);
 
         cm_x = (DSU/2 + column_idx*DSU)         *(1+epsilon_x);
         cm_y = (vertical_gap_between_glycans/2 + rng.uniform(0,Ny*DSU/2))*(1+epsilon_y);
 
-        for length_of_glycan_DSU in get_sample_of_DSU_lengths_simple(Ny):
+        for length_of_glycan_DSU in glycan_lengths_for_this_column:
             cm_y += DSU*(length_of_glycan_DSU/2);
             add_simple_glycan(atoms, bonds, angles, glycans, cm_x, cm_y, length_of_glycan_DSU)
             cm_y += DSU*(length_of_glycan_DSU/2) + vertical_gap_between_glycans;
@@ -398,8 +423,8 @@ def populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx 
 def visualizeBonds(atoms : dict[int, Atom], bonds : dict[int,Bond], glycans : dict[int,GlycanMolecule], xlo, xhi, ylo, yhi):
     fig, ax = plt.subplots()
 
-    for g in glycans.values():
-        plt.scatter(g.cm_x, g.cm_y, color='red');
+    #for g in glycans.values():
+    #    plt.scatter(g.cm_x, g.cm_y, color='red');
 
     for b in bonds.values():
             
@@ -427,7 +452,7 @@ def visualizeBonds(atoms : dict[int, Atom], bonds : dict[int,Bond], glycans : di
 
 #### MAIN FUNCTION FOR MAKING NETWORKS
 
-def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float = 0.65, filename : str = None):
+def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float = 0.65, filename : str = None, visuals : bool = False):
 
     atoms   : dict[int,Atom] = dict(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
     bonds   : dict[int,Bond] = dict();
@@ -437,6 +462,11 @@ def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float
     epsilon_x = np.sqrt( (1 + (1/2)*mean_of_distribution)**2 + ((1/nodes_density) - 1)*(1 + mean_of_distribution) ) - (1+(1/2)*mean_of_distribution);
     epsilon_y = epsilon_x/(1+mean_of_distribution);
     Nx = floor((1+epsilon_y)/(1+epsilon_x)*Ny);
+
+    #epsilon_x = (1/nodes_density) - 1;
+    #epsilon_y = epsilon_x/(1+mean_of_distribution);
+    #Nx = floor((1+epsilon_y)/(1+epsilon_x)*Ny);
+    #print(Nx)
 
     # I spent forever debugging until I realized 
     # displacing glycans based on center of mass CANNOT WORK in a periodic box, as there is no origin
@@ -449,24 +479,49 @@ def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float
 
     populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx, Ny, epsilon_x, epsilon_y);
 
+    if visuals:
+        visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny);
+
+    #for g in glycans.values():
+    #    dx = 0.8*(random()-1);
+    #    dy = 0.8*(random()-1);
+    #    alpha = (2*random()-1) * X * (np.pi)/2;
+
+    #    g.displace_by_const(atoms, dx, dy)
+    #    g.rotate_wrt_cm(atoms, alpha)
+    #    g.correct_orthogonal_PCB(atoms, 0, simbox_lx, 0, simbox_ly);
+
     for g in glycans.values():
         dx = 0.8*(random()-1);
         dy = 0.8*(random()-1);
-        alpha = (2*random()-1) * X * (np.pi)/2;
-
         g.displace_by_const(atoms, dx, dy)
+
+    #visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly);
+
+    for g in glycans.values():
+        alpha = (2*random()-1) * X * (np.pi)/2;
         g.rotate_wrt_cm(atoms, alpha)
+
+    #visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly);
+
+    for g in glycans.values():
         g.correct_orthogonal_PCB(atoms, 0, simbox_lx, 0, simbox_ly);
 
-    form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly);
     #visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly);
+
+    form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly);
+
+    if visuals:
+        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly);
+        print(simbox_lx, simbox_ly)
+        print(len(atoms))
 
     # Count Cross-Linking
     density_fraction, crosslink_ratio = compute_crosslink_ratio(atoms, bonds, simbox_lx, simbox_ly);
 
-    # Delete free-floating glycans
-    for g in glycans.values():
-        g.delete_if_free(atoms, bonds, angles);
+    #Delete free-floating glycans
+    #for g in glycans.values():
+    #    g.delete_if_free(atoms, bonds, angles);
 
     # Transform Coordinates of Atoms
     for a in atoms.values():

@@ -1,7 +1,7 @@
 from os import makedirs
 import pandas as pd
 import matplotlib.pyplot as plt
-from ensemble_isotropic_strain import *
+from process_network_ensembles import *
 
 ### START OF PROGRAM FOR TESTING
 # Settings

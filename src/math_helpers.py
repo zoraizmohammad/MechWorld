@@ -5,7 +5,7 @@ import numpy as np
 def get_angle_between_vectors(v, u):
     return np.rad2deg(np.arccos(np.dot(v, u) / (np.linalg.norm(v)*np.linalg.norm(u))));
 
-def get_confidence_intervals(df, confidence, x : str, y : str):
+def get_confidence_intervals(df : pd.DataFrame, confidence, x : str, y : str):
     # AI Generation Disclaimer
 
     def calculate_ci(group):

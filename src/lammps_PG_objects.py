@@ -1,6 +1,6 @@
 import numpy as np;
 import numpy.typing as npt;
-from typing import Union;
+from typing import Union; # P3.9 on Hoffman2
 from dataclasses import dataclass;
 from random import random;
 from math_helpers import get_angle_between_vectors;
@@ -8,21 +8,21 @@ from math import floor, ceil
 
 from simulation_constants_settings import *
 
-# Hoffman supports up to python 3.9.6, must use union
+# LAAMPS ENERGY FUNCTIONS
 def peptide_energy_lammps(bond_distance) -> Union[float,None]:
     return lammps_nonlinear(bond_distance, PEPTIDE_COEFFICIENTS[0], PEPTIDE_COEFFICIENTS[1], PEPTIDE_COEFFICIENTS[2])
 
 def glycan_energy_lammps(bond_distance) -> Union[float,None]:
     return lammps_linear(bond_distance, GLYCAN_COEFFICIENTS[0], GLYCAN_COEFFICIENTS[1])
 
-def lammps_nonlinear(r, esp, r0, lambd) -> Union[float,None]:
+def lammps_linear(r, K, r0) -> Union[float,None]:
+    return K*(r-r0)**2;
+
+def lammps_nonlinear(r, epsil, r0, lambd) -> Union[float,None]:
     if ((r-r0) >= lambd):
         return None
     else:
-        return esp*(r-r0)**2 / (lambd**2 - (r-r0)**2);
-
-def lammps_linear(r, K, r0) -> Union[float,None]:
-    return K*(r-r0)**2;
+        return epsil*(r-r0)**2 / (lambd**2 - (r-r0)**2);
 
 @dataclass
 class TriclinicBounds:
@@ -202,6 +202,7 @@ class GlycanMolecule:
             #print(f"Deleted free glycan with id = {self.id}")
 
     def get_orientation_vector(self, atoms : dict[int,Atom]):
+        # NEEDS UPDATE TO INCORPORATE PCB
         dx = atoms[max(self.atom_ids)].x - atoms[min(self.atom_ids)].x;
         dy = atoms[max(self.atom_ids)].y - atoms[min(self.atom_ids)].y;
         glycan_vector = np.array([dx,dy])

@@ -9,14 +9,13 @@ import pandas as pd
 from math_helpers import get_confidence_intervals
 from assemble_pg_network import generate_pg_network
 import matplotlib.pyplot as plt
-from run_lammps_isotropic_strain import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
+from run_lammps_scripts import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
 from lammps_PG_objects import Bond
-from process_deformed_state import visualizeStrainHistogram
 from import_data_from_dumps import *
 
 from process_isotropic_prestrain import ThermoStruct, import_isotropic_prestrain_data
 
-# Simple Helper Functions
+## NETWORK CREATION
 def create_networks_in_groups_with_varying_isotropic_parameter(working_directory : str, size : int, rho_gap : float, isotropic_parameters : list[float], networks_per_group : int, rewrite : bool):
     for group_index, alpha in enumerate(isotropic_parameters):
         for network_index in range(0,networks_per_group):
@@ -27,32 +26,36 @@ def create_networks_in_groups_with_varying_isotropic_parameter(working_directory
                 print(f"[SKIPPED] Generating network {filename} b/c it already exists")
                 continue;
 
-def run_networks_nve(dirpath, regex_pattern, rerun):
+## REGEX-BASED NETWORK PROPAGATION
+def find_files(dirpath, regex_pattern) -> set[str]:
+    filepaths = set();
     for filename in listdir(dirpath):
         if re.search(regex_pattern, filename):
-            expected_output_file = os.path.join(dirpath,os.path.splitext(filename)[0] + ".out")
-            if rerun or not os.path.exists(expected_output_file):
-                print(f"Running {filename}...")
-                file_to_run = os.path.join(dirpath,filename)
-                run_isotropic_prestrain_nve(file_to_run, 0.3, True, True)
-                #run_isotropic_prestrain_minimize(file_to_run, 0.3, 50, True, True)
-            else:
-                print(f"[SKIPPED] Running {filename} b/c existing output file was found")
-                continue;
+            new_filepath = os.path.join(dirpath,filename);
+            filepaths.add(new_filepath);
+    return filepaths;
+
+def run_networks_nve(dirpath, regex_pattern, rerun):
+    for filepath in find_files(dirpath, regex_pattern):
+        expected_output_filepath = os.path.splitext(filepath)[0] + ".out";
+        if rerun or not os.path.exists(expected_output_filepath):
+            print(f"Running {filepath}...")
+            run_isotropic_prestrain_nve(filepath, 0.3, True, True)
+        else:
+            print(f"[SKIPPED] Running {filepath} b/c existing output file was found")
+            continue;
 
 def run_networks_minimize(dirpath, regex_pattern, rerun : bool = False, remap : bool = False):
-    for filename in listdir(dirpath):
-        if re.search(regex_pattern, filename):
-            expected_output_file = os.path.join(dirpath,os.path.splitext(filename)[0] + ".out")
-            if rerun or not os.path.exists(expected_output_file):
-                print(f"Running {filename}...")
-                file_to_run = os.path.join(dirpath,filename)
-                run_isotropic_prestrain_minimize(file_to_run, 0.3, None, True, True, remap)
-            else:
-                print(f"[SKIPPED] Running {filename} b/c existing output file was found")
-                continue;
+    for filepath in find_files(dirpath, regex_pattern):
+        expected_output_filepath = os.path.splitext(filepath)[0] + ".out";
+        if rerun or not os.path.exists(expected_output_filepath):
+            print(f"Running {filepath}...")
+            run_isotropic_prestrain_nve(filepath, 0.3, True, True, remap)
+        else:
+            print(f"[SKIPPED] Running {filepath} b/c existing output file was found")
+            continue;
 
-### Dataframe Manipulation
+### DATAFRAME MANIPULATION
 def collect_list_of_dataframes(dirpath : str, regex_pattern : str) -> list[pd.DataFrame]:
     # Returns a list of dataframes, one from each file
     dfs = list();
@@ -110,7 +113,7 @@ def file_dfs_to_combined_stress_df(file_dfs : pd.DataFrame) -> pd.DataFrame:
     else:
         return pd.concat(stress_dfs)
 
-
+## PLOTTING FUNCTIONS -- ENERGY RATIO
 def add_energy_ratio_curves(df : pd.DataFrame, color_name : str, labelstr):
     # Elastic of Glycan
     ci_df = get_confidence_intervals(df, 0.95, 'strain', 'glycan_pe_frac');
@@ -157,6 +160,7 @@ def finish_energy_ratio_curve():
     plt.grid(True);
     plt.show();
 
+## PLOTTING FUNCTIONS -- ENERGY DENSITY
 def add_PE_density_curve(df : pd.DataFrame, colorname : str, labelstr : str):
     ci_df = get_confidence_intervals(df, 0.95, "strain", "energy_density")
 
@@ -182,6 +186,7 @@ def finish_PE_density_curve():
     plt.grid(True);
     plt.show()
 
+## PLOTTING FUNCTIONS -- STRESS
 def add_stress_curve(df : pd.DataFrame, color_name : str, labelstr):
     # Longitudinal (Lower)
     ci_df = get_confidence_intervals(df, 0.95, 'strain', 'sigma_xx');
@@ -215,6 +220,7 @@ def finish_stress_curve():
     plt.legend()
     plt.show()
 
+## PLOTTING FUNCTIONS -- STRESS RATIO
 def add_stress_ratio_curve(df : pd.DataFrame, color_name : str, labelstr):
     ci_df = get_confidence_intervals(df, 0.95, 'strain', 'ratio');
     n = int(len(df)/len(ci_df))
@@ -239,6 +245,7 @@ def finish_stress_ratio_curve():
     plt.legend()
     plt.show()
 
+## FULL FIGURE FUNCTIONS
 def full_stress_figure(working_dirpath : str, curves_information : list[tuple[str, str, str]]):
     for i in range(0,len(curves_information)):
         (output_regex, colorname, labelstr) = curves_information[i];

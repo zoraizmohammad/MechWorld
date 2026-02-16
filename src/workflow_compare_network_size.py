@@ -1,4 +1,4 @@
-from ensemble_isotropic_strain import *
+from process_network_ensembles import *
 
 ### START OF PROGRAM FOR TESTING
 # Settings

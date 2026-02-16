@@ -41,7 +41,7 @@ def import_2D_triclinic_box_bounds_from_dump(filename : str) -> tuple[float, flo
 
     return (xlo, xhi, xy, ylo, yhi)
 
-def import_atoms_from_dump(filename : str, triclinic_bounds) -> list[Atom]:
+def import_atoms_from_dump(filename : str, triclinic_bounds) -> dict[int,Atom]:
     """
     Expected format format:
         ITEM: TIMESTEP
@@ -76,12 +76,12 @@ def import_atoms_from_dump(filename : str, triclinic_bounds) -> list[Atom]:
     for ai in range(n_atoms):
         atom_data = list(map(float, lines[i+1+ai].split()));
         a = Atom(id=int(atom_data[0]), mol_id=int(atom_data[1]), atom_type=int(atom_data[2]), x=atom_data[3], y=atom_data[4], z=0);
-        a.correct_PCB(xlo, xhi, xy, ylo, yhi);
+        a.correct_triclinic_PCB(xlo, xhi, xy, ylo, yhi);
         atoms[atom_data[0]] = a;
 
     return atoms
 
-def import_bonds_from_dump(filename : str) -> list[Atom]:
+def import_bonds_from_dump(filename : str) -> dict[int,Bond]:
     """
     Expected format format:
         ITEM: TIMESTEP

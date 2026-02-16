@@ -1,4 +1,4 @@
-from ensemble_isotropic_strain import *
+from process_network_ensembles import *
 import shutil
 
 def branch_networks_for_multiple_run_types(working_dirpath):

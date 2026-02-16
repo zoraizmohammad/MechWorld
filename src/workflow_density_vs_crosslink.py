@@ -98,6 +98,9 @@ def plot_crosslinks_vs_rho_mesh(crosslinks_df, tilt : float, colorname : str, la
         label=f'95% Confidence (nSamples={n})'
     )
 
+def plot_expected_ranges(x,y):
+    plt.fill_between([x[0],x[1]], [y[0],y[0]], [y[1],y[1]], alpha = 0.2, color="green")
+
 def finish_crosslinks_vs_rho_gap_fig():
     plt.xlabel(r'$\rho$_gap')
     plt.ylabel('$Crosslinking$')
@@ -108,9 +111,9 @@ def finish_crosslinks_vs_rho_gap_fig():
     plt.show()
 
 dsu_100_datafile = "results\\crosslinks100_stems.dump"
-#dsu_200_datafile = "results\\crosslinks200_stems.dump"
-#dsu_500_datafile = "results\\crosslinks500_stems.dump"
-#sweep_data_points(dsu_100_datafile, 100)
+dsu_200_datafile = "results\\crosslinks200_stems.dump"
+dsu_500_datafile = "results\\crosslinks500_stems.dump"
+sweep_data_points(dsu_100_datafile, 100)
 #sweep_data_points(dsu_200_datafile, 200)
 #sweep_data_points(dsu_500_datafile, 500)
 
@@ -118,6 +121,7 @@ crosslinks_100_df = import_crosslinks_data(dsu_100_datafile);
 plot_crosslinks_vs_rho_gap(crosslinks_100_df, 0.33, "red", "X = 0.33, 100 DSU", ":")
 plot_crosslinks_vs_rho_gap(crosslinks_100_df, 0.72, "blue", "X = 0.72, 100 DSU", ":")
 plot_crosslinks_vs_rho_gap(crosslinks_100_df, 1.00, "black", "X = 1.00, 100 DSU", ":")
+plot_expected_ranges([0.53361, 0.7086244], [0.4, 0.6])
 
 #crosslinks_200_df = import_crosslinks_data(dsu_200_datafile);
 #plot_crosslinks_vs_rho_gap(crosslinks_200_df, 0.33, "red", "X = 0.33, 200 DSU", "--")
@@ -125,8 +129,8 @@ plot_crosslinks_vs_rho_gap(crosslinks_100_df, 1.00, "black", "X = 1.00, 100 DSU"
 #plot_crosslinks_vs_rho_gap(crosslinks_200_df, 1.00, "black", "X = 1.00, 200 DSU", "--")
 
 #crosslinks_500_df = import_crosslinks_data(dsu_500_datafile);
-#plot_crosslinks(crosslinks_500_df, 0.33, "red", "X = 0.33, 500 DSU", "-")
-#plot_crosslinks(crosslinks_500_df, 0.72, "blue", "X = 0.72, 500 DSU", "-")
-#plot_crosslinks(crosslinks_500_df, 1.00, "black", "X = 1.00, 500 DSU", "-")
+#plot_crosslinks_vs_rho_gap(crosslinks_500_df, 0.33, "red", "X = 0.33, 500 DSU", "-")
+#plot_crosslinks_vs_rho_gap(crosslinks_500_df, 0.72, "blue", "X = 0.72, 500 DSU", "-")
+#plot_crosslinks_vs_rho_gap(crosslinks_500_df, 1.00, "black", "X = 1.00, 500 DSU", "-")
 
 finish_crosslinks_vs_rho_gap_fig()
