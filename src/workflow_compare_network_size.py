@@ -11,12 +11,12 @@ working_dirpath = "C:\\Users\\jrrm5\\Desktop\\Eldredge\\PG-sims\\Github\\results
 isotropy = 0.72;
 regex_suffix = r"_a"+str(int(isotropy*100)) + r"\.out$"
 
-comparison_info = [
-    (r".*_dsu100.*" + regex_suffix, r".*_dsu400.*" + regex_suffix, "red", f"100 DSU vs 400 DSU"),
-    (r".*_dsu200.*" + regex_suffix, r".*_dsu400.*" + regex_suffix, "blue", f"200 DSU vs 400 DSU"),
-    (r".*_dsu300.*" + regex_suffix, r".*_dsu400.*" + regex_suffix, "green", f"300 DSU vs 400 DSU"),
-]
-plot_comparison_of_ensembles(working_dirpath, comparison_info)
+#comparison_info = [
+#    (r".*_dsu100.*" + regex_suffix, r".*_dsu400.*" + regex_suffix, "red", f"100 DSU vs 400 DSU"),
+#    (r".*_dsu200.*" + regex_suffix, r".*_dsu400.*" + regex_suffix, "blue", f"200 DSU vs 400 DSU"),
+#    (r".*_dsu300.*" + regex_suffix, r".*_dsu400.*" + regex_suffix, "green", f"300 DSU vs 400 DSU"),
+#]
+#plot_comparison_of_ensembles(working_dirpath, comparison_info)
 
 curves_info = [
     (r".*_dsu100.*" + regex_suffix, "red", f"100 DSU, $\chi = {isotropy}$"),

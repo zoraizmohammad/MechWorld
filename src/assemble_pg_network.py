@@ -5,7 +5,7 @@ from random import randrange, random, shuffle
 from collections import defaultdict
 from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule
 from simulation_constants_settings import *
-from lammps_PG_objects import peptide_energy_lammps
+from lammps_PG_objects import peptide_energy_lammps, shortest_path_is_periodic_x, shortest_path_is_periodic_y
 import matplotlib.pyplot as plt
 
 rng = np.random.default_rng()
@@ -301,12 +301,6 @@ def periodic_distance_squared(x1,y1,x2,y2,simbox_lx,simbox_ly) -> float:
 
 def periodic_distance_test(x1,y1,x2,y2,r) -> bool:
     return periodic_distance_squared(x1,y1,x2,y2) < r**2
-
-def shortest_path_is_periodic_x(a1 : Atom, a2 : Atom, simbox_lx : float):
-    return abs(a1.x - a2.x) > (simbox_lx/2)
-
-def shortest_path_is_periodic_y(a1 : Atom, a2 : Atom, simbox_ly : float):
-    return abs(a1.y - a2.y) > (simbox_ly/2)
 
 def put_the_atoms_into_a_spatial_hash_smh(atoms, cell_size, simbox_lx, simbox_ly): # Saw this in a yt video once
     grid = defaultdict(list)

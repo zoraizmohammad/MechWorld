@@ -114,6 +114,13 @@ class Atom:
         while (self.y > yhi):
             self.y -= (yhi - ylo);
 
+### PCB HANDLING
+def shortest_path_is_periodic_x(a1 : Atom, a2 : Atom, simbox_lx : float):
+    return abs(a1.x - a2.x) > (simbox_lx/2)
+
+def shortest_path_is_periodic_y(a1 : Atom, a2 : Atom, simbox_ly : float):
+    return abs(a1.y - a2.y) > (simbox_ly/2)
+
 class Bond:
     def __init__(self, id : int, bond_type : int, atom_id_1 : int, atom_id_2 : int):
         self.id = id;
@@ -201,21 +208,42 @@ class GlycanMolecule:
             self.delete_components(atoms, bonds, angles)
             #print(f"Deleted free glycan with id = {self.id}")
 
-    def get_orientation_vector(self, atoms : dict[int,Atom]):
-        # NEEDS UPDATE TO INCORPORATE PCB
-        dx = atoms[max(self.atom_ids)].x - atoms[min(self.atom_ids)].x;
-        dy = atoms[max(self.atom_ids)].y - atoms[min(self.atom_ids)].y;
+    def get_orientation_vector(self, atoms : dict[int,Atom], triclinic_bounds):
+        a0 = atoms[min(self.atom_ids)] # First atom placed. It is 'top' of glycan before rotation.
+        af = atoms[max(self.atom_ids)] # It is 'bottom' glycan before rotation.
+
+        dx = af.x - a0.x; # Runs from 'top' -> 'bottom'.
+        dy = af.y - a0.y; # Runs from 'top' -> 'bottom'.
+
+        (xlo, xhi, xy, ylo, yhi) = triclinic_bounds;
+        lx = xhi - xlo;
+        ly = yhi - ylo;
+
+        if shortest_path_is_periodic_x(a0, af, lx):
+            if a0.x > af.x:
+                dx += lx;
+            else:
+                dx -= lx;
+        
+        if shortest_path_is_periodic_y(a0, af, ly):
+            if a0.y > af.y:
+                dy += ly;
+            else:
+                dy -= ly;
+
         glycan_vector = np.array([dx,dy])
         return glycan_vector;
 
-    def get_orientation_with_respect_to_hoop(self, atoms : dict[int,Atom]) -> float:
+    def get_orientation_with_respect_to_hoop(self, atoms : dict[int,Atom], triclinic_bounds) -> float:
         hoop_vector = np.array([0,1])
-        glycan_vector = self.get_orientation_vector(atoms)
-        angle = get_angle_between_vectors(hoop_vector, (glycan_vector[0], np.abs(glycan_vector[1])));
-        if glycan_vector[0] > 0: 
+        glycan_vector = self.get_orientation_vector(atoms, triclinic_bounds)
+        angle = get_angle_between_vectors(hoop_vector, glycan_vector);
+
+        # If (Top_x - Bottom_x) > 0 -> Flip angle b/c glycan is tilted in -Z direction
+        if glycan_vector[0] > 0:
             return -1 * angle;
         else:
-            return angle; # If (Top_x - Bottom_x) > 0 -> Flip angle b/c glycan is tilted in -Z direction
+            return angle;
 
     def displace_by_const(self, atoms : dict[int,Atom], dx, dy):
         for aid in self.atom_ids:
@@ -272,7 +300,8 @@ class GlycanMolecule:
             if tmp_y != self.cm_y:
                 print(f"cm y changed: {tmp_y} -> {self.cm_y}")
     
-    def rotate_wrt_cm(self, atoms : dict[int,Atom], alpha):
+    def rotate_wrt_cm(self, atoms : dict[int,Atom], alpha : float):
+        # alpha has units radians
         cosa = np.cos(alpha);
         sina = np.sin(alpha);
         rotation_matrix = np.array([[cosa, -sina],[sina, cosa]])
