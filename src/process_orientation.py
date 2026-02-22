@@ -95,27 +95,40 @@ def full_orientation_delta_figure(working_directory, filename_no_extension):
 
     #### Plots
     # add labels and titles
-
+    
     # Top-Left Plot: Relaxed Length vs Glycan Orientation
     ax[0, 0].scatter(abs_orientations_0, lengths_0, alpha=1E-2, color="black");
     ax[0, 0].set_xlim(-100, 100)
     ax[0, 0].set_xticks([-90,-60,-30,0,30,60,90])
+    ax[0, 0].set_title("Initial Glycan Orientation, by Length")
+    ax[0, 0].set_xlabel("Deviation from Hoop Direction [degrees]")
+    ax[0, 0].set_ylabel("Length [DSU]")
+
 
     # Top-Right Plot: Final Length vs Glycan Orientation
     ax[0, 1].scatter(abs_orientations_f, lengths_f, alpha=1E-2, color="black");
     ax[0, 1].set_xlim(-100, 100)
     ax[0, 1].set_xticks([-90,-60,-30,0,30,60,90])
+    ax[0, 1].set_title("Final Glycan Orientation & Length")
+    ax[0, 1].set_xlabel("Deviation from Hoop Direction [degrees]")
+    ax[0, 1].set_ylabel("Length [DSU]")
 
     # Bottom-Left: Relaxed Strain vs Relative Orientation
     ax[1, 0].scatter(rel_orientations_0, strains_0, alpha=1E-2, color="black");
     ax[1, 0].set_xlim(-10, 190)
     ax[1, 0].set_ylim(-0.2, 3.5)
     ax[1, 0].set_xticks([0,30,60,90,120,150,180])
+    ax[1, 0].set_title("Initial Peptide Attachment Angle & Strain")
+    ax[1, 0].set_xlabel("Attachment Angle [degrees]")
+    ax[1, 0].set_ylabel("Peptide Strain [a.u.]]")
 
     # Bottom-Right: Final Strain vs Relative Orientation
     ax[1, 1].scatter(rel_orientations_f, strains_f, alpha=1E-2, color="black");
     ax[1, 1].set_xlim(-10, 190)
     ax[1, 1].set_ylim(-0.2, 3.5)
     ax[1, 1].set_xticks([0,30,60,90,120,150,180])
+    ax[1, 1].set_title("Final Peptide Attachment Angle & Strain")
+    ax[1, 1].set_xlabel("Attachment Angle [degrees]")
+    ax[1, 1].set_ylabel("Peptide Strain [a.u.]]")
 
     plt.show()

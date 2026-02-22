@@ -141,6 +141,31 @@ Good idea for me: add length_distribution function with more obvious inputs
 
 Note: He doesn't delete any glycans that have no peptides, he just allows them to float.
 
+# 2/23/2026
+Completed:
+* Extraction of pores from network atoms & bond dumps
+* Histogram of pore areas
+* Distribution of glycan orientation by length
+* Distribution of peptide attachment angle by strain
+
+Goals:
+* Compute extensional elastic coefficents as a function of strain
+* Compute elastic moduli from elastic coefficents
+* Shear strain & shear modulus
+   * Lammps script to apply shear strain
+   * Python script to calculate shear coefficents as a function of strain
+* Compute all elastic coefficents for the results from a network
+* Compute all modulus for a single network given isotropic and shear results
+
+Approach #1: Massively Parallel
+* At each step of deformation, the main isotropic script writes a restart file to a special folder.
+* Another LAMMPS script takes a restart file and calculates the elastic coefficients by applying a small deformation in each direction.
+* A python script deploys one job for each of the restarts, these tiny jobs can slip into the queue without much fuss.
+* The elastic coefficients for each restart are written to a different files, then a script aggregates them into a single file per network.
+* Something like: strain c11 c12 c13 c21 c22 c23 c31 c32 c33
+
+Downsides: lots of files? maybe scripts delete the intermediate steps as we go?
+
 Concerns/observations/question:
 
 1. Determining prestrain that corresponds to a biological scenerio...

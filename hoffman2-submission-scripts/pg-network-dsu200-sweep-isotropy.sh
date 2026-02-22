@@ -41,7 +41,7 @@ c_isotropic_parameter=${params[$SGE_TASK_ID % $params_length]}
 
 echo "Running Task ${SGE_TASK_ID} with parameter: ${c_isotropic_parameter}"
 
-python src/create_and_process_single_network.py 200 1.0 ${c_isotropic_parameter} stem-results/ ${JOB_ID} ${SGE_TASK_ID}
+python src/task_create_and_process_network.py 200 1.0 ${c_isotropic_parameter} stem-results/ ${JOB_ID} ${SGE_TASK_ID} --write_dumps --write_restarts
 
 # echo job info on joblog:
 echo "Job $JOB_ID ended on:   " `hostname -s`

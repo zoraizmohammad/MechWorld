@@ -15,7 +15,6 @@ variable up equal 1.0e-1
 
 units nano
 
-
 # real units, elastic constants in GPa
 #units		real
 #variable cfac equal 1.01325e-4

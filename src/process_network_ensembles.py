@@ -9,7 +9,7 @@ import pandas as pd
 from math_helpers import get_confidence_intervals
 from assemble_pg_network import generate_pg_network
 import matplotlib.pyplot as plt
-from run_lammps_scripts import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
+from run_lammps_isotropic_strain import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
 from lammps_PG_objects import Bond
 from import_data_from_dumps import *
 
