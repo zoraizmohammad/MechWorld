@@ -36,7 +36,8 @@ with open(submission_script_filepath,"w") as f:
 #$ -M jrrm@g.ucla.edu
 
 ## Notify When...
-#$ -m bea""");
+#$ -m bea
+""");
     
     if (ntasks > 1):
         f.write(f"#$ -t 1-{ntasks}:1\n");
@@ -53,7 +54,8 @@ module load intel
 
 cd /u/home/j/jrrm/Eldredge-PG-Sim
 echo \"Loading venv from $(pwd)...\"
-source .venv/bin/activate\n""");
+source .venv/bin/activate
+""");
     
     if (ntasks > 1):
         task_file_arr = "task_file_arr=(";
@@ -74,7 +76,8 @@ python src/create_and_process_single_network.py ${c_filename}
 echo \"Job $JOB_ID ended on:   \" `hostname -s`
 echo \"Job $JOB_ID ended on:   \" `date `
 echo \" \"
-#### submit_job.sh STOP ####""");
+#### submit_job.sh STOP ####
+""");
 
 # use cmd to run job submission script
 subprocess.run(["qsub",submission_script_filepath])
