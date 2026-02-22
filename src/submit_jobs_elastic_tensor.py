@@ -3,6 +3,7 @@ import argparse
 import os
 import subprocess
 
+# Take only one argument from the cmdline, which folder to search for .restart files
 parser = argparse.ArgumentParser()
 parser.add_argument("directory")
 args = parser.parse_args()
@@ -10,15 +11,15 @@ args = parser.parse_args()
 if args.directory:
     directory = str(args.directory);
 
+# Search said folder and put the filepaths into a set
 files_to_process = find_files(directory, r".+_prestr\d\.\d+\.restart");
-
 ntasks = len(files_to_process);
 
 # we are going to write a job submission file, using one task per file
-
 project_root = os.path.join(os.path.dirname(__file__),"..");
 submission_script_filepath = os.path.join(project_root,"hoffman2-submission-scripts","pg-elastic-tensor-tasks.sh");
 
+# write content of the sge file
 with open(submission_script_filepath,"w") as f:
     f.write("""#### submit_job.sh START ####
 #!/bin/bash
@@ -40,7 +41,7 @@ with open(submission_script_filepath,"w") as f:
 """);
     
     if (ntasks > 1):
-        f.write(f"#$ -t 1-{ntasks}:1\n");
+        f.write(f"#$ -t 1-{ntasks}:1\n"); # 1 task per file
 
     f.write("""# echo job info on joblog:
 echo \"Job $JOB_ID started on:   \" `hostname -s`
@@ -70,7 +71,7 @@ source .venv/bin/activate
 
     f.write("""echo \"Running Task ${SGE_TASK_ID} with parameter: ${c_isotropic_parameter}\"
 
-python src/create_and_process_single_network.py ${c_filename}
+python src/task_compute_elastic_tensor.py ${c_filename}
 
 # echo job info on joblog:
 echo \"Job $JOB_ID ended on:   \" `hostname -s`
