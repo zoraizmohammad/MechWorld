@@ -198,5 +198,3 @@ def lammps_calculate_elastic_tensor(filepath_restart : str) -> bool:
     L.command("print \"${prestrain} ${C11all} ${C22all} ${C33all} ${C12all} ${C13all} ${C23all} ${cunits}\" file ${print_filename}")
 
     return True;
-
-lammps_calculate_elastic_tensor("C:\\Users\\jrrm5\\Desktop\\Eldredge\\PG-sims\\Github\\test_restarts\\job1.1_dsu100_rho100_a72_prestr0.1.restart") 
