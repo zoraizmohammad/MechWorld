@@ -1,6 +1,6 @@
 import argparse
 import shutil
-from run_lammps_compliance_coefficents import lammps_calculate_elastic_tensor
+from run_lammps_elastic_tensor import lammps_calculate_elastic_tensor
 
 a = argparse.ArgumentParser()
 a.add_argument("filepath")

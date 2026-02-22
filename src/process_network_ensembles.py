@@ -6,10 +6,10 @@ import os.path
 import re
 import numpy as np
 import pandas as pd
-from math_helpers import get_confidence_intervals
+from utils_helpers import get_confidence_intervals, find_files
 from assemble_pg_network import generate_pg_network
 import matplotlib.pyplot as plt
-from run_lammps_isotropic_strain import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
+from run_lammps_isotropic_strain import run_isotropic_prestrain_nve
 from lammps_PG_objects import Bond
 from import_data_from_dumps import *
 
@@ -27,14 +27,6 @@ def create_networks_in_groups_with_varying_isotropic_parameter(working_directory
                 continue;
 
 ## REGEX-BASED NETWORK PROPAGATION
-def find_files(dirpath, regex_pattern) -> set[str]:
-    filepaths = set();
-    for filename in listdir(dirpath):
-        if re.search(regex_pattern, filename):
-            new_filepath = os.path.join(dirpath,filename);
-            filepaths.add(new_filepath);
-    return filepaths;
-
 def run_networks_nve(dirpath, regex_pattern, rerun):
     for filepath in find_files(dirpath, regex_pattern):
         expected_output_filepath = os.path.splitext(filepath)[0] + ".out";

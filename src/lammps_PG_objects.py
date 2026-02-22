@@ -3,7 +3,7 @@ import numpy.typing as npt;
 from typing import Union; # P3.9 on Hoffman2
 from dataclasses import dataclass;
 from random import random;
-from math_helpers import get_angle_between_vectors;
+from utils_helpers import get_angle_between_vectors;
 from math import floor, ceil
 
 from simulation_constants_settings import *
