@@ -77,4 +77,4 @@ echo \" \"
 #### submit_job.sh STOP ####""");
 
 # use cmd to run job submission script
-subprocess.run(["qsub",os.path.join("hoffman2-submission-scripts","pg-network-dsu100-sweep-isotropy.sh")])
+subprocess.run(["qsub",submission_script_filepath])
