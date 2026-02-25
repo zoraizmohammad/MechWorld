@@ -60,4 +60,5 @@ patch_strained_surface_area = (patch_relaxed_length_DSU * pre_strain[1] * DSU);
 expected_patch_energy = (sacculus_energy/sacculus_surface_area) * patch_strained_surface_area;
 print(expected_patch_energy);
 
-# This is about two orders of magnitude higher than what is observed in the simulations (as of 2/25/2026)
+# This estimate is about 5 times higher than what is observed in the simulations (as of 2/25/2026)
+# 96.0462592791942 (sim) vs 452.2472500000001 (expected)

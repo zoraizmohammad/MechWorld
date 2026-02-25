@@ -23,7 +23,7 @@ def create_FlorySchulz_distribution(min_DSU, max_DSU, p : float, entries : int):
 
     return distribution, np.mean(distribution)
 
-distribution, mean_of_distribution = create_FlorySchulz_distribution(2,30,0.9,1E7)
+distribution, mean_of_distribution = create_FlorySchulz_distribution(2,80,0.9,1E7)
 
 def get_sample_of_DSU_lengths_simple(Ny : int) -> list[int]:
     # Ny includes the gaps between glycans
@@ -376,18 +376,33 @@ def write_to_laamps_datafile(filename, atoms, bonds, angles, simbox_lx, simbox_l
         for c in angles.values():
             c.to_datafile(f)
 
-def compute_crosslink_ratio(atoms, bonds, simbox_lx, simbox_ly):
+def compute_crosslink_ratio(atoms : dict[int,Atom], bonds : dict[int,Bond], simbox_lx, simbox_ly):
     # Count number of cross-links formed
     number_of_atoms = len(atoms);
 
-    crosslink_count = 0;
+    print(f"DEBUG: Total Atoms {len(atoms)}")
+    print(f"DEBUG: Total Bonds {len(bonds)}")
+
+    peptide_crosslink_counter = 0;
+    glycan_bond_counter = 0;
     for b in bonds.values():
         if b.bond_type == BOND_TYPE_PEPTIDE:
-            crosslink_count += 1;
+            peptide_crosslink_counter += 1;
+        if b.bond_type == BOND_TYPE_GLYCAN:
+            glycan_bond_counter += 1;
+
+    ineligible_atom_counter = 0;
+    for a in atoms.values():
+        if not a.is_eligible():
+            ineligible_atom_counter += 1;
+    
+    print(f"DEBUG: Ineligible Atoms {ineligible_atom_counter}")
+    print(f"DEBUG: Peptide Bonds {peptide_crosslink_counter}")
+    print(f"DEBUG: Glycan Bonds {glycan_bond_counter}")
     
     rho_mesh = (number_of_atoms * DSU**2) / (simbox_lx * simbox_ly);
 
-    crosslink_ratio = (2*crosslink_count) / number_of_atoms;
+    crosslink_ratio = (2*peptide_crosslink_counter) / number_of_atoms;
     return rho_mesh, crosslink_ratio;
 
 def populate_glycans_on_unitary_grid(atoms, bonds, angles, glycans, Nx : int, Ny : int, simbox_ly):
@@ -475,8 +490,8 @@ def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float
 
     populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx, Ny, epsilon_x, epsilon_y);
 
-    if visuals:
-        visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny);
+    #if visuals:
+    #    visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny);
 
     #for g in glycans.values():
     #    dx = 0.8*(random()-1);
