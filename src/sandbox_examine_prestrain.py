@@ -1,6 +1,7 @@
 # What level of pre-strain on the PG network is biologically representative?
 
 import numpy as np
+from simulation_constants_settings import *
 
 # Literature:
 # Octavio's continuum paper cites an observed pre-strain of 0.13 +- 0.08 
@@ -8,38 +9,55 @@ import numpy as np
 
 # https://pubmed.ncbi.nlm.nih.gov/1938964/
 nm2_per_DSU = 2.5;
-DSU_per_nm2 = 1/nm2_per_DSU
+DSU_per_nm2 = 1/nm2_per_DSU;
 DSU_length = 1.1; # nm
-observed_density_under_pre_strain = DSU_per_nm2*(DSU_length**2) # number_of_DSU / DSU_length**2
+observed_density_under_pre_strain = DSU_per_nm2*(DSU_length**2); # number_of_DSU / DSU_length**2
 pre_strain = np.array([0.13-0.08, 0.13, 0.13+0.08, 0.30]);
 relaxed_density = observed_density_under_pre_strain * (1+pre_strain)**2
 
 print("Relaxed Density (LB,MEAN,UB): ", relaxed_density)
 
 # To a 1st-order estimate, we have a few approaches:
-
 # Pressure Vessel Model
 # sigma_yy = PR          # Stress Per Unit of Wall Depth
 # sigma_xx = PR/2        # Stress Per Unit of Wall Depth
 
-P = np.array([0.3, 2.0]) * 101325            # atm -> Pa N/m2
-V = np.array([0.6, 0.7]) * (1E-6)**3         # 0.6-0.7 um3
-R = np.array([0.25,1.0]) * (1/2) * 1E-6      # D is 0.25 - 1.0 um https://en.wikipedia.org/wiki/Escherichia_coli
+P = np.array([0.9, 1.2]) * 101325            # atm -> Pa N/m2
+#V = np.array([0.6, 0.7]) * (1E-6)**3         # 0.6-0.7 um3
+R = np.array([0.7,1.0]) * (1/2) * 1E-6      # D is 0.25 - 1.0 um https://en.wikipedia.org/wiki/Escherichia_coli
 t = 4 * 1E-9 # m
 
 # Lower Bound
 sigma_yy = P[0]*R[0];   # N/m
 sigma_xx = P[0]*R[0]/2; # N/m
-print("Lower Bound for Stress: ", sigma_xx, sigma_yy)
+print("Lower Bound: sigma_xx = ", sigma_xx, ", sigma_yy = ", sigma_yy)
 
 # Upper Bound
 sigma_yy = P[1]*R[1];   # N/m
 sigma_xx = P[1]*R[1]/2; # N/m
-print("Upper Bound for Stress: ", sigma_xx, sigma_yy)
+print("Upper Bound: sigma_xx = ", sigma_xx, ", sigma_yy = ", sigma_yy)
 
-# Interestingly, our simulations seem to be in the right ballpark before pre-strains of about 0.2
+# This is about 3-5 times higher than what is observed in the simulations (as of 2/25/2026)
 
-# Literature
+### ENERGY METHOD
+# If we imagine the PG layer as an inflated balloon, 
+# we would expect it to store potential energy equal to the work done on it by the internal fluid?
 
-# Energy Model
-Energy_done_by_gas = P[0]*V[0]
+# So the entire sacculus would have a potential energy of (P-P0)*(V-V0). We can scale that to a energy/area metric and compare it against the patch.
+
+# We have estimations on these values from the work of Cayley et al, 2000
+# https://www.cell.com/biophysj/fulltext/S0006-3495(00)76726-9?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS0006349500767269%3Fshowall%3Dtrue
+
+V0 = 1.4 * u_FEMTOLITER_to_NANOMETER_CUBED;
+Va = 2.0 * u_FEMTOLITER_to_NANOMETER_CUBED;
+Pa = 1.5 * u_ATM_to_NANO_PRESSURE;
+
+sacculus_energy = (Va - V0)*Pa;
+sacculus_surface_area = 8.1 * u_MICROMETER_to_NANOMETER**2
+patch_relaxed_length_DSU = 300;
+patch_strained_surface_area = (patch_relaxed_length_DSU * pre_strain[1] * DSU);
+
+expected_patch_energy = (sacculus_energy/sacculus_surface_area) * patch_strained_surface_area;
+print(expected_patch_energy);
+
+# This is about two orders of magnitude higher than what is observed in the simulations (as of 2/25/2026)

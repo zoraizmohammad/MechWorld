@@ -131,8 +131,8 @@ def lammps_calculate_elastic_tensor(filepath_restart : str) -> bool:
 
     #### 1) Simulation Settings
     lammps_PG_simulation_settings(L)
-    L.command("variable cfac equal 1.01325e-8"); # 1 attogram/(nanometer-nanosecond^2) = E9 Pa = E4 Bars
-    L.command("variable cunits string GPa");
+    L.command("variable cfac equal 1.0"); # 1 attogram/(nanometer-nanosecond^2) == 1 MPa
+    L.command("variable cunits string MPa");
     L.command(f"variable prestrain equal {prestrain}")
     L.command(f"variable up equal 1E-2")
 
@@ -171,6 +171,12 @@ def lammps_calculate_elastic_tensor(filepath_restart : str) -> bool:
     L.command("variable ly0 equal ${tmp}")
     L.command("variable tmp equal lz")
     L.command("variable lz0 equal ${tmp}")
+
+    # d1, d2, d3 are finite difference method representations of C1X, C2X, C3X. X is "dir", passed to function.
+    # sigma = [C]*epsilon
+    # UNITS / DIMENSIONAL ANALYSIS # https://docs.lammps.org/units.html
+    # p1 - p0 => attogram/(nanometer-nanosecond^2) == E-21 kg / (E-9 m * E-18 s**2) == E6 Pa == 1 MPa
+    # delta / len0 = a.u.
 
     L.command("variable d1 equal -(v_pxx1-${pxx0})/(v_delta/v_len0)*${cfac}");
     L.command("variable d2 equal -(v_pyy1-${pyy0})/(v_delta/v_len0)*${cfac}");

@@ -379,13 +379,15 @@ def write_to_laamps_datafile(filename, atoms, bonds, angles, simbox_lx, simbox_l
 def compute_crosslink_ratio(atoms, bonds, simbox_lx, simbox_ly):
     # Count number of cross-links formed
     number_of_atoms = len(atoms);
-    crosslink_cnt = 0;
+
+    crosslink_count = 0;
     for b in bonds.values():
-        if b.bond_type == 2:
-            crosslink_cnt += 1;
+        if b.bond_type == BOND_TYPE_PEPTIDE:
+            crosslink_count += 1;
     
     rho_mesh = (number_of_atoms * DSU**2) / (simbox_lx * simbox_ly);
-    crosslink_ratio = (2*crosslink_cnt) / number_of_atoms;
+
+    crosslink_ratio = (2*crosslink_count) / number_of_atoms;
     return rho_mesh, crosslink_ratio;
 
 def populate_glycans_on_unitary_grid(atoms, bonds, angles, glycans, Nx : int, Ny : int, simbox_ly):

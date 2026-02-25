@@ -113,7 +113,7 @@ def finish_crosslinks_vs_rho_gap_fig():
 dsu_100_datafile = "results\\crosslinks100_stems.dump"
 dsu_200_datafile = "results\\crosslinks200_stems.dump"
 dsu_500_datafile = "results\\crosslinks500_stems.dump"
-sweep_data_points(dsu_100_datafile, 100)
+#sweep_data_points(dsu_100_datafile, 100)
 #sweep_data_points(dsu_200_datafile, 200)
 #sweep_data_points(dsu_500_datafile, 500)
 

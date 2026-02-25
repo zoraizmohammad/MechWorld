@@ -1,6 +1,6 @@
 # Meant for use with Hoffman2 Cluster batch submissions
 # Estimated runtimes: 0.5-hr for 100 DSU, 1-hr for 200 DSU, 3-hr for 300 DSU, 6-hr for 400 DSU
-# Example cli: python src\create_and_process_single_network.py 200 1.0 0.72 results-dir
+# Example cli: python src\create_and_process_single_network.py 200 1.0 0.72 results-dir/
 import os
 import argparse
 from datetime import datetime as dt

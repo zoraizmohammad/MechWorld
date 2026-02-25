@@ -16,6 +16,7 @@ regex_suffix = r"_a"+str(int(isotropy*100)) + r"\.out$"
 #    (r".*_dsu200.*" + regex_suffix, r".*_dsu400.*" + regex_suffix, "blue", f"200 DSU vs 400 DSU"),
 #    (r".*_dsu300.*" + regex_suffix, r".*_dsu400.*" + regex_suffix, "green", f"300 DSU vs 400 DSU"),
 #]
+
 #plot_comparison_of_ensembles(working_dirpath, comparison_info)
 
 curves_info = [
@@ -24,6 +25,7 @@ curves_info = [
     (r".*_dsu300.*" + regex_suffix, "green", f"300 DSU, $\chi = {isotropy}$"),
     (r".*_dsu400.*" + regex_suffix, "orange", f"400 DSU, $\chi = {isotropy}$"),
 ]
+
 full_stress_figure(working_dirpath, curves_info)
 full_stress_ratio_figure(working_dirpath, curves_info)
 full_energy_ratio_figure(working_dirpath, curves_info)

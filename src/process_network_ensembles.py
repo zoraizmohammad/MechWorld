@@ -1,21 +1,20 @@
 # Imports
 from dataclasses import dataclass, asdict
-from simulation_constants_settings import BOND_TYPE_GLYCAN, BOND_TYPE_PEPTIDE
-from os import makedirs, listdir
+from simulation_constants_settings import *;
+from os import listdir
 import os.path
 import re
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 from utils_helpers import get_confidence_intervals, find_files
 from assemble_pg_network import generate_pg_network
-import matplotlib.pyplot as plt
-from run_lammps_isotropic_strain import run_isotropic_prestrain_nve
+from run_lammps_isotropic_strain import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
 from lammps_PG_objects import Bond
 from import_data_from_dumps import *
+from dataclasses import dataclass
 
-from process_isotropic_prestrain import ThermoStruct, import_isotropic_prestrain_data
-
-## NETWORK CREATION
+## ENSEMBLE NETWORK CREATION
 def create_networks_in_groups_with_varying_isotropic_parameter(working_directory : str, size : int, rho_gap : float, isotropic_parameters : list[float], networks_per_group : int, rewrite : bool):
     for group_index, alpha in enumerate(isotropic_parameters):
         for network_index in range(0,networks_per_group):
@@ -26,7 +25,7 @@ def create_networks_in_groups_with_varying_isotropic_parameter(working_directory
                 print(f"[SKIPPED] Generating network {filename} b/c it already exists")
                 continue;
 
-## REGEX-BASED NETWORK PROPAGATION
+## ENSEMBLE REGEX-BASED NETWORK PROPAGATION
 def run_networks_nve(dirpath, regex_pattern, rerun):
     for filepath in find_files(dirpath, regex_pattern):
         expected_output_filepath = os.path.splitext(filepath)[0] + ".out";
@@ -42,12 +41,66 @@ def run_networks_minimize(dirpath, regex_pattern, rerun : bool = False, remap : 
         expected_output_filepath = os.path.splitext(filepath)[0] + ".out";
         if rerun or not os.path.exists(expected_output_filepath):
             print(f"Running {filepath}...")
-            run_isotropic_prestrain_nve(filepath, 0.3, True, True, remap)
+            run_isotropic_prestrain_minimize(filepath, 0.3, True, True, remap)
         else:
             print(f"[SKIPPED] Running {filepath} b/c existing output file was found")
             continue;
 
-### DATAFRAME MANIPULATION
+### ISOTROPIC PRESTRAIN FILE IO & DATAFRAME MANIPULATION
+@dataclass
+class ThermoStruct:
+    step  : int; 
+    temp  : float;
+    pe    : float;
+    press : float;
+    pxx   : float;
+    pyy   : float;
+    pxy   : float;
+    lx    : float;
+    ly    : float;
+    vol   : float;
+    glycan_pe  : float;
+    angle_pe   : float;
+    peptide_pe : float;
+
+def import_isotropic_prestrain_data(filename : str) -> list[ThermoStruct]:
+    # Break into lines
+    with open(filename,"r") as f:
+        lines = [line.strip() for line in f]
+
+    i = 0; # 1st Line
+    verify = "step temp pe press pxx pyy pxy lx ly vol glycan_pe angle_pe peptide_pe";
+    if not lines[i].startswith(verify):
+        raise ValueError(f"Expected at line {i+1}: {verify}");
+
+    lst_structs : list[ThermoStruct] = list();
+
+    for i in range(1,len(lines)):
+        if lines[i].startswith("#"): # ignore
+            continue;
+        
+        data = lines[i].split();
+
+        struct = ThermoStruct(
+            step   = int(data[0]),
+            temp   = float(data[1]),
+            pe     = float(data[2]),
+            press  = float(data[3]),
+            pxx    = float(data[4]),
+            pyy    = float(data[5]),
+            pxy    = float(data[6]),
+            lx     = float(data[7]),
+            ly     = float(data[8]),
+            vol    = float(data[9]),
+            glycan_pe  = float(data[10]),
+            angle_pe   = float(data[11]),
+            peptide_pe = float(data[12])
+        );
+
+        lst_structs.append(struct);
+
+    return lst_structs
+
 def collect_list_of_dataframes(dirpath : str, regex_pattern : str) -> list[pd.DataFrame]:
     # Returns a list of dataframes, one from each file
     dfs = list();
@@ -106,11 +159,11 @@ def file_dfs_to_combined_stress_df(file_dfs : pd.DataFrame) -> pd.DataFrame:
         return pd.concat(stress_dfs)
 
 ## PLOTTING FUNCTIONS -- ENERGY RATIO
-def add_energy_ratio_curves(df : pd.DataFrame, color_name : str, labelstr):
+def add_energy_ratio_curves(df : pd.DataFrame, color_name : str, labelstr : str):
     # Elastic of Glycan
     ci_df = get_confidence_intervals(df, 0.95, 'strain', 'glycan_pe_frac');
     n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle=":", label="Glycan Extension")
+    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle=":", label="Glycan Extension : " + labelstr)
     plt.fill_between(
         ci_df.index,
         ci_df['lower'],

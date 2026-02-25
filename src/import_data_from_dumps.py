@@ -3,7 +3,7 @@ from simulation_constants_settings import *;
 import numpy as np;
 import matplotlib.pyplot as plt;
 import matplotlib as mpl;
-from math_helpers import get_angle_between_vectors;
+from utils_helpers import get_angle_between_vectors;
 
 def import_2D_triclinic_box_bounds_from_dump(filename : str) -> tuple[float, float, float, float, float]:
     """
