@@ -14,26 +14,20 @@ rng = np.random.default_rng()
 # Koch, A. L. (2000a). Length distribution of the peptidoglycan chains in the sacculus of
 # escherichia coli. Journal of Theoretical Biology, 204(4), 533–541.
 
-def create_FlorySchulz_distribution(min_DSU, max_DSU, p : float, entries : int):
-    DSUs = range(min_DSU,max_DSU+1); # 1-30
-    distribution = [];
+def create_FlorySchulz_distribution(min_DSU : int, max_DSU : int, p : float, entries : int):
+    DSUs = range(min_DSU,max_DSU+1);
+    distribution = list();
     for i,x in enumerate(DSUs):
         entries_for_this_length = floor( (x)*((1-p)**2)*(p**(x-1))*entries );
         distribution += [x] * entries_for_this_length;
+    
+    return distribution;
 
-    return distribution, np.mean(distribution)
-
-def create_top_hat_distribution(min_DSU, max_DSU):
+def create_top_hat_distribution(min_DSU : int, max_DSU : int):
     distribution = range(min_DSU, max_DSU+1);
-    return distribution, np.mean(distribution)
+    return distribution;
 
-if DISTRIBUTION_SETTING == "FLORY_SCHULZ":
-    distribution, mean_of_distribution = create_FlorySchulz_distribution(2,80,0.9,1E7);
-
-if DISTRIBUTION_SETTING == "TOP_HAT":
-    distribution, mean_of_distribution = create_top_hat_distribution(20,30); # Testing this, longer chains with smaller distribution
-
-def get_sample_of_DSU_lengths_simple(Ny : int) -> list[int]:
+def get_sample_of_DSU_lengths_simple(Ny : int, distribution : list[int]) -> list[int]:
     # Ny includes the gaps between glycans
     glycan_lengths_DSU = [];
 
@@ -54,7 +48,7 @@ def get_sample_of_DSU_lengths_simple(Ny : int) -> list[int]:
 
     return glycan_lengths_DSU
 
-def get_sample_of_DSU_lengths_no_gaps(Ny : int) -> list[int]:
+def get_sample_of_DSU_lengths_no_gaps(Ny : int, distribution : list[int]) -> list[int]:
     # Ny excludes the gaps between glycans
     glycan_lengths_DSU = [];
 
@@ -413,19 +407,9 @@ def compute_crosslink_ratio(atoms : dict[int,Atom], bonds : dict[int,Bond], simb
     crosslink_ratio = (2*peptide_crosslink_counter) / number_of_atoms;
     return rho_mesh, crosslink_ratio;
 
-def populate_glycans_on_unitary_grid(atoms, bonds, angles, glycans, Nx : int, Ny : int, simbox_ly):
+def populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx : int, Ny : int, epsilon_x : float, epsilon_y : float, distribution : list[int]):
     for column_idx in range(0,Nx):
-        cm_x = DSU/2 + column_idx*DSU;
-        cm_y = DSU/2 + rng.uniform(0,0.5*simbox_ly);
-
-        for length_of_glycan_DSU in get_sample_of_DSU_lengths_simple(Ny):
-            cm_y += DSU*(length_of_glycan_DSU/2);
-            add_simple_glycan(atoms, bonds, angles, glycans, cm_x, cm_y, length_of_glycan_DSU)
-            cm_y += DSU*(length_of_glycan_DSU/2) + DSU;
-
-def populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx : int, Ny : int, epsilon_x : float, epsilon_y : float):
-    for column_idx in range(0,Nx):
-        glycan_lengths_for_this_column = get_sample_of_DSU_lengths_no_gaps(Ny);
+        glycan_lengths_for_this_column = get_sample_of_DSU_lengths_no_gaps(Ny, distribution);
         vertical_gap_between_glycans = (Ny*DSU*(1+epsilon_y) - sum(glycan_lengths_for_this_column)*DSU) \
             / len(glycan_lengths_for_this_column);
 
@@ -471,63 +455,81 @@ def visualizeBonds(atoms : dict[int, Atom], bonds : dict[int,Bond], glycans : di
 
 #### MAIN FUNCTION FOR MAKING NETWORKS
 
-def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float = 0.65, filename : str = None, visuals : bool = False):
+def generate_pg_network(
+        Ny           : int   = 100,     # Total number of DSU in the y direction for the network
+        mesh_density : float = 1.0,     # Target density, units of (number of DSU) / (DSU length scale)**2
+        anisotropy   : float = 0.65,    # 0.0 => glycans are perfectly hoop-aligned (+y)
+                                        # 1.0 => glycans orientation is completely random
+        distribution : list[int] = None,
+        filepath     : str  = None,          # If set, write file to this filepath. File is lammps-compatible.
+        visuals      : bool = False          # Plot bonds for debug purposes?
+        ):
+    
+    if distribution == None:
+        distribution = create_FlorySchulz_distribution(2,30,0.9,1E8);
+    
+    # Input checks
+    assert (Ny >= 10)
+    assert (type(Ny) == int)
+    assert (0 < mesh_density)
+    assert (type(mesh_density) == float)
+    assert (0 <= anisotropy) and (anisotropy <= 1.0)
+    assert (type(anisotropy) == float)
+    assert max(distribution) < Ny;
+    assert (type(distribution) == list)
+    assert (type(filepath) == str) or (filepath == None)
+    assert (type(visuals) == bool)
 
-    atoms   : dict[int,Atom] = dict(); # note to self: () are used when you have an iterable, use x : list[obj] = list() when type hinting
+    # Map an id (1,2,3,...) to python object. These ids are used in lammps.
+    atoms   : dict[int,Atom] = dict();
     bonds   : dict[int,Bond] = dict();
     angles  : dict[int,Angle] = dict();
     glycans : dict[int,GlycanMolecule] = dict();
 
-    epsilon_x = np.sqrt( (1 + (1/2)*mean_of_distribution)**2 + ((1/nodes_density) - 1)*(1 + mean_of_distribution) ) - (1+(1/2)*mean_of_distribution);
+    # Equations derived by Octavio give a starting point estimate for the 
+    mean_of_distribution = np.mean(distribution);
+    epsilon_x = np.sqrt( (1 + (1/2)*mean_of_distribution)**2 + ((1/mesh_density) - 1)*(1 + mean_of_distribution) ) - (1+(1/2)*mean_of_distribution);
     epsilon_y = epsilon_x/(1+mean_of_distribution);
     Nx = floor((1+epsilon_y)/(1+epsilon_x)*Ny);
 
-    #epsilon_x = (1/nodes_density) - 1;
-    #epsilon_y = epsilon_x/(1+mean_of_distribution);
-    #Nx = floor((1+epsilon_y)/(1+epsilon_x)*Ny);
-    #print(Nx)
-
-    # I spent forever debugging until I realized 
-    # displacing glycans based on center of mass CANNOT WORK in a periodic box, as there is no origin
-    # so instead I am adjusting the gap to match overall height and be even, same with width
-
-    #print(epsilon_x,epsilon_y,Nx)
-
+    # Boc dimensions in nm
     simbox_ly = (1+epsilon_y) * DSU * Ny;
     simbox_lx = (1+epsilon_x) * DSU * Nx;
 
-    populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx, Ny, epsilon_x, epsilon_y);
+    # Place non-rotated glycans with equal horizontal spacing.
+    # Vertical spacing is equal per-column, and on-average equal from column to column.
+    populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx, Ny, epsilon_x, epsilon_y, distribution);
 
     #if visuals:
     #    visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny);
 
-    #for g in glycans.values():
-    #    dx = 0.8*(random()-1);
-    #    dy = 0.8*(random()-1);
-    #    alpha = (2*random()-1) * X * (np.pi)/2;
-
-    #    g.displace_by_const(atoms, dx, dy)
-    #    g.rotate_wrt_cm(atoms, alpha)
-    #    g.correct_orthogonal_PCB(atoms, 0, simbox_lx, 0, simbox_ly);
-
+    # Jangle the glycans
     for g in glycans.values():
         dx = 0.8*(random()-1);
         dy = 0.8*(random()-1);
         g.displace_by_const(atoms, dx, dy)
 
-    #visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly);
+    #if visuals:
+    #    visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny);
 
+    # Rotate the glycans randomly about their center of mass
     for g in glycans.values():
-        alpha = (2*random()-1) * X * (np.pi)/2;
+        alpha = (2*random()-1) * anisotropy * (np.pi)/2;
         g.rotate_wrt_cm(atoms, alpha)
 
-    #visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly);
+    #if visuals:
+    #    visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny);
 
+    # Atoms and glycans will be outside the box b/c of rotation and
+    # column start randomization. We're sticking them back into the box
+    # at this point to simplify peptide-crosslink calculations
     for g in glycans.values():
         g.correct_orthogonal_PCB(atoms, 0, simbox_lx, 0, simbox_ly);
 
-    #visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly);
+    #if visuals:
+    #    visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny);
 
+    # Form peptide crosslinks based on distance and angle criteria
     form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly);
 
     # Count Cross-Linking
@@ -547,14 +549,14 @@ def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float
     for a in atoms.values():
         a.translate(-simbox_lx/2, -simbox_ly/2, 0);
     
-    if not filename == None:
+    if not filepath == None:
         # Write everything to LAMMPS datafile
-        write_to_laamps_datafile(filename, atoms, bonds, angles, simbox_lx, simbox_ly);
+        write_to_laamps_datafile(filepath, atoms, bonds, angles, simbox_lx, simbox_ly);
 
     return density_fraction, crosslink_ratio, glycans, atoms, bonds, angles;
 
 # Functions to compare network distribution to theory distribution
-def normalized_length_distribution():
+def normalized_length_distribution(distribution : list[int]):
     possible_glycan_lengths = list(range(min(distribution),max(distribution)+1));
     norm_distrib = [0]*len(possible_glycan_lengths)
     len_distrib = len(distribution)
@@ -563,7 +565,7 @@ def normalized_length_distribution():
 
     return possible_glycan_lengths, norm_distrib
 
-def actual_length_distribution(glycans : dict[int,GlycanMolecule]):
+def actual_length_distribution(glycans : dict[int,GlycanMolecule], distribution : list[int]):
     # 0, 1, 2, ..., 20 etc
     # We include smaller lengths because they can be generated with the 'filler glycans' 
     # added to meet the density criteria when the drawn glycan length is too large
@@ -580,143 +582,3 @@ def actual_length_distribution(glycans : dict[int,GlycanMolecule]):
     actual_distrib = actual_distrib/len(glycans);
 
     return possible_glycan_lengths, actual_distrib
-
-def test_unit_grid_rules_1():
-    # In this toy example, do the rules produce and equal gap for equal-length glycans?
-    Ny = 15;
-    mesh_density = 2;
-    l = 4;
-
-    # Conditions
-    epsilon_x = np.sqrt( (1 + (1/2)*l)**2 + ((1/mesh_density) - 1)*(1 + l) ) - (1+(1/2)*l); # B-> A, solve for epsilon_x
-    epsilon_y = epsilon_x/(1+l); # Approximation of isotropic separation of rods
-    Nx = np.floor((1+epsilon_y)/(1+epsilon_x)*Ny); #condition for a square patch
-
-    hl = l/2;
-
-    cm_1_old = (0, hl)
-    cm_2_old = (0, hl+l+1)
-    cm_3_old = (0, hl + 2*(l+1))
-
-    cm_1_new = (cm_1_old[0] * (1+epsilon_x), cm_1_old[1] * (1+epsilon_y))
-    cm_2_new = (cm_2_old[0] * (1+epsilon_x), cm_2_old[1] * (1+epsilon_y))
-    cm_3_new = (cm_3_old[0] * (1+epsilon_x), cm_3_old[1] * (1+epsilon_y))
-
-    ### Let's examine this new grid...
-    wx = (1 + epsilon_x)                       # Horizontal gap between glycans
-    wy1 = (cm_2_new[1]-hl) - (cm_1_new[1]+hl)  # Vertical gap between the two glycans
-    wy2 = (cm_3_new[1]-hl) - (cm_2_new[1]+hl)  # Vertical gap between the two glycans
-    wy3 = Ny*(1+epsilon_y) + (cm_1_new[1]-hl) - (cm_3_new[1]+hl)  # Periodic gap between two glycans
-    analytic = epsilon_y*(1+l) + 1
-    print(wx,wy1,wy2,wy3, analytic)
-
-    shape = ((1+epsilon_x)*Nx) / ((1+epsilon_y)*Ny)
-    density = (1) / ((1+epsilon_x)*(1+epsilon_y))
-    print(shape, density)
-
-    import matplotlib.pyplot as plt
-
-    ax = plt.figure().add_subplot()
-    plt.title("Before")
-    plt.plot([0,0,Nx,Nx,0],[0,Ny,Ny,0,0])
-    for n in range(0,int(Nx)):
-        dx = n;
-        for c in [cm_1_old,cm_2_old,cm_3_old]:
-            plt.plot([c[0]+dx, c[0]+dx],[c[1]-hl,c[1]+hl]);
-    ax.set_aspect('equal', adjustable='box')
-    plt.show()
-
-    ax = plt.figure().add_subplot()
-    plt.title("After")
-    plt.plot([0,0,Nx*(1+epsilon_x),Nx*(1+epsilon_x),0],[0,Ny*(1+epsilon_y),Ny*(1+epsilon_y),0,0])
-    for n in range(0,int(Nx)):
-        dx = n*(1+epsilon_x);
-        for c in [cm_1_new,cm_2_new,cm_3_new]:
-            plt.plot([c[0]+dx, c[0]+dx],[c[1]-hl,c[1]+hl]);
-    ax.set_aspect('equal', adjustable='box')
-    plt.show()
-
-def test_unit_grid_rules_2():
-    # In this toy example, do the rules produce and equal gap for equal-length glycans?
-    mesh_density = 2;
-
-    l1 = 2;
-    l2 = 2;
-    l3 = 30;
-
-    Ny = 3 + l1 + l2 + l3;
-    al = (l1+l2+l3)/3
-
-    # Conditions
-    epsilon_x = np.sqrt( (1 + (1/2)*al)**2 + ((1/mesh_density) - 1)*(1 + al) ) - (1+(1/2)*al); # B-> A, solve for epsilon_x
-    epsilon_y = epsilon_x/(1+al); #condition for isotropic separation of rods
-    Nx = np.floor((1+epsilon_y)/(1+epsilon_x)*Ny); #condition for a square patch
-
-    print(epsilon_x,epsilon_y,Nx)
-
-    cm_1_old = (0, l1/2)
-    cm_2_old = (0, l1+l2/2+1)
-    cm_3_old = (0, l1+l2+l3/2+2)
-
-    cm_1_new = (cm_1_old[0] * (1+epsilon_x), cm_1_old[1] * (1+epsilon_y))
-    cm_2_new = (cm_2_old[0] * (1+epsilon_x), cm_2_old[1] * (1+epsilon_y))
-    cm_3_new = (cm_3_old[0] * (1+epsilon_x), cm_3_old[1] * (1+epsilon_y))
-
-    ### Let's examine this new grid...
-    wx = (1 + epsilon_x)                           # Horizontal gap between glycan
-    wy1 = (cm_2_new[1]-l2/2) - (cm_1_new[1]+l1/2)  # Vertical gap between the bottom two glycan
-    wy2 = (cm_3_new[1]-l3/2) - (cm_2_new[1]+l2/2)  # Vertical gap between the next two glycan
-    wy3 = Ny*(1+epsilon_y) + (cm_1_new[1]-l1/2) - (cm_3_new[1]+l3/2)  # Periodic gap between top and bottom glycan
-    print(wx,wy1,wy2,wy3)
-
-    shape = ((1+epsilon_x)*Nx) / ((1+epsilon_y)*Ny)
-    density = (1) / ((1+epsilon_x)*(1+epsilon_y))
-    print(shape, density)
-
-    import matplotlib.pyplot as plt
-
-    ax = plt.figure().add_subplot()
-    plt.title("Before")
-    plt.plot([0,0,Nx,Nx,0],[0,Ny,Ny,0,0])
-    for n in range(0,int(Nx)):
-        dx = n;
-        plt.plot([cm_1_old[0]+dx, cm_1_old[0]+dx],[cm_1_old[1]-l1/2,cm_1_old[1]+l1/2]);
-        plt.plot([cm_2_old[0]+dx, cm_2_old[0]+dx],[cm_2_old[1]-l2/2,cm_2_old[1]+l2/2]);
-        plt.plot([cm_3_old[0]+dx, cm_3_old[0]+dx],[cm_3_old[1]-l3/2,cm_3_old[1]+l3/2]);
-    ax.set_aspect('equal', adjustable='box')
-    plt.show()
-
-    ax = plt.figure().add_subplot()
-    plt.title("After")
-    plt.plot([0,0,Nx*(1+epsilon_x),Nx*(1+epsilon_x),0],[0,Ny*(1+epsilon_y),Ny*(1+epsilon_y),0,0])
-    for n in range(0,int(Nx)):
-        dx = n*(1+epsilon_x);
-        plt.plot([cm_1_new[0]+dx, cm_1_new[0]+dx],[cm_1_new[1]-l1/2,cm_1_new[1]+l1/2]);
-        plt.plot([cm_2_new[0]+dx, cm_2_new[0]+dx],[cm_2_new[1]-l2/2,cm_2_new[1]+l2/2]);
-        plt.plot([cm_3_new[0]+dx, cm_3_new[0]+dx],[cm_3_new[1]-l3/2,cm_3_new[1]+l3/2]);
-    ax.set_aspect('equal', adjustable='box')
-    plt.show()
-
-def generate_pg_network_displacement_field(Ny : float = 100, mesh_density : float = 1.0, X : float = 0.65, filename : str = None):
-
-    # Begin with a field of vertical glycans, 
-    # with a separation of 1 DSU in the horizontal direction between columns
-    # and a separation of 1 DSU in vertical directions between glycans
-
-    # Then apply a strain field to the glycans, displacing them according to their center of mass
-    # this field has components epsilon_x and epsilon_y, so that x_cm_new = x_cm_old * (1 + epsilon_x)
-
-    # After this deformation is applied: 
-    # mesh_density = 1/((1+epsilon_x)*(1+epsilon_y)) [Condition A]
-    
-    # I am suspicious of Condition B: it works for a unitary grid but I think it won't work for translation of CMs
-    # After poking at the math, condition B has a flaw in that it creates differently-sized vertical gaps when the lengths of glycans are different. See handwritten note.
-    # This can also be seen in the two examples:
-    pass
-    #test_unit_grid_rules_1()
-    #test_unit_grid_rules_2()
-
-    # Condition C works as intended to create a square patch 
-
-    # I'm going to use a modified form of Condition B so that the overall box is deformed by epsilion_y, but the glycans are spaced s.t. the gap between them is equal
-    #pass

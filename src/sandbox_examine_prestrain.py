@@ -49,16 +49,25 @@ print("Upper Bound: sigma_xx = ", sigma_xx, ", sigma_yy = ", sigma_yy)
 # https://www.cell.com/biophysj/fulltext/S0006-3495(00)76726-9?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS0006349500767269%3Fshowall%3Dtrue
 
 V0 = 1.4 * u_FEMTOLITER_to_NANOMETER_CUBED;
-Va = 2.0 * u_FEMTOLITER_to_NANOMETER_CUBED;
-Pa = 1.5 * u_ATM_to_NANO_PRESSURE;
+P0 = 0;
+V1 = 2.0 * u_FEMTOLITER_to_NANOMETER_CUBED;
+P1 = 1.5 * u_ATM_to_NANO_PRESSURE;
 
-sacculus_energy = (Va - V0)*Pa;
-sacculus_surface_area = 8.1 * u_MICROMETER_to_NANOMETER**2
+# E = int(Vf,V0,P_cell(V)dV - [P_atm * (Vf - V0)]
+# E = int(Vf,V0,(P_cell(V)-P_atm)dV
+
+# Trapezoidal Approximation
+# E ~ (1/2)*((Pf-Patm) + (P0-Patm))*(Vf-V0)
+
+# Better Approximation
+# Better approximation of this integral: fit a polynomial to the data points given, then integrate on that
+
+sacculus_energy = (1/2)*(P1+P0)*(V1 - V0);
+sacculus_surface_area = 8.1 * u_MICROMETER_to_NANOMETER**2; #nm2
 patch_relaxed_length_DSU = 300;
-patch_strained_surface_area = (patch_relaxed_length_DSU * pre_strain[1] * DSU);
+patch_strained_surface_area = (patch_relaxed_length_DSU * pre_strain[1] * DSU)**2; # nm2
 
 expected_patch_energy = (sacculus_energy/sacculus_surface_area) * patch_strained_surface_area;
 print(expected_patch_energy);
 
-# This estimate is about 5 times higher than what is observed in the simulations (as of 2/25/2026)
-# 96.0462592791942 (sim) vs 452.2472500000001 (expected)
+# THESE VALUES SEEM WAY TOO HIGH by ~100x

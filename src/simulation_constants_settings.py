@@ -22,7 +22,7 @@ def inv_peptide_energy_lammps(energy):
 
 # Constants
 DSU = 1.03; #nm # Should it be 1.03 or 2? Xioxuan 2024 vs. Nyugen 2015
-DISTRIBUTION_SETTING = "TOP_HAT" # FLORY_SCHULZ or TOP_HAT
+DISTRIBUTION_SETTING = "FLORY_SCHULZ" #"TOP_HAT" # FLORY_SCHULZ or TOP_HAT
 
 # CHECK CURVE FIT FOR DIMENSIONAL ACCURACY
 # Nyugen 2015 says that the DSU length should be 2 nm

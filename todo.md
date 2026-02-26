@@ -163,17 +163,47 @@ Approach #1: Massively Parallel
 * A python script deploys one job for each of the restarts, these tiny jobs can slip into the queue without much fuss.
 * The elastic coefficients for each restart are written to a different files, then a script aggregates them into a single file per network.
 * Something like: strain c11 c12 c13 c21 c22 c23 c31 c32 c33
+Downsides: lots of files? maybe scripts delete the intermediate steps as we go?
 
 * Double-check cross-linking percentage:
    * How many bonds? How many of each type?
    * How many atoms have the eligible flag?
+      * Testing shows expected behavior, after looking at it from multiple angles, and running simple test cases.
 
 * Mess with the distribution, produce results then compare them:
    * Tophat distribution -> min, max
-* Increase tail of glycan length to 50% of periodic box, then rerun simulations.
-   * Look at 
+      * Using 20-30 increased energy in an example network by 1.5x - 3x (the multiplier increases with strain)
 
-Downsides: lots of files? maybe scripts delete the intermediate steps as we go?
+Solving the force or energy problem:
+* Current values are too low, both on energy and force front. Force is off by 3-5x, energy is off by ~5x. I'm going to list the dials we have and how much I trust their current settings.
+
+Crosslinking Percentage:
+* Current: 40% - 60%
+* Sources: 
+* Trust?
+
+Sacculus Pre-strain:
+* Current:
+* Sources:
+* Trust?
+
+Network Density:
+* Current:
+* Sources:
+* Trust?
+
+Peptide & Glycan Bond Energies:
+* Current:
+* Justification:
+* Trust?
+
+Glycan Length Distribution:
+* Current: Flory-Schulz with a = 0.9
+* Justification:
+* Trust? Not so much. Contradicting observations come from _. 
+
+So...
+* 
 
 Concerns/observations/question:
 

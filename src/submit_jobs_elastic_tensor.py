@@ -29,8 +29,7 @@ with open(submission_script_filepath,"w") as f:
 #$ -j y
 
 ## Resource Allocation...
-## When testing with qrsh, this sequence worked with one core and 3G of memory
-#$ -l h_rt=1:00:00,h_data=4G
+#$ -l h_rt=1:20:00,h_data=8G
 #$ -pe shared 8
 
 ## Notify this Email Address...
