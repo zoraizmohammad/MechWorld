@@ -164,6 +164,15 @@ Approach #1: Massively Parallel
 * The elastic coefficients for each restart are written to a different files, then a script aggregates them into a single file per network.
 * Something like: strain c11 c12 c13 c21 c22 c23 c31 c32 c33
 
+* Double-check cross-linking percentage:
+   * How many bonds? How many of each type?
+   * How many atoms have the eligible flag?
+
+* Mess with the distribution, produce results then compare them:
+   * Tophat distribution -> min, max
+* Increase tail of glycan length to 50% of periodic box, then rerun simulations.
+   * Look at 
+
 Downsides: lots of files? maybe scripts delete the intermediate steps as we go?
 
 Concerns/observations/question:

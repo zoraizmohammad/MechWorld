@@ -92,6 +92,7 @@ print "Elastic Constant C23all = ${C23all} ${cunits}"
 
 # If C is stiffness matrix...
 # See handwritten notes...
+# or https://www.efunda.com/formulae/solid_mechanics/mat_mechanics/hooke_orthotropic.cfm
 variable DET equal (1 - (${C12all}*${C12all}) / (${C11all}*${C22all}) )
 variable E1  equal ${C11all}*${DET}
 variable E2  equal ${C22all}*${DET}

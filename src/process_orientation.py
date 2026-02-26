@@ -3,7 +3,7 @@ from simulation_constants_settings import *;
 import numpy as np;
 import matplotlib.pyplot as plt;
 import os;
-from math_helpers import get_angle_between_vectors;
+from utils_helpers import get_angle_between_vectors;
 from import_data_from_dumps import import_2D_triclinic_box_bounds_from_dump, import_atoms_from_dump, import_bonds_from_dump, reconstruct_molecule_objects
 
 def calculate_length_and_orientation_of_glycan_molecules(atoms : dict[int,GlycanMolecule], molecules : dict[int,GlycanMolecule], triclinic_bounds : tuple):

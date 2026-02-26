@@ -23,7 +23,15 @@ def create_FlorySchulz_distribution(min_DSU, max_DSU, p : float, entries : int):
 
     return distribution, np.mean(distribution)
 
-distribution, mean_of_distribution = create_FlorySchulz_distribution(2,80,0.9,1E7)
+def create_top_hat_distribution(min_DSU, max_DSU):
+    distribution = range(min_DSU, max_DSU+1);
+    return distribution, np.mean(distribution)
+
+if DISTRIBUTION_SETTING == "FLORY_SCHULZ":
+    distribution, mean_of_distribution = create_FlorySchulz_distribution(2,80,0.9,1E7);
+
+if DISTRIBUTION_SETTING == "TOP_HAT":
+    distribution, mean_of_distribution = create_top_hat_distribution(20,30); # Testing this, longer chains with smaller distribution
 
 def get_sample_of_DSU_lengths_simple(Ny : int) -> list[int]:
     # Ny includes the gaps between glycans
@@ -522,13 +530,14 @@ def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float
 
     form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly);
 
-    if visuals:
-        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly);
-        print(simbox_lx, simbox_ly)
-        print(len(atoms))
-
     # Count Cross-Linking
     density_fraction, crosslink_ratio = compute_crosslink_ratio(atoms, bonds, simbox_lx, simbox_ly);
+
+    if visuals:
+        print(f"Box Dimensions [nm] = ({simbox_lx}, {simbox_ly})")
+        print(f"Density = {density_fraction}")
+        print(f"Crosslink Ratio = {crosslink_ratio}")
+        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly);
 
     #Delete free-floating glycans
     #for g in glycans.values():
@@ -546,25 +555,31 @@ def generate_pg_network(Ny : float = 100, nodes_density : float = 1.0, X : float
 
 # Functions to compare network distribution to theory distribution
 def normalized_length_distribution():
-    dsu_lengths = range(min(distribution),max(distribution));
-    norm_distrib = [0]*len(dsu_lengths)
-    len_dist = len(distribution)
-    for i,x in enumerate(dsu_lengths):
-        norm_distrib[i] = distribution.count(x) / len_dist;
+    possible_glycan_lengths = list(range(min(distribution),max(distribution)+1));
+    norm_distrib = [0]*len(possible_glycan_lengths)
+    len_distrib = len(distribution)
+    for i,x in enumerate(possible_glycan_lengths):
+        norm_distrib[i] = distribution.count(x) / len_distrib;
 
-    return dsu_lengths, norm_distrib
+    return possible_glycan_lengths, norm_distrib
 
-def actual_length_distribution(global_glycans : dict[int,GlycanMolecule]):
-    dsu_lengths = range(min(distribution),max(distribution));
-    actual_distrib = [0]*len(dsu_lengths)
-    len_dist = len(global_glycans);
-    for g in global_glycans.values():
-        actual_distrib[len(g.atom_ids)-1] += 1;
+def actual_length_distribution(glycans : dict[int,GlycanMolecule]):
+    # 0, 1, 2, ..., 20 etc
+    # We include smaller lengths because they can be generated with the 'filler glycans' 
+    # added to meet the density criteria when the drawn glycan length is too large
+    possible_glycan_lengths = list(range(0,(max(distribution)+1)+5)); # includes a bit of margin at the end
 
-    for i in dsu_lengths:
-        actual_distrib[i-1] = actual_distrib[i-1]/len_dist;
+    # First contains the absolute numbers of each length, then the relative proportion
+    actual_distrib = np.zeros(len(possible_glycan_lengths));
 
-    return dsu_lengths, actual_distrib
+    # each index i of actual_distrib is a counter for length of i DSU
+    for g in glycans.values():
+        actual_distrib[len(g.atom_ids)] += 1;
+
+    # abs # -> proportion
+    actual_distrib = actual_distrib/len(glycans);
+
+    return possible_glycan_lengths, actual_distrib
 
 def test_unit_grid_rules_1():
     # In this toy example, do the rules produce and equal gap for equal-length glycans?
@@ -705,28 +720,3 @@ def generate_pg_network_displacement_field(Ny : float = 100, mesh_density : floa
 
     # I'm going to use a modified form of Condition B so that the overall box is deformed by epsilion_y, but the glycans are spaced s.t. the gap between them is equal
     #pass
-
-# Functions to compare network distribution to theory distribution
-def normalized_length_distribution():
-    dsu_lengths = range(min(distribution),max(distribution));
-    norm_distrib = [0]*len(dsu_lengths)
-    len_dist = len(distribution)
-    for i,x in enumerate(dsu_lengths):
-        norm_distrib[i] = distribution.count(x) / len_dist;
-
-    return dsu_lengths, norm_distrib
-
-def actual_length_distribution(glycans):
-    dsu_lengths = range(min(distribution),max(distribution));
-    actual_distrib = [0]*len(dsu_lengths)
-    len_dist = len(glycans);
-    for g in glycans.values():
-        actual_distrib[len(g.atom_ids)-1] += 1;
-
-    for i in dsu_lengths:
-        actual_distrib[i-1] = actual_distrib[i-1]/len_dist;
-
-    return dsu_lengths, actual_distrib
-
-def draw_glycans(atoms, bonds):
-    pass

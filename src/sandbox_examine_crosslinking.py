@@ -6,17 +6,16 @@ angles = dict()
 glycans = dict()
 
 xlo =  0;
-xhi =  20;
+xhi =  4;
 ylo =  0;
-yhi =  20;
+yhi =  29;
 
-add_simple_glycan(atoms, bonds, angles, glycans,   9, 10, 10)
-add_simple_glycan(atoms, bonds, angles, glycans,  10, 10, 10)
-add_simple_glycan(atoms, bonds, angles, glycans,  11, 10, 10)
+add_simple_glycan(atoms, bonds, angles, glycans, xhi/2-0.5, yhi/2, 25)
+add_simple_glycan(atoms, bonds, angles, glycans, xhi/2+0.5, yhi/2, 25)
+
 form_peptide_bonds(atoms, bonds, glycans, xhi-xlo, yhi-ylo)
 
-visualizeBonds(atoms, bonds, glycans, xlo, xhi, ylo, yhi)
-
 _, cr = compute_crosslink_ratio(atoms, bonds, xhi-xlo, yhi-ylo);
-
 print(cr);
+
+visualizeBonds(atoms, bonds, glycans, xlo, xhi, ylo, yhi)

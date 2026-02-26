@@ -1,8 +1,16 @@
-from assemble_pg_network import generate_pg_network
-from OLD import visualizeForceChains, assemble_boundary_sets
+from assemble_pg_network import generate_pg_network, normalized_length_distribution, actual_length_distribution
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-density_fraction, crosslink_ratio, glycans, atoms, bonds, angles = generate_pg_network(100, 1.0, 0.33, None, True);
+density_fraction, crosslink_ratio, glycans, atoms, bonds, angles = generate_pg_network(100, 1.0, 0.33, None, False);
 print(f"density: ", density_fraction);
 print(f"crosslink ratio: ", crosslink_ratio);
+
+a, b = normalized_length_distribution();
+c, d = actual_length_distribution(glycans);
+plt.plot(a,b)
+plt.plot(c,d)
+plt.title("Target vs. Actual Glycan Length Distribution")
+plt.xlabel("Glycan Length [DSU]")
+plt.ylabel("Prevalence (a.u.)")
+plt.show()
