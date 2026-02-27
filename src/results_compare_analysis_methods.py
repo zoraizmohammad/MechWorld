@@ -1,6 +1,9 @@
 from process_network_ensembles import *
 import shutil
 
+project_root = os.path.join(os.path.dirname(__file__), "..");
+working_dir = os.path.join(project_root,"stem-results");
+
 def branch_networks_for_multiple_run_types(working_dirpath):
     filenames = os.listdir(working_dirpath)
     for filename in filenames:
@@ -19,12 +22,12 @@ isotropic_parameters = [0.33, 0.72, 1.0];
 number_networks_per_group = 3;
 
 curves_info = [
-    (r"^nve_.*_a72\.out$", "red", "nve, $\chi = 0.72$"),
-    (r"^miniraw_.*_a72\.out$", "blue", "miniraw, $\chi = 0.72$"),
-    (r"^miniremap_.*_a72\.out$", "green", "miniremap, $\chi = 0.72$"),
+    (working_dir, r"^nve_.*_a72\.out$", "red", "nve, $\chi = 0.72$"),
+    (working_dir, r"^miniraw_.*_a72\.out$", "blue", "miniraw, $\chi = 0.72$"),
+    (working_dir, r"^miniremap_.*_a72\.out$", "green", "miniremap, $\chi = 0.72$"),
 ]
 
-full_stress_figure(working_dirpath, curves_info)
-full_stress_ratio_figure(working_dirpath, curves_info)
-full_energy_ratio_figure(working_dirpath, curves_info)
-full_PE_figure(working_dirpath, curves_info)
+full_stress_figure(curves_info)
+full_stress_ratio_figure(curves_info)
+full_energy_ratio_figure(curves_info)
+full_PE_figure(curves_info)

@@ -291,9 +291,9 @@ def finish_stress_ratio_curve():
     plt.show()
 
 ## FULL FIGURE FUNCTIONS
-def full_stress_figure(working_dirpath : str, curves_information : list[tuple[str, str, str]]):
+def full_stress_figure(curves_information : list[tuple[str, str, str, str]]):
     for i in range(0,len(curves_information)):
-        (output_regex, colorname, labelstr) = curves_information[i];
+        (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
         dfs = collect_list_of_dataframes(working_dirpath, output_regex)
 
@@ -310,9 +310,9 @@ def full_stress_figure(working_dirpath : str, curves_information : list[tuple[st
 
     finish_stress_curve();
 
-def full_stress_ratio_figure(working_dirpath : str, curves_information : list[tuple[str, str, str]]):
+def full_stress_ratio_figure(curves_information : list[tuple[str, str, str, str]]):
     for i in range(0,len(curves_information)):
-        (output_regex, colorname, labelstr) = curves_information[i];
+        (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
         dfs = collect_list_of_dataframes(working_dirpath, output_regex)
 
@@ -329,9 +329,9 @@ def full_stress_ratio_figure(working_dirpath : str, curves_information : list[tu
 
     finish_stress_ratio_curve();
 
-def full_energy_ratio_figure(working_dirpath : str, curves_information : list[tuple[str, str, str]]):
+def full_energy_ratio_figure(curves_information : list[tuple[str, str, str, str]]):
     for i in range(0,len(curves_information)):
-        (output_regex, colorname, labelstr) = curves_information[i];
+        (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
         dfs = collect_list_of_dataframes(working_dirpath, output_regex)
 
@@ -348,9 +348,9 @@ def full_energy_ratio_figure(working_dirpath : str, curves_information : list[tu
 
     finish_energy_ratio_curve();
 
-def full_PE_figure(working_dirpath : str, curves_information : list[tuple[str, str, str]]):
+def full_PE_figure(curves_information : list[tuple[str, str, str, str]]):
     for i in range(0,len(curves_information)):
-        (output_regex, colorname, labelstr) = curves_information[i];
+        (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
         dfs = collect_list_of_dataframes(working_dirpath, output_regex)
 
