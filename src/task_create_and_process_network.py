@@ -4,7 +4,7 @@
 import os
 import argparse
 from datetime import datetime as dt
-from assemble_pg_network import generate_pg_network, create_FlorySchulz_distribution
+from assemble_pg_network import generate_pg_network, process_distribution_string
 from run_lammps_isotropic_strain import run_isotropic_prestrain_minimize
 
 parser = argparse.ArgumentParser()
@@ -17,8 +17,10 @@ parser.add_argument("sge_task_id")
 parser.add_argument("--write_images",   action='store_true')
 parser.add_argument("--write_dumps",    action='store_true')
 parser.add_argument("--write_restarts", action='store_true')
+parser.add_argument("--dist", default="FS-2-30-0.9")
 args = parser.parse_args()
 
+# Required
 if args.size and args.rho and args.anisotropy and args.output_directory and args.sge_job_id and args.sge_task_id:
     size = int(args.size);
     rho_gap = float(args.rho);
@@ -26,17 +28,14 @@ if args.size and args.rho and args.anisotropy and args.output_directory and args
     outdir = args.output_directory;
     id1 = args.sge_job_id;
     id2 = args.sge_task_id;
-    write_images   = args.write_images;
-    write_dumps    = args.write_dumps;
-    write_restarts = args.write_restarts;
 
-distribution_id = "LONG_FS";
+# Optional/Flags
+write_images   = args.write_images;
+write_dumps    = args.write_dumps;
+write_restarts = args.write_restarts;
+distrib_str    = args.dist;
 
-if distribution_id == "LONG_FS":
-    max_length_DSU = min(100, size/2);
-    distribution = create_FlorySchulz_distribution(5,100,0.97,1E7);
-else:
-    pass
+distribution = process_distribution_string(distrib_str, size)
 
 os.makedirs(outdir, exist_ok=True)
 

@@ -291,7 +291,11 @@ def finish_stress_ratio_curve():
     plt.show()
 
 ## FULL FIGURE FUNCTIONS
-def full_stress_figure(curves_information : list[tuple[str, str, str, str]]):
+def full_stress_figure(
+        curves_information : list[tuple[str, str, str, str]],
+        expected_strain_tuple : tuple[float,float] = None,
+        expected_stress_xx_tuple : tuple[float,float] = None,
+        expected_stress_yy_tuple : tuple[float,float] = None):
     for i in range(0,len(curves_information)):
         (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
@@ -307,6 +311,23 @@ def full_stress_figure(curves_information : list[tuple[str, str, str, str]]):
             combined_stress_df = pd.concat(stress_dfs)
 
         add_stress_curve(combined_stress_df, colorname, labelstr);
+    
+    print(expected_strain_tuple,expected_stress_xx_tuple,expected_stress_yy_tuple)
+    if (expected_strain_tuple != None) and (expected_stress_xx_tuple != None):
+        print("DEBUG: Drawing expected sigma_xx region...")
+        plt.fill_between([expected_strain_tuple[0],expected_strain_tuple[1]],
+                         [expected_stress_xx_tuple[0],expected_stress_xx_tuple[0]],
+                         [expected_stress_xx_tuple[1],expected_stress_xx_tuple[1]],
+                         alpha=0.2,
+                         color="purple")
+        
+    if expected_strain_tuple and expected_stress_yy_tuple:
+        print("DEBUG: Drawing expected sigma_yy region...")
+        plt.fill_between([expected_strain_tuple[0],expected_strain_tuple[1]],
+                         [expected_stress_yy_tuple[0],expected_stress_yy_tuple[0]],
+                         [expected_stress_yy_tuple[1],expected_stress_yy_tuple[1]],
+                         alpha=0.4,
+                         color="purple")
 
     finish_stress_curve();
 

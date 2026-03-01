@@ -1,9 +1,11 @@
-from assemble_pg_network import generate_pg_network, normalized_length_distribution, actual_length_distribution, create_FlorySchulz_distribution
+from assemble_pg_network import generate_pg_network, normalized_length_distribution, actual_length_distribution, process_distribution_string
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-distribution = create_FlorySchulz_distribution(5,100,0.97,1E7)
-density_fraction, crosslink_ratio, glycans, atoms, bonds, angles = generate_pg_network(300, 1.0, 0.33, distribution, None, False);
+size = 300;
+rho = 0.7;
+distribution = process_distribution_string("FS-2-100-0.95", size)
+density_fraction, crosslink_ratio, glycans, atoms, bonds, angles = generate_pg_network(size, rho, 0.33, distribution, None, False);
 print(f"density: ", density_fraction);
 print(f"crosslink ratio: ", crosslink_ratio);
 

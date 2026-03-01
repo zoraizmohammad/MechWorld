@@ -68,6 +68,6 @@ patch_relaxed_length_DSU = 300;
 patch_strained_surface_area = (patch_relaxed_length_DSU * pre_strain[1] * DSU)**2; # nm2
 
 expected_patch_energy = (sacculus_energy/sacculus_surface_area) * patch_strained_surface_area;
-print(expected_patch_energy);
+print(f"Estimated PE of network (size = {patch_relaxed_length_DSU}, strain = {pre_strain[1]}): ",expected_patch_energy);
 
-# THESE VALUES SEEM WAY TOO HIGH by ~100x
+# THESE VALUES SEEM WAY TOO HIGH by ~100x for short flory (a = 0.9), or x6 for long flory (a = 0.97)

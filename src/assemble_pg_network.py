@@ -27,6 +27,26 @@ def create_top_hat_distribution(min_DSU : int, max_DSU : int):
     distribution = range(min_DSU, max_DSU+1);
     return distribution;
 
+def process_distribution_string(distrib_str : str, size : int) -> list[int]:
+    # Option #1: FS-{min}-{max}-{alpha}
+    # i.e. FS-2-100-0.9
+
+    # Option #2: UNI-{min}-{max}
+    # i.e. UNI-20-30
+
+    chunks : list[str] = distrib_str.split("-")
+
+    if chunks[0] == "FS":
+        assert len(chunks) == 4;
+        return create_FlorySchulz_distribution(int(chunks[1]), int(chunks[2]), float(chunks[3]), 1E8)
+
+    elif chunks[0] == "UNI":
+        assert len(chunks) == 3;
+        return create_top_hat_distribution(int(chunks[1]), int(chunks[2]));
+
+    else:
+        raise ValueError(f"Misconfigured distrib str: {distrib_str}")
+
 def get_sample_of_DSU_lengths_simple(Ny : int, distribution : list[int]) -> list[int]:
     # Ny includes the gaps between glycans
     glycan_lengths_DSU = [];

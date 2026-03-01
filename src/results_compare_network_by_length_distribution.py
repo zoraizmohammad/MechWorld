@@ -11,7 +11,7 @@ curves_info = [
     (os.path.join(project_root,"stem-results"),
      r".*_dsu"+str(size)+r".*_a72.*.out", 
      "blue", 
-     f"Flory-Schulz Distribution 2-30, $\chi = 0.72$"
+     f"Flory-Schulz Distribution 2-30, a=0.9, $\chi = 0.72$"
      ),
     # Tophat from 20-30 DSU
     (os.path.join(project_root,"tophat-results"),
@@ -19,8 +19,16 @@ curves_info = [
      "green", 
      f"Tophat Distribution 20-30, $\chi = 0.72$"),
     # Long Flory-Schulz, a=0.97
+    (os.path.join(project_root,"long-flory-results"),
+     r".*_dsu"+str(size)+r".*_a72.*.out", 
+     "red", 
+     f"Flory-Schulz Distribution 5-100, a=0.97, $\chi = 0.72$"),
 ]
-full_stress_figure(curves_info)
+full_stress_figure(
+    curves_info,
+    (0.12, 0.14),
+    (0.0159586875, 0.031917375),
+    (0.031917375, 0.060794999999999995));
 full_stress_ratio_figure(curves_info)
 full_energy_ratio_figure(curves_info)
 full_PE_figure(curves_info)
