@@ -38,7 +38,7 @@ def process_distribution_string(distrib_str : str, size : int) -> list[int]:
 
     if chunks[0] == "FS":
         assert len(chunks) == 4;
-        return create_FlorySchulz_distribution(int(chunks[1]), int(chunks[2]), float(chunks[3]), 1E8)
+        return create_FlorySchulz_distribution(int(chunks[1]), int(chunks[2]), float(chunks[3]), 1E6)
 
     elif chunks[0] == "UNI":
         assert len(chunks) == 3;

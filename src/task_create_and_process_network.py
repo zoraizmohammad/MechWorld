@@ -1,6 +1,7 @@
 # Meant for use with Hoffman2 Cluster batch submissions
 # Estimated runtimes: 0.5-hr for 100 DSU, 1-hr for 200 DSU, 3-hr for 300 DSU, 6-hr for 400 DSU
-# Example cli: python src\create_and_process_single_network.py 200 1.0 0.72 results-dir/
+# Example cli: 
+# python src\task_create_and_process_network.py 100 0.7 0.72 results\sandbox 1 1 --write_dumps --write_restarts
 import os
 import argparse
 from datetime import datetime as dt
@@ -43,4 +44,28 @@ filename = os.path.join(f"{outdir}",f"job{id1}.{id2}_dsu{size}_rho{int(rho_gap*1
 
 (_, _, _, _, _, _) = generate_pg_network(size, rho_gap, anisotropy, distribution, filename, False)
 
-run_isotropic_prestrain_minimize(filename, 0.3, None, write_images, write_dumps, True, write_restarts)
+# Standard list of outputs
+if write_dumps:
+    std_dump_criteria = [
+        ("INITIAL", None,  None ),
+        ("ONCE",    0.121, 0.139),
+        ("FINAL",   None,  None ),
+        ];
+else:
+    std_dump_criteria = None;
+
+if write_restarts:
+    std_restart_criteria = [
+        ("ALL"    , 0.00, 0.30),
+        ];
+else:
+    std_restart_criteria = None;
+
+run_isotropic_prestrain_minimize(
+    filename, 
+    max_strain           = 0.3,
+    number_strain_steps  = None, 
+    write_debug_images   = write_images, 
+    dump_specs           = std_dump_criteria, 
+    restart_specs        = std_restart_criteria,
+    remap                = True)

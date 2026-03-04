@@ -7,26 +7,45 @@ project_root = os.path.join(os.path.dirname(__file__), "..");
 
 size = 300;
 curves_info = [
-    # Short Flory-Schulz, a=0.9
-    (os.path.join(project_root,"stem-results"),
-     r".*_dsu"+str(size)+r".*_a72.*.out", 
-     "blue", 
-     f"Flory-Schulz Distribution 2-30, a=0.9, $\chi = 0.72$"
-     ),
-    # Tophat from 20-30 DSU
-    (os.path.join(project_root,"tophat-results"),
-     r".*_dsu"+str(size)+r".*_a72.*.out", 
-     "green", 
-     f"Tophat Distribution 20-30, $\chi = 0.72$"),
-    # Long Flory-Schulz, a=0.97
-    (os.path.join(project_root,"long-flory-results"),
+    (os.path.join(project_root,"results","flory-schulz-090"),
      r".*_dsu"+str(size)+r".*_a72.*.out", 
      "red", 
-     f"Flory-Schulz Distribution 5-100, a=0.97, $\chi = 0.72$"),
+     f"Flory-Schulz Distribution 2-100, a=0.9, $\chi = 0.72$"
+    ),
+    (os.path.join(project_root,"results","flory-schulz-091"),
+     r".*_dsu"+str(size)+r".*_a72.*.out", 
+     "orange", 
+     f"Flory-Schulz Distribution 2-100, a=0.91, $\chi = 0.72$"
+    ),
+    (os.path.join(project_root,"results","flory-schulz-092"),
+     r".*_dsu"+str(size)+r".*_a72.*.out", 
+     "green", 
+     f"Flory-Schulz Distribution 2-100, a=0.92, $\chi = 0.72$"
+    ),
+    (os.path.join(project_root,"results","flory-schulz-093"),
+     r".*_dsu"+str(size)+r".*_a72.*.out", 
+     "blue", 
+     f"Flory-Schulz Distribution 2-100, a=0.93, $\chi = 0.72$"
+    ),
+    (os.path.join(project_root,"results","flory-schulz-094"),
+     r".*_dsu"+str(size)+r".*_a72.*.out", 
+     "purple", 
+     f"Flory-Schulz Distribution 2-100, a=0.94, $\chi = 0.72$"
+    ),
+    (os.path.join(project_root,"results","flory-schulz-095"),
+     r".*_dsu"+str(size)+r".*_a72.*.out", 
+     "gray", 
+     f"Flory-Schulz Distribution 2-100, a=0.95, $\chi = 0.72$"
+    ),
+    (os.path.join(project_root,"results","flory-schulz-096"),
+     r".*_dsu"+str(size)+r".*_a72.*.out", 
+     "black", 
+     f"Flory-Schulz Distribution 2-100, a=0.96, $\chi = 0.72$"
+    )
 ]
 full_stress_figure(
     curves_info,
-    (0.12, 0.14),
+    (0.125, 0.135),
     (0.0159586875, 0.031917375),
     (0.031917375, 0.060794999999999995));
 full_stress_ratio_figure(curves_info)

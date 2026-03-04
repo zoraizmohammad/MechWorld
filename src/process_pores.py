@@ -154,7 +154,7 @@ def flood_fill_PBC_less_recursion(pixels_in_pore : set[tuple[int,int]], r0 : tup
         if (px not in pixels_in_pore) and (not boolean_image_data[px]):
             flood_fill_PBC_less_recursion(pixels_in_pore, px, boolean_image_data);      
 
-def disregard_pores_based_on_area_criteria(pores : list[set[tuple[int,int]]], Amin = None, Amax = None) -> list[set[tuple[int,int]]]:
+def disregard_pores_based_on_pixel_area_criteria(pores : list[set[tuple[int,int]]], Amin = None, Amax = None) -> list[set[tuple[int,int]]]:
     filtered_pores = list();
     for p in pores:
         if ((Amin == None) or (len(p) >= Amin)) and ((Amax == None) or (len(p) <= Amax)):
@@ -179,18 +179,20 @@ def save_pores_data(list_pores : list[set[tuple[int,int]]], save_to_filepath : s
                 f.write(f"({px[0]},{px[1]}) ")
             f.write("\n")
 
-def load_pores_data(save_to_filepath : str):
+def load_pores_data(load_from_filepath : str):
     pores : list[set[tuple[int,int]]] = list();
-    with open(save_to_filepath, "r") as f:
-        line = f.readline()
-        pores.append(set());
-        list_of_px_tuple_str = line.split(" ")
-        for px_tuple_str in list_of_px_tuple_str:
-            print(px_tuple_str)
-            match = re.match(r"\((-?\d+),(-?\d+)\)", px_tuple_str)
+    with open(load_from_filepath, "r") as f:
+        for line in f.readlines():
+            pores.append(set());
+            list_of_px_tuple_str = line.split(" ")
+            for px_tuple_str in list_of_px_tuple_str:
+                #print(px_tuple_str)
+                match = re.match(r"\((-?\d+),(-?\d+)\)", px_tuple_str)
 
-            if match != None:
-                pores[-1].add((int(match.group(1)),int(match.group(2))));
+                if match != None:
+                    pores[-1].add((int(match.group(1)),int(match.group(2))));
+    
+    print(f"Loaded {len(pores)} pores from file {load_from_filepath}")
 
     return pores
 
@@ -203,64 +205,95 @@ def calculate_pixel_scale(filename, triclinic_bounds):
     return (xPX / xDSU);
 
 #### Produce a figure comparing the initial state and final state of orientation, like Xaoxuan Figure 4B-D
-def full_pore_size_distribution_figure(working_directory, base_filename_no_extensions, use_cached_results = True):
+def full_pore_size_distribution_figure(working_directory, filename_0, filename_f, use_cached_results = True, min_area_DSU2 : float = 1):
     # skeleton of figure
 
-    base_filepath = os.path.join(working_directory,base_filename_no_extensions)
+    filepath_0 = os.path.join(working_directory,filename_0)
+
+    # Remove extension to get basepath, only if needed
+    if str(filepath_0).endswith(".atoms") or str(filepath_0).endswith(".bonds"):
+        filepath_0 = os.path.splitext(filename_0)[0];
     
     # relaxed data
-    atoms_filepath = base_filepath + ".relaxed.atoms"
-    bonds_filepath = base_filepath + ".relaxed.bonds"
-    png_filepath  = base_filepath + ".relaxed.png"
-    pores_filepath = base_filepath + ".relaxed.pores"
+    atoms_filepath = filepath_0 + ".atoms"
+    bonds_filepath = filepath_0 + ".bonds"
+    image_filepath = filepath_0 + ".png"
+    pores_filepath = filepath_0 + ".pores"
 
     triclinic_bounds = import_2D_triclinic_box_bounds_from_dump(atoms_filepath);
     atoms = import_atoms_from_dump(atoms_filepath, triclinic_bounds);
     bonds = import_bonds_from_dump(bonds_filepath);
     
-    if os.path.exists(png_filepath) and use_cached_results:
+    if os.path.exists(image_filepath) and use_cached_results:
         pass
     else:
-        save_png_of_network(atoms, bonds, triclinic_bounds, png_filepath, True);
+        save_png_of_network(atoms, bonds, triclinic_bounds, image_filepath, True);
     
-    pixels_sorted_by_pore_0 = pizza_boy(png_filepath, 0.1);
-    #save_pores_data(pixels_sorted_by_pore_0, pores_filepath)
-    #pores2 = load_pores_data(pores_filepath)
-    #assert pixels_sorted_by_pore_0 == pores2
-    scale_0 = calculate_pixel_scale(png_filepath, triclinic_bounds);
+    # scale_0 [px/DSU]
+    scale_0 = calculate_pixel_scale(image_filepath, triclinic_bounds);
+    
+    if os.path.exists(pores_filepath) and (use_cached_results):
+        pixels_sorted_by_pore_0 = load_pores_data(pores_filepath);
+    else:
+        pixels_sorted_by_pore_0 = pizza_boy(image_filepath, 0.1)
+        pixels_sorted_by_pore_0 = disregard_pores_based_on_pixel_area_criteria(pixels_sorted_by_pore_0, min_area_DSU2*(scale_0)*(scale_0), None);
+        save_pores_data(pixels_sorted_by_pore_0, pores_filepath);
+
+
     areas_0 = calculate_array_of_areas(pixels_sorted_by_pore_0, scale_0);
 
-    # final data
-    atoms_filepath = base_filepath + ".final.atoms"
-    bonds_filepath = base_filepath + ".final.bonds"
-    png_filepath  = base_filepath + ".final.png"
+    ### FINAL STATE
+    filepath_f = os.path.join(working_directory,filename_f)
+
+    # Remove extension to get basepath, only if needed
+    if str(filepath_f).endswith(".atoms") or str(filepath_f).endswith(".bonds"):
+        filepath_f = os.path.splitext(filename_f)[0];
+    
+    # relaxed data
+    atoms_filepath = filepath_f + ".atoms"
+    bonds_filepath = filepath_f + ".bonds"
+    image_filepath = filepath_f + ".png"
+    pores_filepath = filepath_f + ".pores"
 
     triclinic_bounds = import_2D_triclinic_box_bounds_from_dump(atoms_filepath);
     atoms = import_atoms_from_dump(atoms_filepath, triclinic_bounds);
     bonds = import_bonds_from_dump(bonds_filepath);
     
-    if os.path.exists(png_filepath) and use_cached_results:
+    if os.path.exists(image_filepath) and use_cached_results:
         pass
     else:
-        save_png_of_network(atoms, bonds, triclinic_bounds, png_filepath, True);
+        save_png_of_network(atoms, bonds, triclinic_bounds, image_filepath, True);
     
-    pixels_sorted_by_pore_f = pizza_boy(png_filepath, 0.1);
-    scale_f = calculate_pixel_scale(png_filepath, triclinic_bounds);
+    # scale_f
+    scale_f = calculate_pixel_scale(image_filepath, triclinic_bounds);
+    
+    if os.path.exists(pores_filepath) and (use_cached_results):
+        pixels_sorted_by_pore_f = load_pores_data(pores_filepath);
+    else:
+        pixels_sorted_by_pore_f = pizza_boy(image_filepath, 0.1)
+        pixels_sorted_by_pore_f = disregard_pores_based_on_pixel_area_criteria(pixels_sorted_by_pore_f, min_area_DSU2*(scale_f)*(scale_f), None);
+        save_pores_data(pixels_sorted_by_pore_f, pores_filepath);
+    
     areas_f = calculate_array_of_areas(pixels_sorted_by_pore_f, scale_f);
+
+    max_area = max(max(areas_0),max(areas_f));
+    n_bins = 100;
 
     #### Plots
     # add labels and titles
     fig, ax = plt.subplots(1,2);
     
     # Top-Left Plot: Relaxed Length vs Glycan Orientation
-    ax[0].hist(areas_0, bins = 500);
+    ax[0].hist(areas_0, bins = n_bins);
     ax[0].set_title("Initial Distribution of Pore Areas")
     ax[0].set_ylabel("Number of Pores")
     ax[0].set_xlabel("Area [DSU^2]")
+    ax[0].set_xlim(0,max_area);
 
-    ax[1].hist(areas_f, bins = 500);
+    ax[1].hist(areas_f, bins = n_bins);
     ax[1].set_title("Final Distribution of Pore Areas")
     ax[1].set_ylabel("Number of Pores")
     ax[1].set_xlabel("Area [DSU^2]")
+    ax[1].set_xlim(0,max_area);
 
     plt.show()
