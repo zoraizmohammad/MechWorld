@@ -48,7 +48,7 @@ filename = os.path.join(f"{outdir}",f"job{id1}.{id2}_dsu{size}_rho{int(rho_gap*1
 if write_dumps:
     std_dump_criteria = [
         ("INITIAL", None,  None ),
-        ("ONCE",    0.121, 0.139),
+        ("FORCE",   0.13,  None ),
         ("FINAL",   None,  None ),
         ];
 else:

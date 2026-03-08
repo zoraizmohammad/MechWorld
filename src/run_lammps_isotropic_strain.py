@@ -160,8 +160,6 @@ def run_isotropic_prestrain_nve(network_filepath : str, max_strain : float, outp
 # ("PRESCRIBE",{EXACT},None) TODO
 # (None,None,None)
 
-# Debugging
-from time import sleep
 def to_write_or_not_to_write(output_specifications : Union[list[tuple[str,float,float], None]], cur_strain : float, is_final_step : bool):
     # That is the question
 
@@ -181,19 +179,11 @@ def to_write_or_not_to_write(output_specifications : Union[list[tuple[str,float,
         return False;
 
     # Look at the criteria one by one
-    print("Current Specifications = ", output_specifications)
-    print("Current Strain =", cur_strain)
-    sleep(10)
     for spec in output_specifications:
         assert (type(spec) == tuple) or (type(spec) == None)
-        # Indicates that this criteria has been fulfilled, no longer needed.
+        # Indicates that this criteria has been fulfilled, no longer needed
         if spec[0] == None:
             continue
-        
-        if (spec[0] == "ONCE"):
-            print((spec[1] <= cur_strain))
-            print((cur_strain <= spec[2]))
-
 
         if (spec[0] == "INITIAL") and (cur_strain == 0):
             spec = (None, None, None); # Suppress, skip in future
@@ -212,6 +202,33 @@ def to_write_or_not_to_write(output_specifications : Union[list[tuple[str,float,
             continue;
 
     return False;
+
+def insert_forced_strain_criteria(
+        output_specifications : Union[list[tuple[str,float,float], None]], 
+        stepwise_strains : np.ndarray
+        ):
+    
+    if output_specifications == None:
+        return;
+
+    for i,criteria in enumerate(output_specifications):
+        print(criteria)
+        if criteria[0] == "FORCE":
+            # Add this strain to the list, maintain monotonically increasing
+            prescribed_strain : float = criteria[1];
+            idx = len(stepwise_strains[stepwise_strains <= prescribed_strain])-1;
+
+            if prescribed_strain == stepwise_strains[idx]:
+                # Another criteria has added this strain, so we don't add it again
+                output_specifications[i] = ("ONCE", prescribed_strain - 1E-6, prescribed_strain + 1E-6);
+                continue;
+
+            stepwise_strains = np.insert(stepwise_strains, idx, prescribed_strain)
+
+            # Change criteria to generate ou
+            output_specifications[i] = ("ONCE", prescribed_strain - 1E-6, prescribed_strain + 1E-6);
+
+    return output_specifications, stepwise_strains
 
 def run_isotropic_prestrain_minimize(
         network_filepath : str, 
@@ -245,7 +262,21 @@ def run_isotropic_prestrain_minimize(
     stepwise_xlo_values = np.linspace(xlo, xlo*(1+max_strain), number_strain_steps)
     stepwise_ylo_values = np.linspace(ylo, ylo*(1+max_strain), number_strain_steps)
 
+    stepwise_strains = np.linspace(0,max_strain,number_strain_steps+1)
+
     # TODO: Add custom steps
+
+    #print(dump_specs)
+    #print(stepwise_strains)
+
+    _, stepwise_strains = insert_forced_strain_criteria(dump_specs   , stepwise_strains)
+    _, stepwise_strains = insert_forced_strain_criteria(restart_specs, stepwise_strains)
+
+    #print(dump_specs)
+    #print(stepwise_strains)
+
+    stepwise_xlo_values = xlo * (stepwise_strains + 1);
+    stepwise_ylo_values = ylo * (stepwise_strains + 1);
     
     L = lammps();
 
@@ -317,18 +348,20 @@ def run_isotropic_prestrain_minimize(
         L.command("print \"${p_step} ${p_temp} ${p_pe} ${p_press} ${p_pxx} ${p_pyy} ${p_pxy} ${p_lx} ${p_ly} ${p_vol} ${glycan_pe} ${angle_pe} ${peptide_pe}\" append ${print_filename}");
 
         # Only write dumps if requested in dump_specs
+        OUTPUT_NAME_ROUND_PRECISION = 3;
+
         if to_write_or_not_to_write(dump_specs, cur_strain, is_final_step):
             L.command("compute b1 all property/local btype batom1 batom2")
             L.command("compute b2 all bond/local dist fx fy fz")
             L.command("run 0")
-            L.command(f"write_dump all local {filepath_no_extension}_prestr{cur_strain}.bonds index c_b1[1] c_b1[2] c_b1[3] c_b2[1] c_b2[2] c_b2[3] c_b2[4]")
-            L.command(f"write_dump all custom {filepath_no_extension}_prestr{cur_strain}.atoms id mol type x y")
+            L.command(f"write_dump all local {filepath_no_extension}_prestr{round(cur_strain,OUTPUT_NAME_ROUND_PRECISION)}.bonds index c_b1[1] c_b1[2] c_b1[3] c_b2[1] c_b2[2] c_b2[3] c_b2[4]")
+            L.command(f"write_dump all custom {filepath_no_extension}_prestr{round(cur_strain,OUTPUT_NAME_ROUND_PRECISION)}.atoms id mol type x y")
             L.command("uncompute b1")
             L.command("uncompute b2")
         
         # Only write restarts if requested in restarts_specs
         if to_write_or_not_to_write(restart_specs, cur_strain, is_final_step):
-            L.command(f"write_restart {filepath_no_extension}_prestr{cur_strain}.restart");
+            L.command(f"write_restart {filepath_no_extension}_prestr{round(cur_strain,OUTPUT_NAME_ROUND_PRECISION)}.restart");
 
     # At this point, we've reached the final state. Output screenshots and dumps if necessary.
     if write_debug_images:
