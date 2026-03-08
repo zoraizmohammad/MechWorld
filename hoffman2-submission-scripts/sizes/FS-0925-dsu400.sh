@@ -7,7 +7,7 @@
 
 ## Resource Allocation...
 ## When testing with qrsh, this sequence worked with one core and 3G of memory
-#$ -l h_rt=12:00:00,h_data=8G
+#$ -l h_rt=6:00:00,h_data=8G
 #$ -pe shared 8
 
 ## Notify this Email Address...
@@ -35,7 +35,7 @@ source .venv/bin/activate
 
 echo "Running Task ${SGE_TASK_ID} with parameter: ${c_isotropic_parameter}"
 
-python src/task_create_and_process_network.py 400 0.7 0.72 results/flory-schulz-0925/ ${JOB_ID} ${SGE_TASK_ID} --dist "FS-2-100-0.925" --write_dumps
+python src/task_create_and_process_network.py 400 0.7 0.72 results/flory-schulz-0925-400/ ${JOB_ID} ${SGE_TASK_ID} --dist "FS-2-100-0.925" --write_dumps --write_restarts
 
 # echo job info on joblog:
 echo "Job $JOB_ID ended on:   " `hostname -s`
