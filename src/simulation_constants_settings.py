@@ -1,5 +1,6 @@
 # Constants
 from math import sqrt
+from units import *
 
 def inv_lammps_nonlinear(energy, epsil, r0, lambd) -> tuple[float, float]:
     # epsil*(r-r0)**2 / (lambd**2 - (r-r0)**2) = ENERGY
@@ -43,9 +44,13 @@ A_NUM = 6.02214076E23;                    # molecules / mol
 DSU_MASS_GRAM = DSU_MOLAR_MASS / A_NUM;   # grams / molecule
 DSU_MASS_ATTOGRAM = DSU_MASS_GRAM * 1E18; # ag / molecule
 
-GLYCAN_COEFFICIENTS = (5.570, DSU);
-PEPTIDE_COEFFICIENTS = (0.185328520541486, 1.0, 4.034069292365436); # Another curve fit with prescribed slack length instead of best fit to WLC
-PROBABILITY_DSU_CAN_ATTEMPT_TO_FORM_PEPTIDE = 1.1; # Improves percolation of the network for a given cross-linking ratio by nudging density up.
+Nguyen2015_kG = 5570;              # pN/nm
+Nguyen2015_kNL = 185.328520541486; # pN/nm, curve fit from WLC model to nonlinear model
+Nguyen2015_kb = 8.36E-20;          # J
+
+GLYCAN_COEFFICIENTS =  (Nguyen2015_kG, DSU);                     # [pN/nm, nm]
+PEPTIDE_COEFFICIENTS = (Nguyen2015_kNL, 1.0, 4.034069292365436); # [pN/nm, nm, nm]
+ANGLE_COEFFICIENTS =   (Nguyen2015_kb * u_JOULES_to_LAMMPS_ENERGY, 180) # [nano-style energy, degrees]
 
 # https://en.wikipedia.org/wiki/KT_(energy)
 # 1 kT = 4.11E-21 J at 298K
@@ -55,8 +60,8 @@ PEPTIDE_SEARCH_RADIUS = inv_peptide_energy_lammps(E_PEPTIDE_CUTOFF)[1] + 0.2; # 
 
 MINIMIZATION_MAX_ITERATIONS = 10E3;
 MINIMIZATION_MAX_EVALUATIONS = 10E3;
-ENERGY_TOLERANCE = 1E-7;
-FORCE_TOLERANCE  = 1E-7;
+ENERGY_TOLERANCE = 1E-6;
+FORCE_TOLERANCE  = 1E-6;
 
 MODULI_MINIMIZATION_MAX_ITERATIONS = 10E3;
 MODULI_MINIMIZATION_MAX_EVALUATIONS = 10E3;
@@ -64,17 +69,3 @@ MODULI_ENERGY_TOLERANCE = 0;
 MODULI_FORCE_TOLERANCE  = 1E-10;
 
 RUNITER = 200E3;
-
-# Unit Conversions
-u_KILOGRAM_to_ATTOGRAM = 1E21;
-u_METER_to_NANOMETER = 1E9;
-u_MICROMETER_to_NANOMETER = 1E3;
-u_SECOND_to_NANOSECOND = 1E9;
-
-u_ATM_to_PASCAL = 101325;
-
-u_FEMTOLITER_to_NANOMETER_CUBED = 1E-15 * 1E-3 * 1E27;
-
-# pressure = attogram/(nanometer-nanosecond^2)
-u_PASCAL_to_NANO_PRESSURE = u_KILOGRAM_to_ATTOGRAM / (u_METER_to_NANOMETER * u_SECOND_to_NANOSECOND * u_SECOND_to_NANOSECOND);
-u_ATM_to_NANO_PRESSURE = u_ATM_to_PASCAL * u_PASCAL_to_NANO_PRESSURE;

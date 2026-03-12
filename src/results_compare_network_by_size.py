@@ -22,12 +22,12 @@ curves_info = [
     )
 ]
 
-full_stress_figure(
+full_tension_figure(
     curves_info,
     (0.125, 0.135),
     (0.0159586875, 0.031917375),
     (0.031917375 , 0.060794999999999995));
 
-full_stress_ratio_figure(curves_info)
+full_tension_ratio_figure(curves_info)
 full_energy_ratio_figure(curves_info)
 #full_PE_figure(curves_info)

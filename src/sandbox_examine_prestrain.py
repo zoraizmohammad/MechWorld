@@ -18,24 +18,26 @@ relaxed_density = observed_density_under_pre_strain * (1+pre_strain)**2
 print("Relaxed Density (LB,MEAN,UB): ", relaxed_density)
 
 # To a 1st-order estimate, we have a few approaches:
-# Pressure Vessel Model
-# sigma_yy = PR          # Stress Per Unit of Wall Depth
-# sigma_xx = PR/2        # Stress Per Unit of Wall Depth
+# Laplace Pressure Vessel Model
+# tension_yy = PR          # Stress Per Unit of Wall Depth
+# tension_xx = PR/2        # Stress Per Unit of Wall Depth
 
-P = np.array([0.9, 1.2]) * 101325            # atm -> Pa N/m2
-#V = np.array([0.6, 0.7]) * (1E-6)**3         # 0.6-0.7 um3
-R = np.array([0.7,1.0]) * (1/2) * 1E-6      # D is 0.25 - 1.0 um https://en.wikipedia.org/wiki/Escherichia_coli
-t = 4 * 1E-9 # m
+turgor_pressure_Pa = np.array([0.9, 1.2]) * u_ATM_to_PASCAL # atm -> Pa N/m2
+diameter_um = np.array([0.7,1.0])
+radius_m = (diameter_um/2) * 1E-6 # D is 0.25 - 1.0 um https://en.wikipedia.org/wiki/Escherichia_coli
+t = 6 * 1E-9 # m
 
 # Lower Bound
-sigma_yy = P[0]*R[0];   # N/m
-sigma_xx = P[0]*R[0]/2; # N/m
-print("Lower Bound: sigma_xx = ", sigma_xx, ", sigma_yy = ", sigma_yy)
+tension_yy = turgor_pressure_Pa[0]*radius_m[0];   # [N/m]
+tension_xx = turgor_pressure_Pa[0]*radius_m[0]/2; # [N/m]
+print("Lower Bound: sigma_xx = ", tension_xx, ", sigma_yy = ", tension_yy)
 
 # Upper Bound
-sigma_yy = P[1]*R[1];   # N/m
-sigma_xx = P[1]*R[1]/2; # N/m
-print("Upper Bound: sigma_xx = ", sigma_xx, ", sigma_yy = ", sigma_yy)
+tension_yy = turgor_pressure_Pa[1]*radius_m[1];   # [N/m]
+tension_xx = turgor_pressure_Pa[1]*radius_m[1]/2; # [N/m]
+print("Upper Bound: sigma_xx = ", tension_xx, ", sigma_yy = ", tension_yy)
+
+# stress = tension / thickness
 
 # This is about 3-5 times higher than what is observed in the simulations (as of 2/25/2026)
 
@@ -51,7 +53,7 @@ print("Upper Bound: sigma_xx = ", sigma_xx, ", sigma_yy = ", sigma_yy)
 V0 = 1.4 * u_FEMTOLITER_to_NANOMETER_CUBED;
 P0 = 0;
 V1 = 2.0 * u_FEMTOLITER_to_NANOMETER_CUBED;
-P1 = 1.5 * u_ATM_to_NANO_PRESSURE;
+P1 = 1.5 * u_ATM_to_LAMMPS_PRESSURE;
 
 # E = int(Vf,V0,P_cell(V)dV - [P_atm * (Vf - V0)]
 # E = int(Vf,V0,(P_cell(V)-P_atm)dV

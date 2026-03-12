@@ -27,7 +27,7 @@ curves_info = [
     (working_dir, r"^miniremap_.*_a72\.out$", "green", "miniremap, $\chi = 0.72$"),
 ]
 
-full_stress_figure(curves_info)
-full_stress_ratio_figure(curves_info)
+full_tension_figure(curves_info)
+full_tension_ratio_figure(curves_info)
 full_energy_ratio_figure(curves_info)
 full_PE_figure(curves_info)

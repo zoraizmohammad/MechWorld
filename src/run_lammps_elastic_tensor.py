@@ -85,8 +85,8 @@ def lammps_calculate_elastic_tensor(filepath_restart : str) -> bool:
 
     #### 1) Simulation Settings
     lammps_PG_simulation_settings(L)
-    L.command("variable cfac equal 1.0"); # 1 attogram/(nanometer-nanosecond^2) == 1 MPa
-    L.command("variable cunits string MPa");
+    L.command(f"variable cfac equal {u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER * u_NEWTON_PER_METER_to_MEGAPASCAL_TIMES_NANOMETER}");
+    L.command("variable cunits string MPa*nm");
     L.command(f"variable prestrain equal {prestrain}")
     L.command(f"variable up equal 1E-3")
 

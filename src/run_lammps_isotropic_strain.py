@@ -24,7 +24,7 @@ def lammps_PG_potential_settings(L : lammps):
 
     # Bending Component :: https://docs.lammps.org/angle_harmonic.html
     L.command("angle_style hybrid harmonic")
-    L.command("angle_coeff 1 harmonic 4.18E-2 180.0") # btype, K (E/rad^2), theta0 (deg). Note: K is placeholder from slides
+    L.command(f"angle_coeff 1 harmonic {ANGLE_COEFFICIENTS[0]} {ANGLE_COEFFICIENTS[1]}")
 
 def lammps_PG_thermo_settings(L : lammps):
     L.command("thermo 1")

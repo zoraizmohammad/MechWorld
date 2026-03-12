@@ -114,20 +114,21 @@ def collect_list_of_prestrain_dataframes(dirpath : str, regex_pattern : str) -> 
 
     return dfs
 
-def calc_stress_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
+# TODO: Review units & names
+def calculate_tension_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
     lx  = file_df['lx'].to_numpy()
     pxx = file_df['pxx'].to_numpy()
     pyy = file_df['pyy'].to_numpy()
     pxy = file_df['pxy'].to_numpy()
 
     strain   = (lx - lx[0]) / lx[0];
-    sigma_xx = -(pxx - pxx[0]);
-    sigma_yy = -(pyy - pyy[0]);
-    sigma_xy = -(pxy - pxy[0]);
-    ratio = sigma_xx / sigma_yy;
+    tension_xx = -(pxx - pxx[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
+    tension_yy = -(pyy - pyy[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
+    tension_xy = -(pxy - pxy[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
+    ratio = tension_xx / tension_yy;
     ratio[0] = ratio[1];
 
-    d = {"strain":strain, "sigma_xx":sigma_xx, "sigma_yy":sigma_yy, "sigma_xy":sigma_xy, "ratio":ratio}
+    d = {"strain":strain, "tension_xx":tension_xx, "tension_yy":tension_yy, "tension_xy":tension_xy, "ratio":ratio}
     return pd.DataFrame(d)
 
 def calc_energy_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
@@ -148,15 +149,15 @@ def calc_energy_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
     d = {"strain":strain, "glycan_pe_frac":glycan_pe_frac, "angle_pe_frac":angle_pe_frac, "peptide_pe_frac":peptide_pe_frac,"energy_density":energy_density}
     return pd.DataFrame(d)
 
-def file_dfs_to_combined_stress_df(file_dfs : pd.DataFrame) -> pd.DataFrame:
-    stress_dfs = list()
+def file_dfs_to_combined_tension_df(file_dfs : pd.DataFrame) -> pd.DataFrame:
+    tension_dfs = list()
     for file_df in file_dfs:
-        stress_dfs.append(calc_stress_df_from_file_df(file_df));
+        tension_dfs.append(calculate_tension_df_from_file_df(file_df));
 
-    if len(stress_dfs) == 0:
+    if len(tension_dfs) == 0:
         return None;
     else:
-        return pd.concat(stress_dfs)
+        return pd.concat(tension_dfs)
 
 ## PLOTTING FUNCTIONS -- ENERGY RATIO
 def add_energy_ratio_curves(df : pd.DataFrame, color_name : str, labelstr : str):
@@ -231,12 +232,12 @@ def finish_PE_density_curve():
     plt.grid(True);
     plt.show()
 
-## PLOTTING FUNCTIONS -- STRESS
-def add_stress_curve(df : pd.DataFrame, color_name : str, labelstr):
+## PLOTTING FUNCTIONS -- TENSION
+def add_tension_curve(df : pd.DataFrame, color_name : str, labelstr):
     # Longitudinal (Lower)
-    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'sigma_xx');
+    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'tension_xx');
     n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="--", label = labelstr+", Axial Stress")
+    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="--", label = labelstr+", Axial Tension")
     plt.fill_between(
         ci_df.index,
         ci_df['lower'],
@@ -247,9 +248,9 @@ def add_stress_curve(df : pd.DataFrame, color_name : str, labelstr):
     )
 
     # Hoop (Higher)
-    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'sigma_yy');
+    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'tension_yy');
     n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="-", label = labelstr+", Hoop Stress")
+    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="-", label = labelstr+", Hoop Tension")
     plt.fill_between(
         ci_df.index,
         ci_df['lower'],
@@ -258,15 +259,15 @@ def add_stress_curve(df : pd.DataFrame, color_name : str, labelstr):
         alpha=0.2
     )
 
-def finish_stress_curve():
-    plt.title("Directional Stress during Pre-Strain")
-    plt.ylabel("$\sigma$ [N/m]")
+def finish_tension_curve():
+    plt.title("Directional Tension during Isotropic Pre-Strain")
+    plt.ylabel("$\gamma$ [N/m]")
     plt.xlabel(r"$\mathcal{E}$, Strain")
     plt.legend()
     plt.show()
 
-## PLOTTING FUNCTIONS -- STRESS RATIO
-def add_stress_ratio_curve(df : pd.DataFrame, color_name : str, labelstr):
+## PLOTTING FUNCTIONS -- TENSION RATIO
+def add_tension_ratio_curve(df : pd.DataFrame, color_name : str, labelstr):
     ci_df = get_confidence_intervals(df, 0.95, 'strain', 'ratio');
     n = int(len(df)/len(ci_df))
     plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="-", label = labelstr)
@@ -279,11 +280,11 @@ def add_stress_ratio_curve(df : pd.DataFrame, color_name : str, labelstr):
         label=f'95% Confidence (nSamples={n})'
     )
 
-    print(f"Mean Stress Ratio for {labelstr}: {np.mean(ci_df['mean'].to_numpy())}")
+    print(f"Mean Tension Ratio for {labelstr}: {np.mean(ci_df['mean'].to_numpy())}")
 
-def finish_stress_ratio_curve():
-    plt.title("Stress Ratio during Pre-Strain")
-    plt.ylabel("$\sigma_(xx) / \sigma_(yy)$ [a.u.]")
+def finish_tension_ratio_curve():
+    plt.title("Tension Ratio during Isotropic Pre-Strain")
+    plt.ylabel(r"$\frac{\gamma_(xx)}{\gamma_(yy)}$ [a.u.]")
     plt.xlabel(r"$\mathcal{E}$, Strain")
     plt.ylim([0,1.5])
     plt.grid(True)
@@ -291,64 +292,64 @@ def finish_stress_ratio_curve():
     plt.show()
 
 ## FULL FIGURE FUNCTIONS
-def full_stress_figure(
+def full_tension_figure(
         curves_information : list[tuple[str, str, str, str]],
         expected_strain_tuple : tuple[float,float] = None,
-        expected_stress_xx_tuple : tuple[float,float] = None,
-        expected_stress_yy_tuple : tuple[float,float] = None):
+        expected_tension_xx_tuple : tuple[float,float] = None,
+        expected_tension_yy_tuple : tuple[float,float] = None):
     for i in range(0,len(curves_information)):
         (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
         dfs = collect_list_of_prestrain_dataframes(working_dirpath, output_regex)
 
-        stress_dfs = list()
+        tension_dfs = list()
         for file_df in dfs:
-            stress_dfs.append(calc_stress_df_from_file_df(file_df));
+            tension_dfs.append(calculate_tension_df_from_file_df(file_df));
 
-        if len(stress_dfs) == 0:
+        if len(tension_dfs) == 0:
             continue;
         else:
-            combined_stress_df = pd.concat(stress_dfs)
+            combined_tension_df = pd.concat(tension_dfs)
 
-        add_stress_curve(combined_stress_df, colorname, labelstr);
+        add_tension_curve(combined_tension_df, colorname, labelstr);
     
-    print(expected_strain_tuple,expected_stress_xx_tuple,expected_stress_yy_tuple)
-    if (expected_strain_tuple != None) and (expected_stress_xx_tuple != None):
-        print("DEBUG: Drawing expected sigma_xx region...")
+    print(expected_strain_tuple,expected_tension_xx_tuple,expected_tension_yy_tuple)
+    if (expected_strain_tuple != None) and (expected_tension_xx_tuple != None):
+        print("DEBUG: Drawing expected tension_xx region...")
         plt.fill_between([expected_strain_tuple[0],expected_strain_tuple[1]],
-                         [expected_stress_xx_tuple[0],expected_stress_xx_tuple[0]],
-                         [expected_stress_xx_tuple[1],expected_stress_xx_tuple[1]],
+                         [expected_tension_xx_tuple[0],expected_tension_xx_tuple[0]],
+                         [expected_tension_xx_tuple[1],expected_tension_xx_tuple[1]],
                          alpha=0.2,
                          color="purple")
         
-    if expected_strain_tuple and expected_stress_yy_tuple:
-        print("DEBUG: Drawing expected sigma_yy region...")
+    if expected_strain_tuple and expected_tension_yy_tuple:
+        print("DEBUG: Drawing expected tension_yy region...")
         plt.fill_between([expected_strain_tuple[0],expected_strain_tuple[1]],
-                         [expected_stress_yy_tuple[0],expected_stress_yy_tuple[0]],
-                         [expected_stress_yy_tuple[1],expected_stress_yy_tuple[1]],
+                         [expected_tension_yy_tuple[0],expected_tension_yy_tuple[0]],
+                         [expected_tension_yy_tuple[1],expected_tension_yy_tuple[1]],
                          alpha=0.4,
                          color="purple")
 
-    finish_stress_curve();
+    finish_tension_curve();
 
-def full_stress_ratio_figure(curves_information : list[tuple[str, str, str, str]]):
+def full_tension_ratio_figure(curves_information : list[tuple[str, str, str, str]]):
     for i in range(0,len(curves_information)):
         (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
         dfs = collect_list_of_prestrain_dataframes(working_dirpath, output_regex)
 
-        stress_dfs = list()
+        tension_dfs = list()
         for file_df in dfs:
-            stress_dfs.append(calc_stress_df_from_file_df(file_df));
+            tension_dfs.append(calculate_tension_df_from_file_df(file_df));
 
-        if len(stress_dfs) == 0:
+        if len(tension_dfs) == 0:
             continue;
         else:
-            combined_stress_df = pd.concat(stress_dfs)
+            combined_df = pd.concat(tension_dfs)
 
-        add_stress_ratio_curve(combined_stress_df, colorname, labelstr);
+        add_tension_ratio_curve(combined_df, colorname, labelstr);
 
-    finish_stress_ratio_curve();
+    finish_tension_ratio_curve();
 
 def full_energy_ratio_figure(curves_information : list[tuple[str, str, str, str]]):
     for i in range(0,len(curves_information)):
@@ -506,10 +507,10 @@ def plot_combined_histogram(bonds_in_relaxed_state : list[Bond], bonds_in_final_
 #### Compare Two Networks of Different Sizes
 
 def add_network_ratio(df, colornamestr, labelstr):
-    # sigma_xx
+    # tension_xx
     ci_df = get_confidence_intervals(df, 0.95, "strain", "comparison_ratio_xx")
     n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=colornamestr, linestyle="-", label=labelstr+", $\sigma_(xx)$")
+    plt.plot(ci_df.index, ci_df['mean'], color=colornamestr, linestyle="-", label=labelstr+", $\tension_(xx)$")
     plt.fill_between(
         ci_df.index,
         ci_df['lower'],
@@ -519,10 +520,10 @@ def add_network_ratio(df, colornamestr, labelstr):
         label=f'95% Confidence (nSamples={n})'
     )
 
-    # sigma_yy
+    # tension_yy
     ci_df = get_confidence_intervals(df, 0.95, "strain", "comparison_ratio_yy")
     n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=colornamestr, linestyle="--", label=labelstr+", $\sigma_(yy)$")
+    plt.plot(ci_df.index, ci_df['mean'], color=colornamestr, linestyle="--", label=labelstr+", $\tension_(yy)$")
     plt.fill_between(
         ci_df.index,
         ci_df['lower'],
@@ -533,7 +534,7 @@ def add_network_ratio(df, colornamestr, labelstr):
     )
 
 def finish_network_ratio():
-    plt.title("Ratio of Stresses Between Network Types")
+    plt.title("Ratio of Tension Between Network Types")
     plt.legend()
     plt.grid(True)
     plt.ylabel("Ratio of Networks")
@@ -549,34 +550,34 @@ def plot_comparison_of_ensembles(working_dirpath : str, curves_info : list[tuple
         dfs_A = collect_list_of_prestrain_dataframes(working_dirpath, output_regex_A)
         dfs_B = collect_list_of_prestrain_dataframes(working_dirpath, output_regex_B)
 
-        stress_df_A = file_dfs_to_combined_stress_df(dfs_A)
-        stress_df_B = file_dfs_to_combined_stress_df(dfs_B)
+        tension_df_A = file_dfs_to_combined_tension_df(dfs_A)
+        tension_df_B = file_dfs_to_combined_tension_df(dfs_B)
 
-        if not isinstance(stress_df_A,pd.DataFrame) or not isinstance(stress_df_B,pd.DataFrame):
+        if not isinstance(tension_df_A,pd.DataFrame) or not isinstance(tension_df_B,pd.DataFrame):
             continue;
         
-        strain_A   = stress_df_A["strain"].to_numpy();
-        sigma_xx_A = stress_df_A["sigma_xx"].to_numpy();
-        sigma_yy_A = stress_df_A["sigma_yy"].to_numpy();
+        strain_A   = tension_df_A["strain"].to_numpy();
+        tension_xx_A = tension_df_A["tension_xx"].to_numpy();
+        tension_yy_A = tension_df_A["tension_yy"].to_numpy();
 
-        strain_B   = stress_df_B["strain"].to_numpy();
-        sigma_xx_B = stress_df_B["sigma_xx"].to_numpy();
-        sigma_yy_B = stress_df_B["sigma_yy"].to_numpy();
+        strain_B   = tension_df_B["strain"].to_numpy();
+        tension_xx_B = tension_df_B["tension_xx"].to_numpy();
+        tension_yy_B = tension_df_B["tension_yy"].to_numpy();
 
-        sigma_xx_B_interp = np.interp(strain_A, strain_B, sigma_xx_B)
-        sigma_yy_B_interp = np.interp(strain_A, strain_B, sigma_yy_B)
+        tension_xx_B_interp = np.interp(strain_A, strain_B, tension_xx_B)
+        tension_yy_B_interp = np.interp(strain_A, strain_B, tension_yy_B)
 
-        print(sigma_xx_B_interp)
+        print(tension_xx_B_interp)
 
-        comparison_ratio_xx = sigma_xx_A / sigma_xx_B_interp;
-        comparison_ratio_yy = sigma_yy_A / sigma_yy_B_interp;
+        comparison_ratio_xx = tension_xx_A / tension_xx_B_interp;
+        comparison_ratio_yy = tension_yy_A / tension_yy_B_interp;
 
         print(strain_A)
         print(comparison_ratio_xx)
 
-        stress_df_A["comparison_ratio_xx"] = comparison_ratio_xx;
-        stress_df_A["comparison_ratio_yy"] = comparison_ratio_yy;
+        tension_df_A["comparison_ratio_xx"] = comparison_ratio_xx;
+        tension_df_A["comparison_ratio_yy"] = comparison_ratio_yy;
     
-        add_network_ratio(stress_df_A, colornamestr, labelstr)
+        add_network_ratio(tension_df_A, colornamestr, labelstr)
 
     finish_network_ratio();

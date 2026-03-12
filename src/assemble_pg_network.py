@@ -378,7 +378,7 @@ def write_to_laamps_datafile(filename, atoms, bonds, angles, simbox_lx, simbox_l
         f.write(f"2 extra angle per atom\n")
         f.write(f"{-simbox_lx/2} {simbox_lx/2} xlo xhi\n")
         f.write(f"{-simbox_ly/2} {simbox_ly/2} ylo yhi\n")
-        f.write(f"-1 1 zlo zhi\n")
+        f.write(f"-0.5 0.5 zlo zhi\n") # Recommended for 2D, https://docs.lammps.org/Howto_2d.html
         f.write(f"0 0 0 xy xz yz\n") # Restricted Triclinic Tilts, inc it makes this a triclinic instead of ortho box
         f.write("\n")
 

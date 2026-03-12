@@ -1,0 +1,54 @@
+# Unit Conversions
+# LAMMPS SIMULATION USES STYLE NANO
+# https://docs.lammps.org/units.html
+
+#PG_THICKNESS_NANOMETERS = 1; # Yao 1999? ## TODO: DISCUSS
+
+# MASS
+# NANO STYLE NANO ==> attogram
+u_KILOGRAM_to_ATTOGRAM = 1E21;
+u_ATTOGRAM_to_KILOGRAM = 1E-21;
+
+# LENGTH
+# LAMMPS STYLE NANO ==> nanometer
+u_METER_to_NANOMETER = 1E9;
+u_NANOMETER_to_METER = 1E-9
+u_MICROMETER_to_NANOMETER = 1E3;
+
+# TIME
+# LAMMPS STYLE NANO => nanosecond
+u_SECOND_to_NANOSECOND = 1E9;
+
+# FORCE
+# LAMMPS STYLE: NANO ==> attogram-nanometer/nanosecond^2 ==> piconewton
+u_NEWTONS_to_LAMMPS_FORCE = u_KILOGRAM_to_ATTOGRAM * u_METER_to_NANOMETER / (u_SECOND_to_NANOSECOND)**2;
+u_NEWTONS_to_PICONEWTONS = 1E12;
+u_NEWTON_to_MEGANEWTON = 1E-6;
+
+assert u_NEWTONS_to_LAMMPS_FORCE == u_NEWTONS_to_PICONEWTONS;
+
+# PRESSURE
+# LAMMPS STYLE: NANO ==> attogram/(nanometer-nanosecond^2) ==> megapascal
+u_PASCAL_to_MEGAPASCAL = 1E-6;
+u_ATM_to_PASCAL = 101325;
+u_PASCAL_to_LAMMPS_PRESSURE = u_KILOGRAM_to_ATTOGRAM / (u_METER_to_NANOMETER * u_SECOND_to_NANOSECOND * u_SECOND_to_NANOSECOND);
+u_ATM_to_LAMMPS_PRESSURE = u_ATM_to_PASCAL * u_PASCAL_to_LAMMPS_PRESSURE;
+
+assert u_PASCAL_to_LAMMPS_PRESSURE == u_PASCAL_to_MEGAPASCAL;
+
+# ENERGY ==> attogram-nanometer^2/nanosecond^2
+u_JOULES_to_LAMMPS_ENERGY = u_KILOGRAM_to_ATTOGRAM*u_METER_to_NANOMETER**2 / u_SECOND_to_NANOSECOND**2;
+
+# VOLUME
+# LAMMPS STYLE NANO ==> nanometer^3
+u_FEMTOLITER_to_NANOMETER_CUBED = 1E-15 * 1E-3 * 1E27;
+
+## 2D VIRIAL 
+# Virial has units of [nanometer]*[attogram-nanometer/nanosecond^2] / [nanometer]**2 = attogram/nanosecond^2
+# = (u_ATTOGRAM_to_KILOGRAM)*(u_SECOND_to_NANOSECOND)**2 == 1E-21 * 1E9 * 1E9 = 1E-3
+u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER = 1E-3;
+
+u_NEWTON_PER_METER_to_MEGAPASCAL_TIMES_NANOMETER = u_NEWTON_to_MEGANEWTON * 1 * u_METER_to_NANOMETER; # 1 is meter/meter
+
+## Stress [N/m2] = Tension [N/m] / Thickness [m]
+# u_2D_VIRIAL_PRESSURE_to_STRESS_MEGAPASCAL = u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER * u_NEWTON_PER_METER_to_MEGAPASCAL_TIMES_NANOMETER / PG_THICKNESS_NANOMETERS;

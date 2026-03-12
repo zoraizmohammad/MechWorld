@@ -21,7 +21,7 @@ class ElasticTensorStruct:
     Gxy  : float = None;
     Vxy  : float = None;
     Vyx  : float = None;
-    units : str = "MPa";
+    units : str = "MPa*nm";
 
     def calculate_orthotropic_moduli(self) -> None:
         # Theory of Plates & Shells, Colorado State University, 2006 -> Reduced Stiffness Matrix
@@ -136,6 +136,9 @@ def import_ElasticTensorStructs_from_file(filepath : str) -> list[ElasticTensorS
                 Vyx   = float(line_data[11]),
                 units = str(line_data[12]).strip(),
             )
+
+            assert struct.units == "MPa*nm"
+
             structs.append(struct);
 
     return structs
@@ -161,7 +164,7 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> li
 
     return combined_df;
 
-## PLOTTING FUNCTIONS -- ENERGY RATIO
+## PLOTTING FUNCTIONS -- Ex,Ey,Gxy
 def add_moduli_curves(df : pd.DataFrame, color_name : str, labelstr : str):
     # Ex
     ci_df = get_confidence_intervals(df, 0.95, 'strain', 'Ex');
@@ -203,7 +206,7 @@ def add_moduli_curves(df : pd.DataFrame, color_name : str, labelstr : str):
 def finish_moduli_curve():
     plt.legend();
     plt.title("Elastic Moduli vs Strain")
-    plt.ylabel("MPa")
+    plt.ylabel("MPa*nm")
     plt.xlabel(r"$\mathcal{E}$, Strain [a.u.]")
     plt.grid(True);
     plt.show();
@@ -212,3 +215,7 @@ def full_moduli_figure(working_dir, regex_pattern):
     df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
     add_moduli_curves(df, "black", "a = 0.925")
     finish_moduli_curve()
+
+## PLOTTING FUNCTIONS -- Vxy,Vyx
+
+## PLOTTING FUNCTIONS -- Predicted Stress Ratio
