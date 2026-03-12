@@ -7,7 +7,7 @@
 
 ## Resource Allocation...
 ## When testing with qrsh, this sequence worked with one core and 3G of memory
-#$ -l h_rt=3:00:00,h_data=8G
+#$ -l h_rt=8:00:00,h_data=8G
 #$ -pe shared 8
 
 ## Notify this Email Address...
@@ -17,7 +17,7 @@
 #$ -m bea
 
 ## Number of networks to create and run in parallel
-#$ -t 1-5:1
+#$ -t 1-10:1
 
 # echo job info on joblog:
 echo "Job $JOB_ID started on:   " `hostname -s`
@@ -35,7 +35,7 @@ source .venv/bin/activate
 
 echo "Running Task ${SGE_TASK_ID} with parameter: ${c_isotropic_parameter}"
 
-python src/task_create_and_process_network.py 200 0.7 0.72 results/flory-schulz-0925-sizes/ ${JOB_ID} ${SGE_TASK_ID} --dist "FS-2-100-0.925" --write_dumps --write_restarts
+python src/task_create_and_process_network.py 500 0.7 0.72 results/flory-schulz-0925-sizes/ ${JOB_ID} ${SGE_TASK_ID} --dist "FS-2-100-0.925" --write_dumps --write_restarts
 
 # echo job info on joblog:
 echo "Job $JOB_ID ended on:   " `hostname -s`

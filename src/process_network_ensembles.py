@@ -101,7 +101,7 @@ def import_isotropic_prestrain_data(filename : str) -> list[ThermoStruct]:
 
     return lst_structs
 
-def collect_list_of_dataframes(dirpath : str, regex_pattern : str) -> list[pd.DataFrame]:
+def collect_list_of_prestrain_dataframes(dirpath : str, regex_pattern : str) -> list[pd.DataFrame]:
     # Returns a list of dataframes, one from each file
     dfs = list();
 
@@ -299,7 +299,7 @@ def full_stress_figure(
     for i in range(0,len(curves_information)):
         (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
-        dfs = collect_list_of_dataframes(working_dirpath, output_regex)
+        dfs = collect_list_of_prestrain_dataframes(working_dirpath, output_regex)
 
         stress_dfs = list()
         for file_df in dfs:
@@ -335,7 +335,7 @@ def full_stress_ratio_figure(curves_information : list[tuple[str, str, str, str]
     for i in range(0,len(curves_information)):
         (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
-        dfs = collect_list_of_dataframes(working_dirpath, output_regex)
+        dfs = collect_list_of_prestrain_dataframes(working_dirpath, output_regex)
 
         stress_dfs = list()
         for file_df in dfs:
@@ -354,7 +354,7 @@ def full_energy_ratio_figure(curves_information : list[tuple[str, str, str, str]
     for i in range(0,len(curves_information)):
         (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
-        dfs = collect_list_of_dataframes(working_dirpath, output_regex)
+        dfs = collect_list_of_prestrain_dataframes(working_dirpath, output_regex)
 
         energy_ratio_dfs = list()
         for file_df in dfs:
@@ -373,7 +373,7 @@ def full_PE_figure(curves_information : list[tuple[str, str, str, str]]):
     for i in range(0,len(curves_information)):
         (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
-        dfs = collect_list_of_dataframes(working_dirpath, output_regex)
+        dfs = collect_list_of_prestrain_dataframes(working_dirpath, output_regex)
 
         PE_dfs = list()
         for file_df in dfs:
@@ -546,8 +546,8 @@ def plot_comparison_of_ensembles(working_dirpath : str, curves_info : list[tuple
     for i in range(0,len(curves_info)):
         (output_regex_A, output_regex_B, colornamestr, labelstr) = curves_info[i];
         
-        dfs_A = collect_list_of_dataframes(working_dirpath, output_regex_A)
-        dfs_B = collect_list_of_dataframes(working_dirpath, output_regex_B)
+        dfs_A = collect_list_of_prestrain_dataframes(working_dirpath, output_regex_A)
+        dfs_B = collect_list_of_prestrain_dataframes(working_dirpath, output_regex_B)
 
         stress_df_A = file_dfs_to_combined_stress_df(dfs_A)
         stress_df_B = file_dfs_to_combined_stress_df(dfs_B)

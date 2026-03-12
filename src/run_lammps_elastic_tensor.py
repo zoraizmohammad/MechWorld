@@ -5,54 +5,9 @@ from simulation_constants_settings import *
 from run_lammps_isotropic_strain import lammps_PG_simulation_settings, lammps_PG_potential_settings, lammps_PG_thermo_settings
 
 def lammps_PG_displacement(L : lammps, filepath_restart, dir):
+    # Considering positive displacement only
 
     L.command(f"variable dir equal {dir}");
-
-    ### Negative Displacement
-    L.command("clear");
-    L.command("box tilt large");
-    L.command(f"read_restart {filepath_restart}");
-    lammps_PG_potential_settings(L);
-    lammps_PG_thermo_settings(L);
-
-    # Now the file is loaded and configured, apply deformation
-    L.commands_list(cmdlist=[
-        # Determine reference length
-        "if \"${dir} == 1\" then &",
-        "\"variable len0 equal ${lx0}\"", 
-        "if \"${dir} == 2\" then &",
-        "\"variable len0 equal ${ly0}\"", 
-        "if \"${dir} == 3\" then &",
-        "\"variable len0 equal ${ly0}\"",
-
-        # Negative apply deformation
-        "variable delta equal -${up}*${len0}",
-        "variable deltaxy equal -${up}*xy",
-
-        "if \"${dir} == 1\" then &",
-        "\"change_box all x delta 0 ${delta} xy delta ${deltaxy} remap units box\"",
-        "if \"${dir} == 2\" then &",
-        "\"change_box all y delta 0 ${delta} remap units box\"",
-        "if \"${dir} == 3\" then &",
-        "\"change_box all xy delta ${delta} remap units box\"",
-
-        # Relax atoms positions
-        "minimize ${etol} ${ftol} ${maxiter} ${maxeval}",
-        "write_dump all image dump.post.negative.${dir}.jpg type type",
-
-        # Obtain new stress tensor
-        "variable tmp equal pxx",
-        "variable pxx1 equal ${tmp}",
-        "variable tmp equal pyy",
-        "variable pyy1 equal ${tmp}",
-        "variable tmp equal pxy",
-        "variable pxy1 equal ${tmp}",
-
-        # Compute elastic constant from pressure tensor
-        "variable C1neg equal ${d1}",
-        "variable C2neg equal ${d2}",
-        "variable C3neg equal ${d3}",
-    ])
 
     ### Positive Displacement
     L.command("clear");
@@ -71,7 +26,7 @@ def lammps_PG_displacement(L : lammps, filepath_restart, dir):
         "if \"${dir} == 3\" then &",
         "\"variable len0 equal ${ly0}\"",
 
-        # Negative apply deformation
+        # Deformation
         "variable delta equal ${up}*${len0}",
         "variable deltaxy equal ${up}*xy",
 
@@ -99,12 +54,11 @@ def lammps_PG_displacement(L : lammps, filepath_restart, dir):
         "variable C2pos equal ${d2}",
         "variable C3pos equal ${d3}",
     ])
-    
-    # Combine positive and negative 
+
     L.commands_list(cmdlist=[
-        "variable C1${dir} equal 0.5*(${C1neg}+${C1pos})",
-        "variable C2${dir} equal 0.5*(${C2neg}+${C2pos})",
-        "variable C3${dir} equal 0.5*(${C3neg}+${C3pos})"
+        "variable C1${dir} equal ${C1pos}",
+        "variable C2${dir} equal ${C2pos}",
+        "variable C3${dir} equal ${C3pos}"
     ])
 
     # Delete dir to make sure it is not reused
@@ -134,7 +88,7 @@ def lammps_calculate_elastic_tensor(filepath_restart : str) -> bool:
     L.command("variable cfac equal 1.0"); # 1 attogram/(nanometer-nanosecond^2) == 1 MPa
     L.command("variable cunits string MPa");
     L.command(f"variable prestrain equal {prestrain}")
-    L.command(f"variable up equal 1E-2")
+    L.command(f"variable up equal 1E-3")
 
     L.command(f"variable etol equal {str(MODULI_ENERGY_TOLERANCE)}")
     L.command(f"variable ftol equal {str(MODULI_FORCE_TOLERANCE)}")

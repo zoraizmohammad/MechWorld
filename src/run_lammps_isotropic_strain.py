@@ -209,7 +209,7 @@ def insert_forced_strain_criteria(
         ):
     
     if output_specifications == None:
-        return;
+        return output_specifications, stepwise_strains;
 
     for i,criteria in enumerate(output_specifications):
         print(criteria)

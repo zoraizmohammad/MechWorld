@@ -71,3 +71,23 @@ expected_patch_energy = (sacculus_energy/sacculus_surface_area) * patch_strained
 print(f"Estimated PE of network (size = {patch_relaxed_length_DSU}, strain = {pre_strain[1]}): ",expected_patch_energy);
 
 # THESE VALUES SEEM WAY TOO HIGH by ~100x for short flory (a = 0.9), or x6 for long flory (a = 0.97)
+
+# Local Deformation for Size Increase with Constant Aspect Ratio
+
+def total_patch_dimensions(total_rod_length, aspect_ratio):
+    width = total_rod_length / aspect_ratio;       # diameter
+    cylinder_axial_length = total_rod_length - width;
+    cylinder_hoop_length = np.pi*width;
+
+    return cylinder_axial_length, cylinder_hoop_length;
+
+w0, h0 = total_patch_dimensions(1, 4);
+w1, h1 = total_patch_dimensions(2, 4);
+
+patch_strain_x = (w1-w0)/w0
+patch_strain_y = (h1-h0)/h0
+
+print(patch_strain_x,patch_strain_y)
+
+# Okay, so the patch experiences isotropic deformation as the cell expands with a constant aspect ratio
+# just needed to double check that

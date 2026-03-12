@@ -4,6 +4,8 @@ import numpy as np
 import re
 import os
 
+PROJECT_ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
+
 def find_files(dirpath, regex_pattern) -> set[str]:
     filepaths = set();
     for filename in os.listdir(dirpath):
