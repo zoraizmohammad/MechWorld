@@ -20,6 +20,7 @@ class ElasticTensorStruct:
     Ey   : float = None;
     Gxy  : float = None;
     Vxy  : float = None;
+    Vyx  : float = None;
     units : str = "MPa";
 
     def calculate_orthotropic_moduli(self) -> None:
@@ -27,6 +28,7 @@ class ElasticTensorStruct:
         # Note that C in this struct is the STIFFNESS matrix [Q] in that document's notation 
         self.Gxy = self.C33;
         self.Vxy = self.C12 / self.C22;
+        self.Vyx = self.C12 / self.C11;
         denominator = 1 - (self.C12**2)/(self.C11 * self.C22);
         self.Ex = self.C11 * denominator;
         self.Ey = self.C22 * denominator;
@@ -40,15 +42,19 @@ class ElasticTensorStruct:
         self.Ey = 1 / Minv[1,1];
         self.Gxy = 1 / Minv[2,2];
         self.Vxy = -1 * Minv[1,0] * self.Ex;
+        self.Vyx = -1 * Minv[1,0] * self.Ey;
 
     def print_comparison_of_two_moduli_methods(self) -> None:
         self.calculate_orthotropic_moduli();
         print(self.line_data());
         self.calculate_orthotropic_moduli_compliance();
         print(self.line_data());
+    
+    def expected_stress_ratio_xx_over_yy(self) -> float:
+        return (self.C11+self.C12)/(self.C12+self.C22)
 
     def line_data(self) -> str:
-        return f"{self.strain} {self.C11} {self.C22} {self.C33} {self.C12} {self.C13} {self.C23} {self.Ex} {self.Ey} {self.Gxy} {self.Vxy} {self.units}\n"
+        return f"{self.strain} {self.C11} {self.C22} {self.C33} {self.C12} {self.C13} {self.C23} {self.Ex} {self.Ey} {self.Gxy} {self.Vxy} {self.Vyx} {self.units}\n"
 
 def combine_elastic_constant_files_into_one_file_per_network(working_dir : str):
     set_of_unique_basepaths = set();
@@ -72,7 +78,7 @@ def combine_elastic_constant_files_into_one_file_per_network(working_dir : str):
 
         if not os.path.exists(combined_filepath):
             with open(combined_filepath, "w+") as f:
-                f.write("strain C11 C22 C33 C12 C13 C23 Ex Ey Gxy Vxy units\n");
+                f.write("strain C11 C22 C33 C12 C13 C23 Ex Ey Gxy Vxy Vyx units\n");
 
         for filepath in sorted(list(filepaths_to_individual_lines)):
             if not filepath.startswith(basepath):
@@ -95,6 +101,7 @@ def combine_elastic_constant_files_into_one_file_per_network(working_dir : str):
                 Ey = None,
                 Gxy = None,
                 Vxy = None,
+                Vyx = None,
                 units = str(line_data[7]).strip(),
             )
             print(struct.line_data())
@@ -126,7 +133,8 @@ def import_ElasticTensorStructs_from_file(filepath : str) -> list[ElasticTensorS
                 Ey    = float(line_data[8]),
                 Gxy   = float(line_data[9]),
                 Vxy   = float(line_data[10]),
-                units = str(line_data[11]).strip(),
+                Vyx   = float(line_data[11]),
+                units = str(line_data[12]).strip(),
             )
             structs.append(struct);
 

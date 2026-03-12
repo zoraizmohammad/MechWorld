@@ -17,7 +17,7 @@
 #$ -m bea
 
 ## Number of networks to create and run in parallel
-#$ -t 1-10:1
+#$ -t 1-5:1
 
 # echo job info on joblog:
 echo "Job $JOB_ID started on:   " `hostname -s`
@@ -35,7 +35,7 @@ source .venv/bin/activate
 
 echo "Running Task ${SGE_TASK_ID} with parameter: ${c_isotropic_parameter}"
 
-python src/task_create_and_process_network.py 500 0.7 0.72 results/flory-schulz-0925-sizes/ ${JOB_ID} ${SGE_TASK_ID} --dist "FS-2-100-0.925" --write_dumps --write_restarts
+python src/task_create_and_process_network.py 500 0.7 0.72 results/flory-schulz-0925-sizes/ ${JOB_ID} ${SGE_TASK_ID} --dist "FS-2-100-0.925"
 
 # echo job info on joblog:
 echo "Job $JOB_ID ended on:   " `hostname -s`

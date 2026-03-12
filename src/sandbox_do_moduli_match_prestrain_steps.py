@@ -27,8 +27,8 @@ print(f"% Error: {(force-expected_dforce) / (expected_dforce) * 1E2}")
 from process_elastic_tensor import import_ElasticTensorStructs_from_file
 from utils_helpers import PROJECT_ROOT_DIR
 
-lis = import_ElasticTensorStructs_from_file("C:\\Users\\jrrm5\\Desktop\\Eldredge\\PG-sims\\Github\\results\\flory-schulz-0925\\job12603196.1_dsu300_rho70_a72.elastic_constants")
+lis = import_ElasticTensorStructs_from_file("results\\sandbox\\job1.1_dsu100_rho70_a72.moduli")
 
 for s in lis:
-    s.print_comparison_of_two_moduli_methods()
+    print(s.expected_stress_ratio_xx_over_yy())
     
