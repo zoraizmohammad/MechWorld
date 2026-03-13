@@ -163,7 +163,7 @@ def run_isotropic_prestrain_nve(network_filepath : str, max_strain : float, outp
 def to_write_or_not_to_write(output_specifications : Union[list[tuple[str,float,float], None]], cur_strain : float, is_final_step : bool):
     # That is the question
 
-    assert (type(output_specifications) == list) or (type(output_specifications) == None)
+    assert (type(output_specifications) == list) or (output_specifications == None)
 
     if (output_specifications == None):
         return False;
@@ -216,7 +216,7 @@ def insert_forced_strain_criteria(
         if criteria[0] == "FORCE":
             # Add this strain to the list, maintain monotonically increasing
             prescribed_strain : float = criteria[1];
-            idx = len(stepwise_strains[stepwise_strains <= prescribed_strain])-1;
+            idx = len(stepwise_strains[stepwise_strains <= prescribed_strain]);
 
             if prescribed_strain == stepwise_strains[idx]:
                 # Another criteria has added this strain, so we don't add it again
@@ -264,23 +264,15 @@ def run_isotropic_prestrain_minimize(
 
     stepwise_strains = np.linspace(0,max_strain,number_strain_steps+1)
 
-    # TODO: Add custom steps
-
-    #print(dump_specs)
-    #print(stepwise_strains)
-
     _, stepwise_strains = insert_forced_strain_criteria(dump_specs   , stepwise_strains)
     _, stepwise_strains = insert_forced_strain_criteria(restart_specs, stepwise_strains)
-
-    #print(dump_specs)
-    #print(stepwise_strains)
 
     stepwise_xlo_values = xlo * (stepwise_strains + 1);
     stepwise_ylo_values = ylo * (stepwise_strains + 1);
     
     L = lammps();
 
-    filepath_no_extension = splitext(network_filepath)[0]
+    filepath_no_extension = splitext(network_filepath)[0];
     
     #### 1) Simulation Settings
     lammps_PG_simulation_settings(L)

@@ -42,19 +42,20 @@ ATOM_TYPE_NEG_DSU = 2; # - orientation
 DSU_MOLAR_MASS = (221.21 + 293.272)/2;    # grams / mol
 A_NUM = 6.02214076E23;                    # molecules / mol
 DSU_MASS_GRAM = DSU_MOLAR_MASS / A_NUM;   # grams / molecule
-DSU_MASS_ATTOGRAM = DSU_MASS_GRAM * 1E18; # ag / molecule
+DSU_MASS_ATTOGRAM = DSU_MASS_GRAM * 1E18; # attograms / molecule
 
-Nguyen2015_kG = 5570;              # pN/nm
+Nguyen2015_kG  = 5570;             # pN/nm
 Nguyen2015_kNL = 185.328520541486; # pN/nm, curve fit from WLC model to nonlinear model
 Nguyen2015_kb = 8.36E-20;          # J
 
 GLYCAN_COEFFICIENTS =  (Nguyen2015_kG, DSU);                     # [pN/nm, nm]
 PEPTIDE_COEFFICIENTS = (Nguyen2015_kNL, 1.0, 4.034069292365436); # [pN/nm, nm, nm]
-ANGLE_COEFFICIENTS =   (Nguyen2015_kb * u_JOULES_to_LAMMPS_ENERGY, 180) # [nano-style energy, degrees]
+
+# https://docs.lammps.org/angle_harmonic.html
+ANGLE_COEFFICIENTS =   (0.5 * Nguyen2015_kb * u_JOULES_to_LAMMPS_ENERGY, 180) # [nano-style energy, degrees]
 
 # https://en.wikipedia.org/wiki/KT_(energy)
-# 1 kT = 4.11E-21 J at 298K
-E_PEPTIDE_CUTOFF = 1.5 * 4.11E-21 * 1E18; # kT
+E_PEPTIDE_CUTOFF = 1.5 * u_kT_to_JOULES * u_JOULES_to_LAMMPS_ENERGY; # kT
 PEPTIDE_ANG_TOL_DEGREES = 90; # degrees
 PEPTIDE_SEARCH_RADIUS = inv_peptide_energy_lammps(E_PEPTIDE_CUTOFF)[1] + 0.2; # nm
 
