@@ -11,9 +11,9 @@ from simulation_constants_settings import *
 nm2_per_DSU = 2.5;
 DSU_per_nm2 = 1/nm2_per_DSU;
 DSU_length = 1.1; # nm
-observed_density_under_pre_strain = DSU_per_nm2*(DSU_length**2); # number_of_DSU / DSU_length**2
-pre_strain = np.array([0.13-0.08, 0.13, 0.13+0.08, 0.30]);
-relaxed_density = observed_density_under_pre_strain * (1+pre_strain)**2
+observed_density_under_prestrain = DSU_per_nm2*(DSU_length**2); # number_of_DSU / DSU_length**2
+prestrain = np.array([0.13-0.08, 0.13, 0.13+0.08, 0.30]);
+relaxed_density = observed_density_under_prestrain * (1+prestrain)**2
 
 print("Relaxed Density (LB,MEAN,UB): ", relaxed_density)
 
@@ -67,12 +67,10 @@ P1 = 1.5 * u_ATM_to_LAMMPS_PRESSURE;
 sacculus_energy = (1/2)*(P1+P0)*(V1 - V0);
 sacculus_surface_area = 8.1 * u_MICROMETER_to_NANOMETER**2; #nm2
 patch_relaxed_length_DSU = 300;
-patch_strained_surface_area = (patch_relaxed_length_DSU * pre_strain[1] * DSU)**2; # nm2
+patch_strained_surface_area = (patch_relaxed_length_DSU * prestrain[1] * DSU)**2; # nm2
 
 expected_patch_energy = (sacculus_energy/sacculus_surface_area) * patch_strained_surface_area;
-print(f"Estimated PE of network (size = {patch_relaxed_length_DSU}, strain = {pre_strain[1]}): ",expected_patch_energy);
-
-# THESE VALUES SEEM WAY TOO HIGH by ~100x for short flory (a = 0.9), or x6 for long flory (a = 0.97)
+print(f"Estimated PE of network (size = {patch_relaxed_length_DSU}, strain = {prestrain[1]}): ",expected_patch_energy);
 
 # Local Deformation for Size Increase with Constant Aspect Ratio
 

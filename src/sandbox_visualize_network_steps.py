@@ -2,10 +2,11 @@ from assemble_pg_network import generate_pg_network, normalized_length_distribut
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 
-#size = 110;
-#rho = 0.7;
-#distribution = process_distribution_string("FS-2-100-0.925", size)
-#density_fraction, crosslink_ratio, glycans, atoms, bonds, angles = generate_pg_network(size, rho, 0.72, distribution, None, True);
+size = 30;
+rho = 0.7;
+isotropy = 0.5;
+distribution = process_distribution_string("FS-2-15-0.9", size)
+density_fraction, crosslink_ratio, glycans, atoms, bonds, angles = generate_pg_network(size, rho, isotropy, distribution, None, True);
 #print(f"density: ", density_fraction);
 #print(f"crosslink ratio: ", crosslink_ratio);
 
@@ -18,12 +19,12 @@ import matplotlib as mpl
 #plt.ylabel("Prevalence [a.u.]")
 #plt.show()
 
-a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.91", 300))
-plt.plot(a,b)
-a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.92", 300))
-plt.plot(a,b)
-a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.93", 300))
-plt.plot(a,b)
-a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.94", 300))
-plt.plot(a,b)
-plt.show()
+# a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.91", 300))
+# plt.plot(a,b)
+# a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.92", 300))
+# plt.plot(a,b)
+# a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.93", 300))
+# plt.plot(a,b)
+# a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.94", 300))
+# plt.plot(a,b)
+# plt.show()

@@ -1,10 +1,29 @@
 from scipy import stats
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 import re
 import os
 
 PROJECT_ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
+
+def add_curve_with_ci(df, x_name, y_name, curve_linestyle = "-", curve_color = "black", curve_label_override = None):
+
+    if curve_label_override == None:
+        label_str = y_name;
+    else:
+        label_str = curve_label_override;
+
+    ci_df = get_confidence_intervals(df, 0.95, x_name, y_name);
+    n = int(len(df)/len(ci_df))
+    plt.plot(ci_df.index, ci_df['mean'], color=curve_color, linestyle=curve_linestyle, label=label_str)
+    plt.fill_between(
+        ci_df.index,
+        ci_df['lower'],
+        ci_df['upper'],
+        color=curve_color, 
+        alpha=0.2
+    )
 
 def find_files(dirpath, regex_pattern) -> set[str]:
     filepaths = set();

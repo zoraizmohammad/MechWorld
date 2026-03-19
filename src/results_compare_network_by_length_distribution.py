@@ -7,40 +7,35 @@ project_root = os.path.join(os.path.dirname(__file__), "..");
 
 size = 300;
 curves_info = [
-    (os.path.join(project_root,"results","flory-schulz-090"),
+    (os.path.join(project_root,"results","090-Koch2000-FS"),
      r".*_dsu"+str(size)+r".*_a72.*.out", 
      "red", 
-     f"Flory-Schulz Distribution 2-100, a=0.9, $\chi = 0.72$"
+     f"Flory-Schulz Distribution 2-30, a=0.9, $\chi = 0.72$"
     ),
-    (os.path.join(project_root,"results","flory-schulz-091"),
+    (os.path.join(project_root,"results","090-FS"),
      r".*_dsu"+str(size)+r".*_a72.*.out", 
      "orange", 
-     f"Flory-Schulz Distribution 2-100, a=0.91, $\chi = 0.72$"
+     f"Flory-Schulz Distribution 2-100, a=0.9, $\chi = 0.72$"
     ),
-    (os.path.join(project_root,"results","flory-schulz-092"),
+    (os.path.join(project_root,"results","091-FS"),
      r".*_dsu"+str(size)+r".*_a72.*.out", 
      "green", 
-     f"Flory-Schulz Distribution 2-100, a=0.92, $\chi = 0.72$"
+     f"Flory-Schulz Distribution 2-100, a=0.91, $\chi = 0.72$"
     ),
-    (os.path.join(project_root,"results","flory-schulz-093"),
+    (os.path.join(project_root,"results","sizes-0925-FS"),
      r".*_dsu"+str(size)+r".*_a72.*.out", 
      "blue", 
-     f"Flory-Schulz Distribution 2-100, a=0.93, $\chi = 0.72$"
+     f"Flory-Schulz Distribution 2-100, a=0.925, $\chi = 0.72$"
     ),
-    (os.path.join(project_root,"results","flory-schulz-094"),
+    (os.path.join(project_root,"results","094-FS"),
      r".*_dsu"+str(size)+r".*_a72.*.out", 
      "purple", 
      f"Flory-Schulz Distribution 2-100, a=0.94, $\chi = 0.72$"
     ),
-    (os.path.join(project_root,"results","flory-schulz-095"),
+    (os.path.join(project_root,"results","095-FS"),
      r".*_dsu"+str(size)+r".*_a72.*.out", 
      "gray", 
      f"Flory-Schulz Distribution 2-100, a=0.95, $\chi = 0.72$"
-    ),
-    (os.path.join(project_root,"results","flory-schulz-096"),
-     r".*_dsu"+str(size)+r".*_a72.*.out", 
-     "black", 
-     f"Flory-Schulz Distribution 2-100, a=0.96, $\chi = 0.72$"
     )
 ]
 full_tension_figure(

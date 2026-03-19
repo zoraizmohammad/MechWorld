@@ -89,7 +89,7 @@ def get_sample_of_DSU_lengths_no_gaps(Ny : int, distribution : list[int]) -> lis
 
     return glycan_lengths_DSU
 
-def add_simple_glycan(atoms : dict[int,Atom], bonds : dict[int,Bond], angles : dict[int,Angle], glycans : dict[int,GlycanMolecule], cm_x, cm_y, numDSUs : int):
+def add_simple_glycan(atoms : dict[int,Atom], bonds : dict[int,Bond], angles : dict[int,Angle], glycans : dict[int,GlycanMolecule], cm_x, cm_y, numDSUs : int, orientation_override = None):
     if (numDSUs == 0):
         print("Warning: numDSU len of 0 was passed!")
         return;
@@ -99,7 +99,10 @@ def add_simple_glycan(atoms : dict[int,Atom], bonds : dict[int,Bond], angles : d
     glycans[molecule_id] = GlycanMolecule(molecule_id);
     glycans[molecule_id].set_cm(cm_x, cm_y)
 
-    orientation_randomizer = randrange(1,4);
+    if orientation_override:
+        orientation_randomizer = orientation_override;
+    else:
+        orientation_randomizer = randrange(1,4);
 
     # Add atoms, bonds, angles
     for i in range(0,numDSUs):
@@ -182,7 +185,8 @@ def verify_stem_alignment(a1 : Atom, a2 : Atom, COS_ALIGNMENT_TOL : float, simbo
 
 def create_peptide_with_nearby_neighbor(
         id_of_atom : int, grid : defaultdict[list], cell_size : float, molecule_bonding_matrix : defaultdict[int], 
-        atoms : dict[int,Atom], bonds : dict[int,Bond], glycans : dict[int,GlycanMolecule], simbox_lx : float, simbox_ly : float):
+        atoms : dict[int,Atom], bonds : dict[int,Bond], glycans : dict[int,GlycanMolecule], simbox_lx : float, simbox_ly : float, 
+        override_energy = None):
     
     # cell_size = radius
     a : Atom = atoms[id_of_atom];
@@ -208,16 +212,16 @@ def create_peptide_with_nearby_neighbor(
     dcx_set = {-1,0,1};
     dcy_set = {-1,0,1};
 
-    # Optimization to ignore cells that point away from the stem vector
-    if a.v_stem[0] < -SIN_ALIGNMENT_TOL:
-        dcx_set.discard(1);
-    elif a.v_stem[0] > SIN_ALIGNMENT_TOL:
-        dcx_set.discard(-1);
+    # # Optimization to ignore cells that point away from the stem vector
+    # if a.v_stem[0] < -SIN_ALIGNMENT_TOL:
+    #     dcx_set.discard(1);
+    # elif a.v_stem[0] > SIN_ALIGNMENT_TOL:
+    #     dcx_set.discard(-1);
     
-    if a.v_stem[1] < -SIN_ALIGNMENT_TOL:
-        dcy_set.discard(1);
-    elif a.v_stem[1] > SIN_ALIGNMENT_TOL:
-        dcy_set.discard(-1);
+    # if a.v_stem[1] < -SIN_ALIGNMENT_TOL:
+    #     dcy_set.discard(1);
+    # elif a.v_stem[1] > SIN_ALIGNMENT_TOL:
+    #     dcy_set.discard(-1);
 
     # look into the cells of the atom + (relevant) adjacent cells -> get a list of could-be neighbors
     for dcx in dcx_set:
@@ -240,32 +244,38 @@ def create_peptide_with_nearby_neighbor(
     energy_ideal_neighbor = float("Inf");
     ideal_neighbor_id = None;
 
+    if override_energy:
+        max_allowed_energy = override_energy;
+    else:
+        max_allowed_energy = E_PEPTIDE_CUTOFF;
+
     # Speed date all the neighbors to see who's the best match
     for neighbor_id in neighbors_ids:
-        #print(f"Atom {a.id} is checking Atom {neighbor_id}")
+        print(f"Atom {a.id} is checking Atom {neighbor_id}")
         neighbor : Atom = atoms.get(neighbor_id)
 
         # Cannot form bond that connects to the same Glycan strand
         if (neighbor.mol_id == a.mol_id):
-            #print("> Failed: Same molecule")
+            print("> Failed: Same molecule")
             continue;
         
         # Cannot form bond if the neighbor is ineligible (e.g. it has a peptide already, failed Bernoulli trial)
         if (not neighbor.is_eligible()):
-            #print("> Failed: Neighbor is not eligible")
+            print("> Failed: Neighbor is not eligible")
             continue;
 
         # Ensure that the stems are pointing toward each other, each stem must be aligned within 45 degrees of the new peptide
         if (not verify_stem_alignment(a, neighbor, COS_ALIGNMENT_TOL, simbox_lx, simbox_ly, PERIODIC_RISK)):
-            #print("> Failed: Stems not aligned")
+            print("> Failed: Stems not aligned")
             continue;
         
         # There are not any hard restrictions on the neighbor, so compute the energy to bond...
-        r_neighbor = np.sqrt(periodic_distance_squared(neighbor.x, neighbor.y, a.x, a.y, simbox_lx, simbox_ly));
+        r_neighbor : float = np.sqrt(periodic_distance_squared(neighbor.x, neighbor.y, a.x, a.y, simbox_lx, simbox_ly));
         E_neighbor = peptide_energy_lammps(r_neighbor);
 
         # if the energy is undefined (past singularity) or too high, no bond
-        if (E_neighbor == None) or (E_neighbor > E_PEPTIDE_CUTOFF):
+        if (E_neighbor == None) or (E_neighbor > max_allowed_energy):
+            print("> Failed: Energy too high")
             continue;
 
         # It is eligible, so see if it is the BEST neighbor
@@ -340,8 +350,14 @@ def put_the_atoms_into_a_spatial_hash_smh(atoms, cell_size, simbox_lx, simbox_ly
     
     return grid, ids_of_eligible_atoms
 
-def form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly):
-    peptide_bond_search_radius = PEPTIDE_SEARCH_RADIUS; # nm, this is a greater length 
+def form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly, override_radius = None, override_energy = None):
+    
+    if override_radius:
+        peptide_bond_search_radius = override_radius;
+    else:
+        peptide_bond_search_radius = PEPTIDE_SEARCH_RADIUS; # nm, this is a greater length 
+    
+    print(PEPTIDE_SEARCH_RADIUS)
     (grid, ids_of_eligible_atoms) = put_the_atoms_into_a_spatial_hash_smh(atoms, peptide_bond_search_radius, simbox_lx, simbox_ly)
 
     if ids_of_eligible_atoms == []:
@@ -354,8 +370,8 @@ def form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly):
     molecule_bonding_matrix = defaultdict(int);
 
     # Each atom will search for neighbors to bond with
-    for i in range(0, len(ids_of_eligible_atoms)):
-        create_peptide_with_nearby_neighbor(ids_of_eligible_atoms[i], grid, peptide_bond_search_radius, molecule_bonding_matrix, atoms, bonds, glycans, simbox_lx, simbox_ly)
+    for id in ids_of_eligible_atoms:
+        create_peptide_with_nearby_neighbor(id, grid, peptide_bond_search_radius, molecule_bonding_matrix, atoms, bonds, glycans, simbox_lx, simbox_ly, override_energy)
     
     pairwise_list = list(molecule_bonding_matrix.values());
     histo = dict();
@@ -402,8 +418,8 @@ def compute_crosslink_ratio(atoms : dict[int,Atom], bonds : dict[int,Bond], simb
     # Count number of cross-links formed
     number_of_atoms = len(atoms);
 
-    print(f"DEBUG: Total Atoms {len(atoms)}")
-    print(f"DEBUG: Total Bonds {len(bonds)}")
+    #print(f"DEBUG: Total Atoms {len(atoms)}")
+    #print(f"DEBUG: Total Bonds {len(bonds)}")
 
     peptide_crosslink_counter = 0;
     glycan_bond_counter = 0;
@@ -418,9 +434,9 @@ def compute_crosslink_ratio(atoms : dict[int,Atom], bonds : dict[int,Bond], simb
         if not a.is_eligible():
             ineligible_atom_counter += 1;
     
-    print(f"DEBUG: Ineligible Atoms {ineligible_atom_counter}")
-    print(f"DEBUG: Peptide Bonds {peptide_crosslink_counter}")
-    print(f"DEBUG: Glycan Bonds {glycan_bond_counter}")
+    #print(f"DEBUG: Ineligible Atoms {ineligible_atom_counter}")
+    #print(f"DEBUG: Peptide Bonds {peptide_crosslink_counter}")
+    #print(f"DEBUG: Glycan Bonds {glycan_bond_counter}")
     
     rho_mesh = (number_of_atoms * DSU**2) / (simbox_lx * simbox_ly);
 
@@ -443,8 +459,19 @@ def populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx 
 
 #### DEBUG INSPECTION FUNCTIONS
 
-def visualizeBonds(atoms : dict[int, Atom], bonds : dict[int,Bond], glycans : dict[int,GlycanMolecule], xlo, xhi, ylo, yhi):
-    fig, ax = plt.subplots()
+def visualizeBonds(
+        atoms : dict[int, Atom], 
+        bonds : dict[int,Bond], 
+        glycans : dict[int,GlycanMolecule], 
+        xlo, xhi, ylo, yhi, 
+        ax : plt.Axes = None, 
+        draw_stems : bool = True):
+    
+    if ax == None:
+        fig, ax = plt.subplots()
+        show_now = True;
+    else:
+        show_now = False;
 
     #for g in glycans.values():
     #    plt.scatter(g.cm_x, g.cm_y, color='red');
@@ -460,18 +487,21 @@ def visualizeBonds(atoms : dict[int, Atom], bonds : dict[int,Bond], glycans : di
 
         #print(f"{b.atom_id_1} =?= {a1.id})");
         color_arr = ["","black","green"]
+        linestyle_arr = ["","-","--"]
 
         # Big ol'd bonds
-        ax.plot([a1.x,a2.x],[a1.y,a2.y], color=color_arr[b.bond_type]);
+        ax.plot([a1.x,a2.x],[a1.y,a2.y], color=color_arr[b.bond_type],linestyle=linestyle_arr[b.bond_type]);
 
         # Cute lil' stems
-        ax.plot([a1.x,a1.x+a1.v_stem[0]*0.2],[a1.y,a1.y+a1.v_stem[1]*0.2], color="purple");
-        ax.plot([a2.x,a2.x+a2.v_stem[0]*0.2],[a2.y,a2.y+a2.v_stem[1]*0.2], color="purple");
+        if draw_stems:
+            ax.plot([a1.x,a1.x+a1.v_stem[0]*0.2],[a1.y,a1.y+a1.v_stem[1]*0.2], color="purple");
+            ax.plot([a2.x,a2.x+a2.v_stem[0]*0.2],[a2.y,a2.y+a2.v_stem[1]*0.2], color="purple");
     
     ax.plot([xlo,xhi,xhi,xlo,xlo],[ylo,ylo,yhi,yhi,ylo],color='red',linestyle=":")
     ax.set_aspect('equal')
 
-    plt.show();
+    if show_now:
+        plt.show();
 
 #### MAIN FUNCTION FOR MAKING NETWORKS
 
@@ -482,7 +512,8 @@ def generate_pg_network(
                                         # 1.0 => glycans orientation is completely random
         distribution : list[int] = None,
         filepath     : str  = None,          # If set, write file to this filepath. File is lammps-compatible.
-        visuals      : bool = False          # Plot bonds for debug purposes?
+        generate_figure_of_steps   : bool     = False, # Plot bonds for debug purposes?
+        plot_network_on_these_axes : plt.Axes = None
         ):
     
     if distribution == None:
@@ -498,7 +529,7 @@ def generate_pg_network(
     assert max(distribution) < Ny;
     assert (type(distribution) == list)
     assert (type(filepath) == str) or (filepath == None)
-    assert (type(visuals) == bool)
+    assert (type(generate_figure_of_steps) == bool)
 
     # Map an id (1,2,3,...) to python object. These ids are used in lammps.
     atoms   : dict[int,Atom] = dict();
@@ -506,13 +537,13 @@ def generate_pg_network(
     angles  : dict[int,Angle] = dict();
     glycans : dict[int,GlycanMolecule] = dict();
 
-    # Equations derived by Octavio give a starting point estimate for the 
+    # Equations derived by Octavio give a starting point estimate for the spacing between glycans for a square patch
     mean_of_distribution = np.mean(distribution);
     epsilon_x = np.sqrt( (1 + (1/2)*mean_of_distribution)**2 + ((1/mesh_density) - 1)*(1 + mean_of_distribution) ) - (1+(1/2)*mean_of_distribution);
     epsilon_y = epsilon_x/(1+mean_of_distribution);
     Nx = floor((1+epsilon_y)/(1+epsilon_x)*Ny);
 
-    # Boc dimensions in nm
+    # Box dimensions in nm
     simbox_ly = (1+epsilon_y) * DSU * Ny;
     simbox_lx = (1+epsilon_x) * DSU * Nx;
 
@@ -520,8 +551,10 @@ def generate_pg_network(
     # Vertical spacing is equal per-column, and on-average equal from column to column.
     populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx, Ny, epsilon_x, epsilon_y, distribution);
 
-    #if visuals:
-    #    visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny);
+    if generate_figure_of_steps:
+        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
+        ax1 : plt.Axes; ax2 : plt.Axes; ax3 : plt.Axes; ax4 : plt.Axes;
+        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax1, draw_stems=False);
 
     # Jangle the glycans
     for g in glycans.values():
@@ -530,15 +563,15 @@ def generate_pg_network(
         g.displace_by_const(atoms, dx, dy)
 
     #if visuals:
-    #    visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny);
+    #    visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny, ax2);
 
     # Rotate the glycans randomly about their center of mass
     for g in glycans.values():
         alpha = (2*random()-1) * anisotropy * (np.pi)/2;
         g.rotate_wrt_cm(atoms, alpha)
 
-    #if visuals:
-    #    visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny);
+    if generate_figure_of_steps:
+        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax2, draw_stems=False);
 
     # Atoms and glycans will be outside the box b/c of rotation and
     # column start randomization. We're sticking them back into the box
@@ -546,8 +579,8 @@ def generate_pg_network(
     for g in glycans.values():
         g.correct_orthogonal_PCB(atoms, 0, simbox_lx, 0, simbox_ly);
 
-    #if visuals:
-    #    visualizeBonds(atoms, bonds, glycans, 0, DSU * Nx, 0, DSU * Ny);
+    if generate_figure_of_steps:
+        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax3, draw_stems=False);
 
     # Form peptide crosslinks based on distance and angle criteria
     form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly);
@@ -555,17 +588,30 @@ def generate_pg_network(
     # Count Cross-Linking
     density_fraction, crosslink_ratio = compute_crosslink_ratio(atoms, bonds, simbox_lx, simbox_ly);
 
-    if visuals:
+    if generate_figure_of_steps:
         print(f"Box Dimensions [nm] = ({simbox_lx}, {simbox_ly})")
         print(f"Density = {density_fraction}")
         print(f"Crosslink Ratio = {crosslink_ratio}")
-        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly);
+        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax4, draw_stems=False);
+        for a in [ax1,ax2,ax3,ax4]:
+            a.set_xticks([]);
+            a.set_yticks([]);
+        
+        ax1.set_title("#1: Populate Glycan")
+        ax2.set_title("#2: Reorient Glycan")
+        ax3.set_title("#3: Apply PCB")
+        ax4.set_title("#4: Form Cross-Links")
+        fig.set_size_inches(6,7)
+        plt.show()
+
+    if plot_network_on_these_axes:
+        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, plot_network_on_these_axes, draw_stems=False);
 
     #Delete free-floating glycans
     #for g in glycans.values():
     #    g.delete_if_free(atoms, bonds, angles);
 
-    # Transform Coordinates of Atoms
+    # Transform coordinates of atoms so patch is centered on 0,0 in lammps
     for a in atoms.values():
         a.translate(-simbox_lx/2, -simbox_ly/2, 0);
     

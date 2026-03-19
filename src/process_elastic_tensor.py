@@ -1,4 +1,4 @@
-from utils_helpers import find_files, get_confidence_intervals
+from utils_helpers import find_files, get_confidence_intervals, add_curve_with_ci
 import os
 import re
 from dataclasses import dataclass, asdict
@@ -164,6 +164,8 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> li
 
     return combined_df;
 
+## TODO: Check reduced stiffness matrix for unstable modes, look at eigenvalues
+
 ## PLOTTING FUNCTIONS -- Ex,Ey,Gxy
 def add_moduli_curves(df : pd.DataFrame, color_name : str, labelstr : str):
     # Ex
@@ -211,11 +213,67 @@ def finish_moduli_curve():
     plt.grid(True);
     plt.show();
 
-def full_moduli_figure(working_dir, regex_pattern):
+def full_moduli_figure(working_dir, regex_pattern, Yao1999 : bool):
     df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
     add_moduli_curves(df, "black", "a = 0.925")
     finish_moduli_curve()
 
+## SIMPLIFIED ESTIMATES OF WHAT THE YAO1999/XU1996 DISPLACEMENT TEST WOULD MEASURE FOR THIS NETWORK
+# YAO 1999 uses analysis procedure from XU 1996, which assumes a single isotropic modulus in the network.
+# Most likely we will not need 
+
+def add_Yao1999_regions(df):
+    plt.fill_between(
+        x = [min(df['strain']),max(df['strain'])],
+        y1 = [15*12, 15*12],
+        y2 = [30*12, 30*12],
+        alpha = 0.2,
+        color = "orange",
+        label = "Ex, Yao1999")
+    
+    plt.fill_between(
+        x = [min(df['strain']),max(df['strain'])],
+        y1 = [35*12, 35*12],
+        y2 = [60*12, 60*12],
+        alpha = 0.2,
+        color = "green",
+        label = "Ey, Yao1999")
+
+def add_simple_compensation_for_Xu1996_curves(df : pd.DataFrame, color_name : str, labelstr : str):
+    # 'Ex'
+    # Simplified compensation, actual function would be complex product of slot geometry and Ex Ey Vxy Vyx Gxy
+    # this compensation notes that Xu1996 can only measure the magnitude of the stress but cannot know what component it comes from
+    # so, it will attribute the all stresses to a single modulus. Assume no shear.
+    df["Xu1996_Ex"] = np.sqrt(df['Ex']**2 + df['Vxy']*df['Ey']**2)
+    df["Xu1996_Ey"] = np.sqrt(df['Ey']**2 + df['Vyx']*df['Ex']**2)
+
+    add_curve_with_ci(df, 'strain', 'Xu1996_Ex', ":")
+    add_curve_with_ci(df, 'strain', 'Xu1996_Ey', "--")
+
+def simple_compensation_for_Xu1996_figure(working_dir, regex_pattern):
+    df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
+    add_simple_compensation_for_Xu1996_curves(df, "black", "a = 0.925")
+    add_Yao1999_regions(df);
+    finish_simple_compensation_for_Xu1996_curve();
+
+def finish_simple_compensation_for_Xu1996_curve():
+    plt.legend();
+    plt.title("Moduli vs Strain, as would be measured by Yao1996/Xu1996")
+    plt.ylabel("MPa*nm")
+    plt.xlabel(r"$\mathcal{E}$, Strain [a.u.]")
+    plt.grid(True);
+    plt.show();
+
 ## PLOTTING FUNCTIONS -- Vxy,Vyx
 
-## PLOTTING FUNCTIONS -- Predicted Stress Ratio
+## PLOTTING FUNCTIONS -- Predicted Stress Ratio & Actual Stress Ratio
+from process_network_ensembles import add_tension_ratio_curve
+
+def add_expected_tension_ratio(df : pd.DataFrame):
+    df["xx_yy_ratio"] = (df["Ex"] + df['Vxy']*df['Ey']) / (df["Ey"] + df['Vyx']*df['Ex']);
+    pass
+
+def full_ratios_figure(working_dir, regex_pattern):
+    df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
+    add_moduli_curves(df, "black", "a = 0.925")
+    finish_moduli_curve()

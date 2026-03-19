@@ -310,7 +310,7 @@ def run_isotropic_prestrain_minimize(
     L.command("minimize ${etol} ${ftol} ${maxiter} ${maxeval}")
 
     if write_debug_images:
-        L.command(f"write_dump all image {filepath_no_extension}.relaxed.jpg type type bond type type atom no")
+        L.command(f"write_dump all image {filepath_no_extension}.relaxed.jpg type type bond type type atom no zoom 1.8")
 
     #https://docs.lammps.org/compute_bond.html
     L.command("compute bondE  all bond")

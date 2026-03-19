@@ -15,3 +15,5 @@ full_tension_figure(curves_info)
 full_tension_ratio_figure(curves_info)
 full_energy_ratio_figure(curves_info)
 full_PE_figure(curves_info)
+
+full_bonds_strain_figure(curves_info)
