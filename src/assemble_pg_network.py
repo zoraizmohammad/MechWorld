@@ -192,7 +192,6 @@ def create_peptide_with_nearby_neighbor(
     a : Atom = atoms[id_of_atom];
 
     # It could be ineligible because another bond was formed with it.
-    # There is also a X% chance that the DSU is not eligible based on a Bernoulli trial, see constructor.
     if not a.is_eligible():
         return;
 
@@ -212,16 +211,16 @@ def create_peptide_with_nearby_neighbor(
     dcx_set = {-1,0,1};
     dcy_set = {-1,0,1};
 
-    # # Optimization to ignore cells that point away from the stem vector
-    # if a.v_stem[0] < -SIN_ALIGNMENT_TOL:
-    #     dcx_set.discard(1);
-    # elif a.v_stem[0] > SIN_ALIGNMENT_TOL:
-    #     dcx_set.discard(-1);
+    # Optimization to not search cells that point away from the stem vector
+    if a.v_stem[0] < -SIN_ALIGNMENT_TOL:
+        dcx_set.discard(1);
+    elif a.v_stem[0] > SIN_ALIGNMENT_TOL:
+        dcx_set.discard(-1);
     
-    # if a.v_stem[1] < -SIN_ALIGNMENT_TOL:
-    #     dcy_set.discard(1);
-    # elif a.v_stem[1] > SIN_ALIGNMENT_TOL:
-    #     dcy_set.discard(-1);
+    if a.v_stem[1] < -SIN_ALIGNMENT_TOL:
+        dcy_set.discard(1);
+    elif a.v_stem[1] > SIN_ALIGNMENT_TOL:
+        dcy_set.discard(-1);
 
     # look into the cells of the atom + (relevant) adjacent cells -> get a list of could-be neighbors
     for dcx in dcx_set:
@@ -251,22 +250,22 @@ def create_peptide_with_nearby_neighbor(
 
     # Speed date all the neighbors to see who's the best match
     for neighbor_id in neighbors_ids:
-        print(f"Atom {a.id} is checking Atom {neighbor_id}")
+        #print(f"Atom {a.id} is checking Atom {neighbor_id}")
         neighbor : Atom = atoms.get(neighbor_id)
 
         # Cannot form bond that connects to the same Glycan strand
         if (neighbor.mol_id == a.mol_id):
-            print("> Failed: Same molecule")
+            #print("> Failed: Same molecule")
             continue;
         
         # Cannot form bond if the neighbor is ineligible (e.g. it has a peptide already, failed Bernoulli trial)
         if (not neighbor.is_eligible()):
-            print("> Failed: Neighbor is not eligible")
+            #print("> Failed: Neighbor is not eligible")
             continue;
 
         # Ensure that the stems are pointing toward each other, each stem must be aligned within 45 degrees of the new peptide
         if (not verify_stem_alignment(a, neighbor, COS_ALIGNMENT_TOL, simbox_lx, simbox_ly, PERIODIC_RISK)):
-            print("> Failed: Stems not aligned")
+            #print("> Failed: Stems not aligned")
             continue;
         
         # There are not any hard restrictions on the neighbor, so compute the energy to bond...
@@ -275,7 +274,7 @@ def create_peptide_with_nearby_neighbor(
 
         # if the energy is undefined (past singularity) or too high, no bond
         if (E_neighbor == None) or (E_neighbor > max_allowed_energy):
-            print("> Failed: Energy too high")
+            #print("> Failed: Energy too high")
             continue;
 
         # It is eligible, so see if it is the BEST neighbor
@@ -357,7 +356,7 @@ def form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly, override_rad
     else:
         peptide_bond_search_radius = PEPTIDE_SEARCH_RADIUS; # nm, this is a greater length 
     
-    print(PEPTIDE_SEARCH_RADIUS)
+    #print(PEPTIDE_SEARCH_RADIUS)
     (grid, ids_of_eligible_atoms) = put_the_atoms_into_a_spatial_hash_smh(atoms, peptide_bond_search_radius, simbox_lx, simbox_ly)
 
     if ids_of_eligible_atoms == []:

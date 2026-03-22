@@ -8,14 +8,19 @@ from simulation_constants_settings import *
 # https://www.biorxiv.org/content/10.1101/2025.01.20.633943v1.full.pdf
 
 # https://pubmed.ncbi.nlm.nih.gov/1938964/
+# Wientjes 1991
 nm2_per_DSU = 2.5;
 DSU_per_nm2 = 1/nm2_per_DSU;
-DSU_length = 1.1; # nm
-observed_density_under_prestrain = DSU_per_nm2*(DSU_length**2); # number_of_DSU / DSU_length**2
-prestrain = np.array([0.13-0.08, 0.13, 0.13+0.08, 0.30]);
-relaxed_density = observed_density_under_prestrain * (1+prestrain)**2
+nm_per_DSU = 1.1; # nm
+rho_under_prestrain = DSU_per_nm2*(nm_per_DSU**2); # number_of_DSU / DSU_length**2
 
-print("Relaxed Density (LB,MEAN,UB): ", relaxed_density)
+# 
+a = 0.25;
+b = 0.086;
+prestrain = np.array([a-b, a, a+b, 0.30]);
+rho_relaxed = rho_under_prestrain * (1+prestrain)**2
+
+print("Relaxed Density (LB,MEAN,UB): ", rho_relaxed)
 
 # To a 1st-order estimate, we have a few approaches:
 # Laplace Pressure Vessel Model

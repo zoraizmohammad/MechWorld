@@ -3,7 +3,7 @@ from process_network_ensembles import *
 ### START OF PROGRAM FOR TESTING
 # Settings
 project_root = os.path.join(os.path.dirname(__file__), "..");
-working_dir = os.path.join(project_root,"results","hoffman","results");
+working_dir = os.path.join(project_root,"results","FS-0925");
 
 size = 300;
 curves_info = [
@@ -15,5 +15,3 @@ full_tension_figure(curves_info)
 full_tension_ratio_figure(curves_info)
 full_energy_ratio_figure(curves_info)
 full_PE_figure(curves_info)
-
-full_bonds_strain_figure(curves_info)
