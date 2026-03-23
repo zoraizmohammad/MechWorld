@@ -18,7 +18,9 @@ def create_FlorySchulz_distribution(min_DSU : int, max_DSU : int, p : float, ent
     DSUs = range(min_DSU,max_DSU+1);
     distribution = list();
     for i,x in enumerate(DSUs):
-        entries_for_this_length = floor( (x)*((1-p)**2)*(p**(x-1))*entries );
+        number_fraction = p**(x-1)*(1-p)
+        #weight_fraction = (x)*((1-p)**2)*(p**(x-1));
+        entries_for_this_length = floor(number_fraction*entries);
         distribution += [x] * entries_for_this_length;
     
     return distribution;
@@ -551,8 +553,8 @@ def generate_pg_network(
     populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx, Ny, epsilon_x, epsilon_y, distribution);
 
     if generate_figure_of_steps:
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
-        ax1 : plt.Axes; ax2 : plt.Axes; ax3 : plt.Axes; ax4 : plt.Axes;
+        fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, gridspec_kw={'height_ratios': [1.5, 1, 1]})
+        ax1 : plt.Axes; ax2 : plt.Axes; ax3 : plt.Axes
         visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax1, draw_stems=False);
 
     # Jangle the glycans
@@ -569,9 +571,6 @@ def generate_pg_network(
         alpha = (2*random()-1) * anisotropy * (np.pi)/2;
         g.rotate_wrt_cm(atoms, alpha)
 
-    if generate_figure_of_steps:
-        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax2, draw_stems=False);
-
     # Atoms and glycans will be outside the box b/c of rotation and
     # column start randomization. We're sticking them back into the box
     # at this point to simplify peptide-crosslink calculations
@@ -579,7 +578,7 @@ def generate_pg_network(
         g.correct_orthogonal_PCB(atoms, 0, simbox_lx, 0, simbox_ly);
 
     if generate_figure_of_steps:
-        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax3, draw_stems=False);
+        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax2, draw_stems=False);
 
     # Form peptide crosslinks based on distance and angle criteria
     form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly);
@@ -591,16 +590,15 @@ def generate_pg_network(
         print(f"Box Dimensions [nm] = ({simbox_lx}, {simbox_ly})")
         print(f"Density = {density_fraction}")
         print(f"Crosslink Ratio = {crosslink_ratio}")
-        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax4, draw_stems=False);
-        for a in [ax1,ax2,ax3,ax4]:
+        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax3, draw_stems=False);
+        for a in [ax1,ax2,ax3]:
             a.set_xticks([]);
             a.set_yticks([]);
         
-        ax1.set_title("#1: Populate Glycan")
-        ax2.set_title("#2: Reorient Glycan")
-        ax3.set_title("#3: Apply PCB")
-        ax4.set_title("#4: Form Cross-Links")
-        fig.set_size_inches(6,7)
+        ax1.set_title(r"$L_0=50, \rho=0.7, \alpha_{FS}=0.9$")
+        ax2.set_title(r"$\chi=0.72$")
+        ax3.set_title(r"$\Delta\theta_{stem} ≤ \pi, \epsilon_p ≤ 0.75$")
+        fig.set_size_inches(3,8)
         plt.show()
 
     if plot_network_on_these_axes:
@@ -647,3 +645,81 @@ def actual_length_distribution(glycans : dict[int,GlycanMolecule], distribution 
     actual_distrib = actual_distrib/len(glycans);
 
     return possible_glycan_lengths, actual_distrib
+
+# Generate Koch 2000 Network
+# In this model, glycan direction and length distribution are coupled.
+# The assumption is that glycan strands in directions with greater tension are cleaved more often.
+# The distributions follow a pattern of "K additions per random cleavage event"
+
+# Assume: Direction is fully random, but length distribution is drawn based on orientation.
+# Choose a K_Hoop and a K_Axial
+# Choose an orientation randomly: 0-pi/2
+# Calculate the expected stress from Mohr's Circle
+# Stress is used to interpolate between the two values of K, exponential b/c Arrhenius equation?
+
+def stress_factor(theta_RH_k : float):
+    theta_LH_k = -theta_RH_k;
+    sigma_shell = np.transpose(np.array([1,2,0]))
+    Tsigma = np.array([[np.cos(theta_LH_k)**2, np.sin(theta_LH_k)**2,  2*np.sin(theta_LH_k)*np.cos(theta_LH_k)],
+                       [np.sin(theta_LH_k)**2, np.cos(theta_LH_k)**2, -2*np.sin(theta_LH_k)*np.cos(theta_LH_k)],
+                       [-np.sin(theta_LH_k)*np.cos(theta_LH_k), np.sin(theta_LH_k)*np.cos(theta_LH_k), np.cos(theta_LH_k)**2 - np.sin(theta_LH_k)**2]])
+    sigma_glycan = Tsigma @ sigma_shell;
+
+    return sigma_glycan[1];
+
+def generate_Koch2000_simplified_distribution(K_Hoop = 15, K_Axial = 4, n_orientations = 1000) -> list[tuple[float, int]]:
+    orientation_sweep = np.linspace(-np.pi/2,np.pi/2,n_orientations);
+
+    sf = np.zeros(n_orientations);
+    for i in range(0,len(sf)):
+        sf[i] = stress_factor(orientation_sweep[i])
+
+    L = K_Axial + (K_Hoop-K_Axial)*(sf-1);
+    L = np.int8(L);
+
+    a,b = normalized_length_distribution(list(monte_carlo_K_cleavage_distribution(K=15, n_samples=int(1E4))))
+    c,d = normalized_length_distribution(process_distribution_string("FS-2-100-0.90", 110))
+
+    plt.plot(a,b)
+    plt.plot(c,d)
+    plt.show()
+
+from itertools import accumulate
+
+def monte_carlo_K_cleavage_distribution(K : int, n_samples : int):
+    assert type(K) == int;
+    assert type(n_samples) == int;
+
+    chains = np.int16(np.zeros(n_samples)); # length of chains in monomer units
+    num_chains = 1;
+    chains[0] = 1;
+
+    # stop once cleaving has produced the number of samples we need
+    while num_chains < n_samples:
+        # Add K monomers to random chain
+        for i in range(K):
+            gi = randrange(0,num_chains);
+            chains[gi] = min(chains[gi]+1,100); # Maximum length
+
+        # Randomly choose one of the monomers
+        DSU_i = randrange(0,np.sum(chains))
+        
+        # Cleave that monomer's chain into two chains, if it is big enough to not make monomers.
+        index_of_last_DSU_in_each_glycan = np.cumsum(chains)
+        glycan_i = np.argmax(chains[index_of_last_DSU_in_each_glycan > DSU_i])
+
+        #print(f"DSU #{DSU_i} found in glycan #{glycan_i}")
+
+        pre_cleave_length = chains[glycan_i];
+        if (pre_cleave_length >= 4):
+            chains[glycan_i] = randrange(2,pre_cleave_length-1);
+            chains[num_chains] = pre_cleave_length - chains[glycan_i];
+            num_chains += 1;
+
+    return chains;
+
+
+
+
+
+generate_Koch2000_simplified_distribution()

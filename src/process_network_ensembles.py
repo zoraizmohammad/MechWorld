@@ -7,7 +7,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from utils_helpers import get_confidence_intervals, find_files
+from utils_helpers import get_confidence_intervals, find_files, add_curve_with_ci
 from assemble_pg_network import generate_pg_network
 from run_lammps_isotropic_strain import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
 from lammps_PG_objects import Bond
@@ -160,43 +160,18 @@ def file_dfs_to_combined_tension_df(file_dfs : pd.DataFrame) -> pd.DataFrame:
         return pd.concat(tension_dfs)
 
 ## PLOTTING FUNCTIONS -- ENERGY RATIO
-def add_energy_ratio_curves(df : pd.DataFrame, color_name : str, labelstr : str):
+def add_energy_ratio_curves(df : pd.DataFrame, curves_color : str, extra_label_info : str):
     # Elastic of Glycan
-    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'glycan_pe_frac');
-    n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle=":", label="Glycan Extension : " + labelstr)
-    plt.fill_between(
-        ci_df.index,
-        ci_df['lower'],
-        ci_df['upper'],
-        color=color_name, 
-        alpha=0.2, 
-        label=f'95% Confidence (nSamples={n})'
-    )
+    add_curve_with_ci(df, 'strain', 'glycan_pe_frac', 
+                      curve_linestyle=":", curve_color=curves_color, curve_label_override="Glycan Extension"+extra_label_info)
 
     # Bending of Glycan
-    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'angle_pe_frac');
-    n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="--", label="Glycan Bending")
-    plt.fill_between(
-        ci_df.index,
-        ci_df['lower'],
-        ci_df['upper'],
-        color=color_name, 
-        alpha=0.2
-    )
+    add_curve_with_ci(df, 'strain', 'angle_pe_frac', 
+                      curve_linestyle="--", curve_color=curves_color, curve_label_override="Glycan Bending")
 
     # Elastic of Peptides
-    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'peptide_pe_frac');
-    n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="-", label="Peptide Extension")
-    plt.fill_between(
-        ci_df.index,
-        ci_df['lower'],
-        ci_df['upper'],
-        color=color_name, 
-        alpha=0.2
-    )
+    add_curve_with_ci(df, 'strain', 'peptide_pe_frac', 
+                      curve_linestyle="-", curve_color=curves_color, curve_label_override="Peptide Extension")
 
 def finish_energy_ratio_curve():
     plt.legend();
@@ -233,31 +208,14 @@ def finish_PE_density_curve():
     plt.show()
 
 ## PLOTTING FUNCTIONS -- TENSION
-def add_tension_curve(df : pd.DataFrame, color_name : str, labelstr):
-    # Longitudinal (Lower)
-    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'tension_xx');
-    n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="--", label = labelstr+", Axial Tension")
-    plt.fill_between(
-        ci_df.index,
-        ci_df['lower'],
-        ci_df['upper'],
-        color=color_name, 
-        alpha=0.2, 
-        label=f'95% Confidence (nSamples={n})'
-    )
-
+def add_tension_curve(df : pd.DataFrame, curves_color : str, extra_label_info):
     # Hoop (Higher)
-    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'tension_yy');
-    n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="-", label = labelstr+", Hoop Tension")
-    plt.fill_between(
-        ci_df.index,
-        ci_df['lower'],
-        ci_df['upper'],
-        color=color_name, 
-        alpha=0.2
-    )
+    add_curve_with_ci(df, 'strain', 'tension_yy', 
+                    curve_linestyle="-", curve_color=curves_color, curve_label_override=r"$\gamma_{Hoop}$"+extra_label_info)
+
+    # Longitudinal (Lower)
+    add_curve_with_ci(df, 'strain', 'tension_xx', 
+                    curve_linestyle="--", curve_color=curves_color, curve_label_override=r"$\gamma_{Axial}$")
 
 def finish_tension_curve():
     plt.title("Directional Tension during Isotropic Pre-Strain")
@@ -267,20 +225,12 @@ def finish_tension_curve():
     plt.show()
 
 ## PLOTTING FUNCTIONS -- TENSION RATIO
-def add_tension_ratio_curve(df : pd.DataFrame, color_name : str, labelstr):
-    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'ratio');
-    n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="-", label = labelstr)
-    plt.fill_between(
-        ci_df.index,
-        ci_df['lower'],
-        ci_df['upper'],
-        color=color_name, 
-        alpha=0.2,
-        label=f'95% Confidence (nSamples={n})'
-    )
+def add_tension_ratio_curve(df : pd.DataFrame, curve_color : str, extra_label_info : str):
+    add_curve_with_ci(df, 'strain', 'ratio', 
+                curve_linestyle="-", curve_color=curve_color, curve_label_override="Tension Ratio"+extra_label_info)
 
-    print(f"Mean Tension Ratio for {labelstr}: {np.mean(ci_df['mean'].to_numpy())}")
+    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'ratio')
+    print(f"Mean Tension Ratio for {extra_label_info}: {np.mean(ci_df['mean'].to_numpy())}")
 
 def finish_tension_ratio_curve():
     plt.title("Tension Ratio during Isotropic Pre-Strain")
@@ -297,6 +247,7 @@ def full_tension_figure(
         expected_strain_tuple : tuple[float,float] = None,
         expected_tension_xx_tuple : tuple[float,float] = None,
         expected_tension_yy_tuple : tuple[float,float] = None):
+    
     for i in range(0,len(curves_information)):
         (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
@@ -332,7 +283,11 @@ def full_tension_figure(
 
     finish_tension_curve();
 
-def full_tension_ratio_figure(curves_information : list[tuple[str, str, str, str]]):
+def full_tension_ratio_figure(curves_information : list[tuple[str, str, str, str]], ax : plt.Axes = None, show_laplace_region : bool = False):
+    
+    if ax == None:
+        ax = plt.subplot();
+    
     for i in range(0,len(curves_information)):
         (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
 
@@ -348,6 +303,13 @@ def full_tension_ratio_figure(curves_information : list[tuple[str, str, str, str
             combined_df = pd.concat(tension_dfs)
 
         add_tension_ratio_curve(combined_df, colorname, labelstr);
+    
+    if show_laplace_region:
+        expected_ratio = 0.5;
+        margin_ratio = 0.1;
+        ylo = expected_ratio * (1-margin_ratio);
+        yhi = expected_ratio * (1+margin_ratio);
+        ax.fill_between([0,0.3],[ylo,ylo],[yhi,yhi], alpha=0.3, color="green", hatch="/", label="Ratio of Cylindrical Pressure Vessel")
 
     finish_tension_ratio_curve();
 
