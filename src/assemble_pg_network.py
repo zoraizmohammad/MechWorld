@@ -25,7 +25,7 @@ def create_FlorySchulz_distribution(min_DSU : int, max_DSU : int, p : float, ent
     
     return distribution;
 
-def create_top_hat_distribution(min_DSU : int, max_DSU : int):
+def create_uniform_distribution(min_DSU : int, max_DSU : int):
     distribution = range(min_DSU, max_DSU+1);
     return distribution;
 
@@ -44,7 +44,7 @@ def process_distribution_string(distrib_str : str, size : int) -> list[int]:
 
     elif chunks[0] == "UNI":
         assert len(chunks) == 3;
-        return create_top_hat_distribution(int(chunks[1]), int(chunks[2]));
+        return create_uniform_distribution(int(chunks[1]), int(chunks[2]));
 
     else:
         raise ValueError(f"Misconfigured distrib str: {distrib_str}")
@@ -667,7 +667,7 @@ def stress_factor(theta_RH_k : float):
 
     return sigma_glycan[1];
 
-def generate_Koch2000_simplified_distribution(K_Hoop = 15, K_Axial = 4, n_orientations = 1000) -> list[tuple[float, int]]:
+def generate_Koch2000_simplified_distribution(K_Hoop = 15, K_Axial = 4, n_orientations = 180) -> list[tuple[float, int]]:
     orientation_sweep = np.linspace(-np.pi/2,np.pi/2,n_orientations);
 
     sf = np.zeros(n_orientations);
@@ -717,9 +717,3 @@ def monte_carlo_K_cleavage_distribution(K : int, n_samples : int):
             num_chains += 1;
 
     return chains;
-
-
-
-
-
-generate_Koch2000_simplified_distribution()
