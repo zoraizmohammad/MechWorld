@@ -167,55 +167,27 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> li
 ## TODO: Check reduced stiffness matrix for unstable modes, look at eigenvalues
 
 ## PLOTTING FUNCTIONS -- Ex,Ey,Gxy
-def add_moduli_curves(df : pd.DataFrame, color_name : str, labelstr : str):
+def add_moduli_curves(df : pd.DataFrame, color_name : str, extra_label_info : str):
     # Ex
-    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'Ex');
-    n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle=":", label="Ex : " + labelstr)
-    plt.fill_between(
-        ci_df.index,
-        ci_df['lower'],
-        ci_df['upper'],
-        color=color_name, 
-        alpha=0.2, 
-        label=f'95% Confidence (nSamples={n})'
-    )
+    add_curve_with_ci(df, 'strain', 'Ex', curve_color=color_name, curve_linestyle="-", curve_label_override="$E_{xx}$"+extra_label_info)
 
     # Ey
-    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'Ey');
-    n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="--", label="Ey")
-    plt.fill_between(
-        ci_df.index,
-        ci_df['lower'],
-        ci_df['upper'],
-        color=color_name, 
-        alpha=0.2
-    )
+    add_curve_with_ci(df, 'strain', 'Ey', curve_color=color_name, curve_linestyle="--", curve_label_override="$E_{yy}$")
 
     # Gxy
-    ci_df = get_confidence_intervals(df, 0.95, 'strain', 'Gxy');
-    n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=color_name, linestyle="-", label="Gxy")
-    plt.fill_between(
-        ci_df.index,
-        ci_df['lower'],
-        ci_df['upper'],
-        color=color_name, 
-        alpha=0.2
-    )
+    add_curve_with_ci(df, 'strain', 'Gxy', curve_color=color_name, curve_linestyle=":", curve_label_override="$G_{xy}$")
 
 def finish_moduli_curve():
     plt.legend();
-    plt.title("Elastic Moduli vs Strain")
+    plt.title("Extensional and Shear Moduli")
     plt.ylabel("MPa*nm")
     plt.xlabel(r"$\mathcal{E}$, Strain [a.u.]")
     plt.grid(True);
     plt.show();
 
-def full_moduli_figure(working_dir, regex_pattern, Yao1999 : bool):
+def full_moduli_figure(working_dir, regex_pattern):
     df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
-    add_moduli_curves(df, "black", "a = 0.925")
+    add_moduli_curves(df, "black", r" $\alpha = 0.925$")
     finish_moduli_curve()
 
 ## SIMPLIFIED ESTIMATES OF WHAT THE YAO1999/XU1996 DISPLACEMENT TEST WOULD MEASURE FOR THIS NETWORK
@@ -265,6 +237,17 @@ def finish_simple_compensation_for_Xu1996_curve():
     plt.show();
 
 ## PLOTTING FUNCTIONS -- Vxy,Vyx
+def full_poisson_ratios_figure(working_dir, regex_pattern):
+    df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
+    add_curve_with_ci(df, 'strain', 'Vxy',"--", curve_label_override="$V_{xy}$")
+    add_curve_with_ci(df, 'strain', 'Vyx',":", curve_label_override="$V_{yx}$")
+    
+    plt.legend()
+    plt.title("Poisson Ratios")
+    plt.ylabel("Poisson Ratio [a.u.]")
+    plt.xlabel(r"$\mathcal{E}$, Strain [a.u.]")
+    plt.grid()
+    plt.show()
 
 ## PLOTTING FUNCTIONS -- Predicted Stress Ratio & Actual Stress Ratio
 from process_network_ensembles import add_tension_ratio_curve

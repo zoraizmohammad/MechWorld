@@ -97,16 +97,17 @@ def plot_crosslinks_vs_rho_mesh(crosslinks_df, tilt : float, colorname : str, la
     )
 
 def plot_expected_ranges(x,y):
-    plt.fill_between([x[0],x[1]], [y[0],y[0]], [y[1],y[1]], alpha = 0.2, color="green")
+    plt.fill_between([x[0],x[1]], [y[0],y[0]], [y[1],y[1]], alpha = 0.3, color="green", hatch="/",
+                     label="Experimentally Measured Values, E.Coli KN 126")
 
 def finish_crosslinks_vs_rho_gap_fig(ax : plt.Axes):
-    plt.xlabel(r'$\rho$', fontsize=15)
+    plt.xlabel(r'$\rho_0$', fontsize=15)
     plt.ylabel(r'$\phi$', rotation=0, fontsize=15)
     #plt.title(r'$\phi$ vs $\rho$')
     ax.yaxis.set_label_coords(-0.1,0.5)
     plt.legend()
     plt.grid(True, linestyle='--', alpha=0.6)
-    plt.savefig(os.path.join(PROJECT_ROOT_DIR,'figures','Crosslinking.pdf'), format="PDF")
+    plt.savefig(os.path.join(PROJECT_ROOT_DIR,'figures','Crosslinkage.pdf'), format="PDF")
     plt.show()
 
 dsu_200_datafile = os.path.join(PROJECT_ROOT_DIR,"results","crosslinks200_stems.dump")
@@ -116,16 +117,22 @@ dsu_500_datafile = os.path.join(PROJECT_ROOT_DIR,"results","crosslinks500_stems.
 if not os.path.exists(dsu_200_datafile):
     sweep_data_points(dsu_200_datafile, 200)
 
-crosslinks_200_df = import_crosslinks_data(dsu_200_datafile);
+if not os.path.exists(dsu_300_datafile):
+    sweep_data_points(dsu_300_datafile, 300)
+
+crosslinks_300_df = import_crosslinks_data(dsu_300_datafile);
 ax = plt.axes();
 
-plot_crosslinks_vs_rho_gap(crosslinks_200_df, 0.33, "red", r"$\chi = 0.33$", "-")
-plot_crosslinks_vs_rho_gap(crosslinks_200_df, 0.72, "blue", r"$\chi = 0.72$", "-")
-plot_crosslinks_vs_rho_gap(crosslinks_200_df, 1.00, "black", r"$\chi = 1.00$", "-")
-plot_expected_ranges([0.53361, 0.7086244], [0.4, 0.6])
+plot_crosslinks_vs_rho_gap(crosslinks_300_df, 0.33, "red", r"$\chi = 0.33$", "-")
+plot_crosslinks_vs_rho_gap(crosslinks_300_df, 0.72, "blue", r"$\chi = 0.72$", "-")
+plot_crosslinks_vs_rho_gap(crosslinks_300_df, 1.00, "black", r"$\chi = 1.00$", "-")
+# 0.65576966 0.75625    0.86388966
+# 0.25 +/- 0.086: 0.69696 0.75625 0.81796
+expected_crosslinkage_range = [0.446, 0.606+0.02] # Glauner 1998, Vollmer 2010, Stationary Phase KN126 E.Coli, 60% mean, std = 2%
+plot_expected_ranges([0.69696, 0.81796], expected_crosslinkage_range)
 
 #selected_density = 0.67; #0.7;
-#selected_density = 0.7;
-#plt.plot([selected_density,selected_density],[0,0.9],"--")
+selected_density = 0.76;
+plt.plot([selected_density,selected_density],[0,0.9],"--",label=f"Selected Density = {selected_density}")
 
 finish_crosslinks_vs_rho_gap_fig(ax)

@@ -222,6 +222,7 @@ def finish_tension_curve():
     plt.ylabel("$\gamma$ [N/m]")
     plt.xlabel(r"$\mathcal{E}$, Strain")
     plt.legend()
+    plt.grid()
     plt.show()
 
 ## PLOTTING FUNCTIONS -- TENSION RATIO
@@ -234,9 +235,9 @@ def add_tension_ratio_curve(df : pd.DataFrame, curve_color : str, extra_label_in
 
 def finish_tension_ratio_curve():
     plt.title("Tension Ratio during Isotropic Pre-Strain")
-    plt.ylabel(r"$\frac{\gamma_(xx)}{\gamma_(yy)}$ [a.u.]")
+    plt.ylabel(r"$\gamma_{Axial}$ / $\gamma_{Hoop}$ [a.u.]")
     plt.xlabel(r"$\mathcal{E}$, Strain")
-    plt.ylim([0,1.5])
+    plt.ylim([0,1.6])
     plt.grid(True)
     plt.legend()
     plt.show()
@@ -263,6 +264,10 @@ def full_tension_figure(
             combined_tension_df = pd.concat(tension_dfs)
 
         add_tension_curve(combined_tension_df, colorname, labelstr);
+    
+    ci_df = get_confidence_intervals(combined_tension_df, 0.95, 'strain', 'tension_yy')
+    ci_df = ci_df.loc[abs(ci_df.index-0.25)<=0.02]
+    print(ci_df)
     
     print(expected_strain_tuple,expected_tension_xx_tuple,expected_tension_yy_tuple)
     if (expected_strain_tuple != None) and (expected_tension_xx_tuple != None):
@@ -309,7 +314,7 @@ def full_tension_ratio_figure(curves_information : list[tuple[str, str, str, str
         margin_ratio = 0.1;
         ylo = expected_ratio * (1-margin_ratio);
         yhi = expected_ratio * (1+margin_ratio);
-        ax.fill_between([0,0.3],[ylo,ylo],[yhi,yhi], alpha=0.3, color="green", hatch="/", label="Ratio of Cylindrical Pressure Vessel")
+        ax.fill_between([0,0.3],[ylo,ylo],[yhi,yhi], alpha=0.2, color="green", hatch="/", label="Expected Ratio for Cylindrical Shell")
 
     finish_tension_ratio_curve();
 

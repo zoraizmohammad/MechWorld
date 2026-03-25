@@ -14,9 +14,9 @@ DSU_per_nm2 = 1/nm2_per_DSU;
 nm_per_DSU = 1.1; # nm
 rho_under_prestrain = DSU_per_nm2*(nm_per_DSU**2); # number_of_DSU / DSU_length**2
 
-# 
+# Rojas 2018
 a = 0.25;
-b = 0.086;
+b = 0.05;
 prestrain = np.array([a-b, a, a+b, 0.30]);
 rho_relaxed = rho_under_prestrain * (1+prestrain)**2
 
@@ -28,6 +28,7 @@ print("Relaxed Density (LB,MEAN,UB): ", rho_relaxed)
 # tension_xx = PR/2        # Stress Per Unit of Wall Depth
 
 turgor_pressure_Pa = np.array([0.9, 1.2]) * u_ATM_to_PASCAL # atm -> Pa N/m2
+#turgor_pressure_Pa = np.array([0.28, 0.32]) * u_ATM_to_PASCAL # atm -> Pa N/m2
 diameter_um = np.array([0.7,1.0])
 radius_m = (diameter_um/2) * 1E-6 # D is 0.25 - 1.0 um https://en.wikipedia.org/wiki/Escherichia_coli
 t = 6 * 1E-9 # m
