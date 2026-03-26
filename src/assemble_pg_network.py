@@ -7,6 +7,7 @@ from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule
 from simulation_constants_settings import *
 from lammps_PG_objects import peptide_energy_lammps, shortest_path_is_periodic_x, shortest_path_is_periodic_y
 import matplotlib.pyplot as plt
+from scipy.stats import gamma, lognorm
 
 rng = np.random.default_rng()
 
@@ -14,37 +15,68 @@ rng = np.random.default_rng()
 # Koch, A. L. (2000a). Length distribution of the peptidoglycan chains in the sacculus of
 # escherichia coli. Journal of Theoretical Biology, 204(4), 533–541.
 
-def create_FlorySchulz_distribution(min_DSU : int, max_DSU : int, p : float, entries : int):
+def create_FlorySchulz_distribution(min_DSU : int, max_DSU : int, p : float, entries : int, use_weight_fraction = False):
     DSUs = range(min_DSU,max_DSU+1);
     distribution = list();
     for i,x in enumerate(DSUs):
-        number_fraction = p**(x-1)*(1-p)
-        #weight_fraction = (x)*((1-p)**2)*(p**(x-1));
-        entries_for_this_length = floor(number_fraction*entries);
+        if use_weight_fraction:
+            weight_fraction = (x)*((1-p)**2)*(p**(x-1));
+            entries_for_this_length = floor(weight_fraction*entries);
+        else:
+            number_fraction = p**(x-1)*(1-p)
+            entries_for_this_length = floor(number_fraction*entries);
+
         distribution += [x] * entries_for_this_length;
     
+    print(f"DEBUG: Mean of FS (a = {p}): {np.mean(distribution)}")
+
     return distribution;
 
 def create_uniform_distribution(min_DSU : int, max_DSU : int):
     distribution = range(min_DSU, max_DSU+1);
     return distribution;
 
+def create_lognorm_distribution(min : int, max : int, LN1 : float, LN2 : float, LN3 : float, entries : int):
+    xs = np.arange(min,max+1);
+    distribution = [];
+
+    print(LN1, LN2, LN3)
+
+    pdf = lognorm.pdf(xs, LN1, LN2, LN3)
+    print(pdf)
+
+    for i,x in enumerate(xs):
+        entries_for_this_length = floor(pdf[i]*entries);
+        distribution += [x] * entries_for_this_length;
+    
+    print(f"DEBUG: Mean of LOGNORM {np.mean(distribution)}")
+
+    return distribution
+
 def process_distribution_string(distrib_str : str, size : int) -> list[int]:
-    # Option #1: FS-{min}-{max}-{alpha}
-    # i.e. FS-2-100-0.9
+    # Option #1: FS={min}={max}={alpha}
+    # i.e. FS=2=100=0.9
 
     # Option #2: UNI-{min}-{max}
-    # i.e. UNI-20-30
+    # i.e. UNI=20=30
 
-    chunks : list[str] = distrib_str.split("-")
+    chunks : list[str] = distrib_str.split("=")
 
     if chunks[0] == "FS":
         assert len(chunks) == 4;
         return create_FlorySchulz_distribution(int(chunks[1]), int(chunks[2]), float(chunks[3]), 1E6)
+    
+    if chunks[0] == "WFS":
+        assert len(chunks) == 4;
+        return create_FlorySchulz_distribution(int(chunks[1]), int(chunks[2]), float(chunks[3]), 1E6, True)
 
     elif chunks[0] == "UNI":
         assert len(chunks) == 3;
         return create_uniform_distribution(int(chunks[1]), int(chunks[2]));
+
+    elif chunks[0] == "LN":
+        assert len(chunks) == 6;
+        return create_lognorm_distribution(int(chunks[1]), int(chunks[2]), float(chunks[3]), float(chunks[4]), float(chunks[5]), 1E6);
 
     else:
         raise ValueError(f"Misconfigured distrib str: {distrib_str}")

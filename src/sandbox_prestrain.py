@@ -15,7 +15,7 @@ nm_per_DSU = 1.1; # nm
 rho_under_prestrain = DSU_per_nm2*(nm_per_DSU**2); # number_of_DSU / DSU_length**2
 
 # Rojas 2018
-a = 0.25;
+a = 0.13;
 b = 0.05;
 prestrain = np.array([a-b, a, a+b, 0.30]);
 rho_relaxed = rho_under_prestrain * (1+prestrain)**2
@@ -27,21 +27,11 @@ print("Relaxed Density (LB,MEAN,UB): ", rho_relaxed)
 # tension_yy = PR          # Stress Per Unit of Wall Depth
 # tension_xx = PR/2        # Stress Per Unit of Wall Depth
 
-turgor_pressure_Pa = np.array([0.9, 1.2]) * u_ATM_to_PASCAL # atm -> Pa N/m2
-#turgor_pressure_Pa = np.array([0.28, 0.32]) * u_ATM_to_PASCAL # atm -> Pa N/m2
-diameter_um = np.array([0.7,1.0])
-radius_m = (diameter_um/2) * 1E-6 # D is 0.25 - 1.0 um https://en.wikipedia.org/wiki/Escherichia_coli
-t = 6 * 1E-9 # m
+from sandbox_expected_tension import tension_xx, tension_yy
 
 # Lower Bound
-tension_yy = turgor_pressure_Pa[0]*radius_m[0];   # [N/m]
-tension_xx = turgor_pressure_Pa[0]*radius_m[0]/2; # [N/m]
-print("Lower Bound: sigma_xx = ", tension_xx, ", sigma_yy = ", tension_yy)
-
-# Upper Bound
-tension_yy = turgor_pressure_Pa[1]*radius_m[1];   # [N/m]
-tension_xx = turgor_pressure_Pa[1]*radius_m[1]/2; # [N/m]
-print("Upper Bound: sigma_xx = ", tension_xx, ", sigma_yy = ", tension_yy)
+print("Bounds of Axial Tension = ", tension_xx)
+print("Bounds of Hoop Tension = ", tension_yy)
 
 # stress = tension / thickness
 
