@@ -35,7 +35,7 @@ source .venv/bin/activate
 
 # Select isotropy based on task id using an array
 # Divide tasks evenly across the specified params, ex 30 tasks / 3 params = 10 networks of each isotropy
-params=(0.60 0.62 0.64 0.66 0.68)
+params=(0.61 0.63 0.65 0.67 0.69)
 params_length=${#params[@]}
 c_density_parameter=${params[$SGE_TASK_ID % $params_length]}
 
