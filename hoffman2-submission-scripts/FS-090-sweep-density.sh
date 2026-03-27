@@ -17,7 +17,7 @@
 #$ -m bea
 
 ## Run multiple copies of the script, one for each isotropy level [0.33, 0.72, 1.00]
-#$ -t 1-50:1
+#$ -t 1-90:1
 
 # echo job info on joblog:
 echo "Job $JOB_ID started on:   " `hostname -s`
@@ -35,13 +35,13 @@ source .venv/bin/activate
 
 # Select isotropy based on task id using an array
 # Divide tasks evenly across the specified params, ex 30 tasks / 3 params = 10 networks of each isotropy
-params=(0.60 0.61 0.62 0.63 0.64 0.65 0.66 0.67 0.68 0.69)
+params=($(seq 0.60 0.01 0.89))
 params_length=${#params[@]}
 c_density_parameter=${params[$SGE_TASK_ID % $params_length]}
 
 echo "Running Task ${SGE_TASK_ID} with parameter: ${c_density_parameter}"
 
-python src/task_create_and_process_network.py 300 ${c_density_parameter} 0.75 results/FS-090/ ${JOB_ID} ${SGE_TASK_ID} --dist "FS=2=100=0.90" --write_dumps
+python src/task_create_and_process_network.py 300 ${c_density_parameter} 0.75 results/090-FS/ ${JOB_ID} ${SGE_TASK_ID} --dist "FS=2=100=0.90" --write_dumps --write_restarts
 
 # echo job info on joblog:
 echo "Job $JOB_ID ended on:   " `hostname -s`
