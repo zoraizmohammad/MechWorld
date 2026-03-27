@@ -15,7 +15,7 @@ Obermann_DSU_lengths = np.arange(1,len(Obermann_Cylindrical_Data)+1)
 Experimental_Average_Chain_Length = 27.8;
 Short_Chains_Expectation = sum(Obermann_DSU_lengths*Obermann_Cylindrical_Data*0.01);
 
-fraction_of_total_glycans_2_to_30 = 1.00 - 0.14; # Figure 2, Obermann 1994
+fraction_of_total_glycans_2_to_30 = 1.00 - 0.14; # Figure 2, Obermann 1994 -> But it gives the wrong mean length compared to their own measurements?
 
 tx = Obermann_DSU_lengths[1:];
 ty = Obermann_Cylindrical_Data[1:] * fraction_of_total_glycans_2_to_30 * 0.01;
@@ -30,7 +30,7 @@ def lognorm_PDF(x, LN1, LN2, LN3):
     return lognorm.pdf(x, LN1, LN2, LN3)
 
 Experimental_Average_Chain_Length = 27.8;
-alpha_FS = round(1-(2/(Experimental_Average_Chain_Length + 1)),3)
+alpha_FS = round(1-(2/(Experimental_Average_Chain_Length + 1)),3);
 
 params_LN, covariance_LN = curve_fit(lognorm_PDF,tx,ty,[0.5,-11,30]);
 params_FS, covariance_FS = curve_fit(FS_WPDF,tx,ty,[0.93]);

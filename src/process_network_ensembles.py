@@ -108,27 +108,31 @@ def collect_list_of_prestrain_dataframes(dirpath : str, regex_pattern : str) -> 
     for filename in listdir(dirpath):
         if re.search(regex_pattern, filename):
             filepath = os.path.join(dirpath,filename)
+            rho_0 = re.match(r".+_rho(\d+).+",filename).group(1);
             dataclasses_from_file = import_isotropic_prestrain_data(filepath)
             df = pd.DataFrame([asdict(n) for n in dataclasses_from_file])
+            df['rho_0'] = [(float(rho_0)/100)] * len(dataclasses_from_file); # Add information about relaxed density
             dfs.append(df)
 
     return dfs
 
-# TODO: Review units & names
 def calculate_tension_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
     lx  = file_df['lx'].to_numpy()
     pxx = file_df['pxx'].to_numpy()
     pyy = file_df['pyy'].to_numpy()
     pxy = file_df['pxy'].to_numpy()
+    rho_0 = file_df['rho_0'].to_numpy();
 
     strain   = (lx - lx[0]) / lx[0];
+    rho_f = rho_0 / (1+strain)**2;
+    print(rho_f)
     tension_xx = -(pxx - pxx[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
     tension_yy = -(pyy - pyy[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
     tension_xy = -(pxy - pxy[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
     ratio = tension_xx / tension_yy;
     ratio[0] = ratio[1];
 
-    d = {"strain":strain, "tension_xx":tension_xx, "tension_yy":tension_yy, "tension_xy":tension_xy, "ratio":ratio}
+    d = {"strain":strain, "tension_xx":tension_xx, "tension_yy":tension_yy, "tension_xy":tension_xy, "ratio":ratio, "rho_f":rho_f}
     return pd.DataFrame(d)
 
 def calc_energy_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
@@ -355,6 +359,56 @@ def full_PE_figure(curves_information : list[tuple[str, str, str, str]]):
         add_PE_density_curve(combined_PE_df, colorname, labelstr);
 
     finish_PE_density_curve();
+
+def full_turgor_strain_figure(
+        curves_information : list[tuple[str, str, str, str]],
+        diameter_bounds_m : tuple[float, float] = (0.7*1E-6,0.8*1E-6),
+        density_filter : tuple[float,float] = None):
+    
+    for i in range(0,len(curves_information)):
+        (working_dirpath, output_regex, curve_color, curve_label) = curves_information[i];
+
+        dfs = collect_list_of_prestrain_dataframes(working_dirpath, output_regex)
+
+        tension_dfs = list()
+        for file_df in dfs:
+            new_tension_df = calculate_tension_df_from_file_df(file_df);
+
+            if density_filter:
+                mask = (new_tension_df['rho_f'] >= density_filter[0]) & (new_tension_df['rho_f'] <= density_filter[1])
+                new_tension_df = new_tension_df[mask]
+                print(mask)
+
+            tension_dfs.append(new_tension_df);
+
+        if len(tension_dfs) == 0:
+            continue;
+        else:
+            combined_tension_df : pd.DataFrame = pd.concat(tension_dfs)
+
+        ci_pyy_df = get_confidence_intervals(combined_tension_df, 0.95, "strain", "tension_yy")
+
+        turgor_pressure_df = pd.DataFrame();
+        turgor_pressure_df['strain'] = ci_pyy_df.index;
+        turgor_pressure_df['upper'] = ci_pyy_df['upper'].to_numpy() / (min(diameter_bounds_m)/2 * u_ATM_to_PASCAL);
+        turgor_pressure_df['mean']  = ci_pyy_df['mean'].to_numpy()  / (np.mean(diameter_bounds_m)/2 * u_ATM_to_PASCAL);
+        turgor_pressure_df['lower'] = ci_pyy_df['lower'].to_numpy() / (max(diameter_bounds_m)/2 * u_ATM_to_PASCAL);
+
+        plt.plot(turgor_pressure_df['strain'], turgor_pressure_df['mean'], color=curve_color, linestyle="-", label=curve_label)
+        plt.fill_between(
+            turgor_pressure_df['strain'],
+            turgor_pressure_df['lower'],
+            turgor_pressure_df['upper'],
+            color=curve_color, 
+            alpha=0.2
+        )
+
+    plt.title(r"Turgor Pressure for Fixed $\rho_{f}$")
+    plt.legend()
+    plt.xlabel(r"$\mathcal{E}_{f}$, Strain")
+    plt.ylabel("Turgor Pressure [atm]")
+    plt.grid()
+    plt.show()
 
 #### Peptide Strain Histograms
 def full_bonds_strain_figure(working_dirpath : str, regex_pattern_no_extension : str):
