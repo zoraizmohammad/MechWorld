@@ -269,6 +269,8 @@ def run_isotropic_prestrain_minimize(
 
     stepwise_xlo_values = xlo * (stepwise_strains + 1);
     stepwise_ylo_values = ylo * (stepwise_strains + 1);
+
+    number_of_strain_steps = len(stepwise_strains);
     
     L = lammps();
 
@@ -322,7 +324,7 @@ def run_isotropic_prestrain_minimize(
     ### 6) Take a series of discrete box deformation steps, minimizing the energy after each, then output parameters
 
     L.command("print \"step temp pe press pxx pyy pxy lx ly vol glycan_pe angle_pe peptide_pe\" file ${print_filename}");
-    for i in range(0,number_strain_steps):
+    for i in range(0,number_of_strain_steps):
         cur_xlo = stepwise_xlo_values[i];
         cur_ylo = stepwise_ylo_values[i];
         cur_strain = (cur_xlo / stepwise_xlo_values[0]) - 1;

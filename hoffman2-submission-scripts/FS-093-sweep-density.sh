@@ -7,7 +7,7 @@
 
 ## Resource Allocation...
 ## When testing with qrsh, this sequence worked with one core and 3G of memory
-#$ -l h_rt=6:00:00,h_data=8G
+#$ -l h_rt=6:00:00,h_data=6G
 #$ -pe shared 8
 
 ## Notify this Email Address...
@@ -17,7 +17,7 @@
 #$ -m bea
 
 ## Run multiple copies of the script, one for each isotropy level [0.33, 0.72, 1.00]
-#$ -t 1-90:1
+#$ -t 1-30:1
 
 # echo job info on joblog:
 echo "Job $JOB_ID started on:   " `hostname -s`

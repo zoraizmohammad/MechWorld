@@ -33,6 +33,13 @@ def find_files(dirpath, regex_pattern) -> set[str]:
             filepaths.add(new_filepath);
     return filepaths;
 
+def get_initial_density_from_filename(filename : str) -> float:
+    rho_0_str = re.match(r".+_rho(\d+\.?\d+).+",filename).group(1);
+    if ("." in rho_0_str):
+        return float(rho_0_str)
+    else:
+        return float(rho_0_str)/100
+
 def get_angle_between_vectors(v, u):
     return np.rad2deg(np.arccos(np.dot(v, u) / (np.linalg.norm(v)*np.linalg.norm(u))));
 

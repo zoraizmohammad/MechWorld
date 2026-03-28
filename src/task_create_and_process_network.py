@@ -7,6 +7,7 @@ import argparse
 from datetime import datetime as dt
 from assemble_pg_network import generate_pg_network, process_distribution_string
 from run_lammps_isotropic_strain import run_isotropic_prestrain_minimize
+from numpy import arange
 
 parser = argparse.ArgumentParser()
 parser.add_argument("size")
@@ -18,7 +19,8 @@ parser.add_argument("sge_task_id")
 parser.add_argument("--write_images",   action='store_true')
 parser.add_argument("--write_dumps",    action='store_true')
 parser.add_argument("--write_restarts", action='store_true')
-parser.add_argument("--dist", default="FS-2-30-0.9")
+parser.add_argument("--dist", default="FS=2=30=0.9")
+parser.add_argument("--max_strain", default=0.3)
 args = parser.parse_args()
 
 # Required
@@ -35,6 +37,7 @@ write_images   = args.write_images;
 write_dumps    = args.write_dumps;
 write_restarts = args.write_restarts;
 distrib_str    = args.dist;
+max_strain     = float(args.max_strain);
 
 distribution = process_distribution_string(distrib_str, size)
 
@@ -55,15 +58,15 @@ else:
     std_dump_criteria = None;
 
 if write_restarts:
-    std_restart_criteria = [
-        ("ALL"    , 0.00, 0.30),
-        ];
+    std_restart_criteria = [("FORCE", x,  None ) for x in arange(0.1,0.31,0.01)];
 else:
     std_restart_criteria = None;
 
+print(std_restart_criteria)
+
 run_isotropic_prestrain_minimize(
     filename, 
-    max_strain           = 0.3,
+    max_strain           = max_strain,
     number_strain_steps  = None, 
     write_debug_images   = write_images, 
     dump_specs           = std_dump_criteria, 

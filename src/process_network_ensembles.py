@@ -7,7 +7,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from utils_helpers import get_confidence_intervals, find_files, add_curve_with_ci
+from utils_helpers import get_confidence_intervals, find_files, add_curve_with_ci, get_initial_density_from_filename
 from assemble_pg_network import generate_pg_network
 from run_lammps_isotropic_strain import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
 from lammps_PG_objects import Bond
@@ -108,7 +108,7 @@ def collect_list_of_prestrain_dataframes(dirpath : str, regex_pattern : str) -> 
     for filename in listdir(dirpath):
         if re.search(regex_pattern, filename):
             filepath = os.path.join(dirpath,filename)
-            rho_0 = re.match(r".+_rho(\d+).+",filename).group(1);
+            rho_0 = get_initial_density_from_filename(filename)
             dataclasses_from_file = import_isotropic_prestrain_data(filepath)
             df = pd.DataFrame([asdict(n) for n in dataclasses_from_file])
             df['rho_0'] = [(float(rho_0)/100)] * len(dataclasses_from_file); # Add information about relaxed density
@@ -363,7 +363,9 @@ def full_PE_figure(curves_information : list[tuple[str, str, str, str]]):
 def full_turgor_strain_figure(
         curves_information : list[tuple[str, str, str, str]],
         diameter_bounds_m : tuple[float, float] = (0.7*1E-6,0.8*1E-6),
-        density_filter : tuple[float,float] = None):
+        density_filter : tuple[float,float] = None,
+        pressure_filter_atm : tuple[float,float] = (0.3,3.0),
+        ):
     
     for i in range(0,len(curves_information)):
         (working_dirpath, output_regex, curve_color, curve_label) = curves_information[i];
@@ -385,6 +387,8 @@ def full_turgor_strain_figure(
             continue;
         else:
             combined_tension_df : pd.DataFrame = pd.concat(tension_dfs)
+            combined_tension_df['strain'] = np.round(combined_tension_df['strain'],2);
+
 
         ci_pyy_df = get_confidence_intervals(combined_tension_df, 0.95, "strain", "tension_yy")
 
@@ -403,7 +407,7 @@ def full_turgor_strain_figure(
             alpha=0.2
         )
 
-    plt.title(r"Turgor Pressure for Fixed $\rho_{f}$")
+    plt.title(r"Turgor Pressure, $\rho_{f} = "+str(round(np.mean(density_filter),3))+"$")
     plt.legend()
     plt.xlabel(r"$\mathcal{E}_{f}$, Strain")
     plt.ylabel("Turgor Pressure [atm]")
