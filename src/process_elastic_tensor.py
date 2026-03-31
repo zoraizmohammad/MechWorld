@@ -110,7 +110,7 @@ def combine_elastic_constant_files_into_one_file_per_network(working_dir : str):
             with open(combined_filepath, "a+") as f:
                 f.write(struct.line_data());
 
-            #os.remove(filepath);
+            os.remove(filepath);
 
 def import_ElasticTensorStructs_from_file(filepath : str) -> list[ElasticTensorStruct]:
     structs = list()
@@ -172,19 +172,37 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> li
 ## TODO: Check reduced stiffness matrix for unstable modes, look at eigenvalues
 
 ## PLOTTING FUNCTIONS -- Ex,Ey,Gxy
-def full_moduli_figure(curves_information : list[tuple[str, str, str, str]], density_filter = None):
+def full_moduli_figure(curves_information : list[tuple[str, str, str, str]], density_filter = None, thickness_nm = None):
 
     for curve_tuple in curves_information:
         working_dir, regex_pattern, color_name, extra_label_info = curve_tuple;
         df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
         df = bandpass_df(df, 'rho_f', density_filter);
+
+        # convert to MPa if thickness is specified
+        if thickness_nm:
+            df['Ex'] = df["Ex"]/thickness_nm;
+            df['Ey'] = df["Ey"]/thickness_nm;
+            df['Gxy'] = df["Gxy"]/thickness_nm;
+
         add_curve_with_ci(df, 'strain', 'Ex', curve_color=color_name, curve_linestyle="-", curve_label_override="$E_{xx}$"+extra_label_info)
         add_curve_with_ci(df, 'strain', 'Ey', curve_color=color_name, curve_linestyle="--", curve_label_override="$E_{yy}$")
         add_curve_with_ci(df, 'strain', 'Gxy', curve_color=color_name, curve_linestyle=":", curve_label_override="$G_{xy}$")
 
     plt.legend();
-    plt.title("Extensional and Shear Moduli")
-    plt.ylabel("MPa*nm")
+
+    title_str = "Extensional and Shear Moduli"
+
+    if thickness_nm:
+        title_str += "; $t = "+str(thickness_nm)+"nm$"
+
+    plt.title(title_str);
+
+    if thickness_nm:
+        plt.ylabel("MPa")
+    else:
+        plt.ylabel("MPa*nm")
+
     plt.xlabel(r"$\mathcal{E}$, Strain [a.u.]")
     plt.grid(True);
     plt.show();
@@ -196,8 +214,8 @@ def full_poisson_ratios_figure(curves_information : list[tuple[str, str, str, st
         working_dir, regex_pattern, color_name, extra_label_info = curve_tuple;
         df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
         df = bandpass_df(df, 'rho_f', density_filter); 
-        add_curve_with_ci(df, 'strain', 'Vxy',"--", curve_label_override="$V_{xy}$")
-        add_curve_with_ci(df, 'strain', 'Vyx',":", curve_label_override="$V_{yx}$")
+        add_curve_with_ci(df, 'strain', 'Vxy',"--", curve_label_override="$V_{xy}$"+extra_label_info,curve_color=color_name)
+        add_curve_with_ci(df, 'strain', 'Vyx',":", curve_label_override="$V_{yx}$",curve_color=color_name)
     
     plt.legend()
     plt.title("Poisson Ratios")
