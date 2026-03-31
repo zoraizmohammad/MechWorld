@@ -7,7 +7,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from utils_helpers import get_confidence_intervals, find_files, add_curve_with_ci, get_initial_density_from_filename
+from utils_helpers import get_confidence_intervals, find_files, add_curve_with_ci, get_initial_density_from_filename, get_crosslinkage_from_filename, bucket_round, bandpass_df
 from assemble_pg_network import generate_pg_network
 from run_lammps_isotropic_strain import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
 from lammps_PG_objects import Bond
@@ -108,10 +108,15 @@ def collect_list_of_prestrain_dataframes(dirpath : str, regex_pattern : str) -> 
     for filename in listdir(dirpath):
         if re.search(regex_pattern, filename):
             filepath = os.path.join(dirpath,filename)
-            rho_0 = get_initial_density_from_filename(filename)
             dataclasses_from_file = import_isotropic_prestrain_data(filepath)
             df = pd.DataFrame([asdict(n) for n in dataclasses_from_file])
-            df['rho_0'] = [(float(rho_0)/100)] * len(dataclasses_from_file); # Add information about relaxed density
+
+            rho_0 = get_initial_density_from_filename(filename);
+            if rho_0: df['rho_0'] = [rho_0] * len(df);
+
+            linkage = get_crosslinkage_from_filename(filename);
+            if linkage: df['linkage'] = [linkage] * len(df);
+
             dfs.append(df)
 
     return dfs
@@ -125,7 +130,6 @@ def calculate_tension_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
 
     strain   = (lx - lx[0]) / lx[0];
     rho_f = rho_0 / (1+strain)**2;
-    print(rho_f)
     tension_xx = -(pxx - pxx[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
     tension_yy = -(pyy - pyy[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
     tension_xy = -(pxy - pxy[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
@@ -362,7 +366,7 @@ def full_PE_figure(curves_information : list[tuple[str, str, str, str]]):
 
 def full_turgor_strain_figure(
         curves_information : list[tuple[str, str, str, str]],
-        diameter_bounds_m : tuple[float, float] = (0.7*1E-6,0.8*1E-6),
+        diameter_bounds_m : tuple[float, float] = (0.74*1E-6,0.76*1E-6),
         density_filter : tuple[float,float] = None,
         pressure_filter_atm : tuple[float,float] = (0.3,3.0),
         ):
@@ -376,19 +380,21 @@ def full_turgor_strain_figure(
         for file_df in dfs:
             new_tension_df = calculate_tension_df_from_file_df(file_df);
 
-            if density_filter:
-                mask = (new_tension_df['rho_f'] >= density_filter[0]) & (new_tension_df['rho_f'] <= density_filter[1])
-                new_tension_df = new_tension_df[mask]
-                print(mask)
+            new_tension_df = bandpass_df(new_tension_df, "rho_f", density_filter);
 
-            tension_dfs.append(new_tension_df);
+            if len(new_tension_df) != 0:
+                tension_dfs.append(new_tension_df);
 
         if len(tension_dfs) == 0:
             continue;
         else:
             combined_tension_df : pd.DataFrame = pd.concat(tension_dfs)
-            combined_tension_df['strain'] = np.round(combined_tension_df['strain'],2);
-
+            combined_tension_df['strain'] = bucket_round(combined_tension_df['strain'],0.01);
+        
+        # Correct for density variation in the range we are examining. Assuming linear tension relation for small values.
+        if density_filter:
+            target_density = np.mean(density_filter);
+            combined_tension_df['tension_yy'] = combined_tension_df['tension_yy'].to_numpy() * (target_density/combined_tension_df['rho_f'].to_numpy());
 
         ci_pyy_df = get_confidence_intervals(combined_tension_df, 0.95, "strain", "tension_yy")
 
@@ -397,6 +403,8 @@ def full_turgor_strain_figure(
         turgor_pressure_df['upper'] = ci_pyy_df['upper'].to_numpy() / (min(diameter_bounds_m)/2 * u_ATM_to_PASCAL);
         turgor_pressure_df['mean']  = ci_pyy_df['mean'].to_numpy()  / (np.mean(diameter_bounds_m)/2 * u_ATM_to_PASCAL);
         turgor_pressure_df['lower'] = ci_pyy_df['lower'].to_numpy() / (max(diameter_bounds_m)/2 * u_ATM_to_PASCAL);
+
+        turgor_pressure_df = bandpass_df(turgor_pressure_df, "mean", pressure_filter_atm);
 
         plt.plot(turgor_pressure_df['strain'], turgor_pressure_df['mean'], color=curve_color, linestyle="-", label=curve_label)
         plt.fill_between(
@@ -407,7 +415,13 @@ def full_turgor_strain_figure(
             alpha=0.2
         )
 
-    plt.title(r"Turgor Pressure, $\rho_{f} = "+str(round(np.mean(density_filter),3))+"$")
+    title_str = r"Turgor Pressure; $D = "+str(np.mean(diameter_bounds_m)*1E6)+r" \mu m $"
+    if density_filter:
+        title_str += r", $\rho_{f} = "+str(round(density_filter[0]/(DSU**2),2))+r"-"+str(round(density_filter[1]/(DSU**2),2))+r"$ $\frac{DSU}{nm^2}$"
+    else:
+        title_str += r", all $\rho_{f}$"
+
+    plt.title(title_str);
     plt.legend()
     plt.xlabel(r"$\mathcal{E}_{f}$, Strain")
     plt.ylabel("Turgor Pressure [atm]")

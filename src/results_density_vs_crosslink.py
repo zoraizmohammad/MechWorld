@@ -55,7 +55,7 @@ def sweep_data_points(datafile : str, size : int):
     rho_gap_sweep = np.linspace(0.2, 2, nPacking);
 
     # make this now and reuse it across networks, it takes a second to build
-    distribution = process_distribution_string("FS-2-100-0.925", size)
+    distribution = process_distribution_string("FS=2=100=0.93", size)
 
     # Output
     completed_networks = 1;
@@ -120,16 +120,16 @@ if not os.path.exists(dsu_200_datafile):
 if not os.path.exists(dsu_300_datafile):
     sweep_data_points(dsu_300_datafile, 300)
 
-crosslinks_300_df = import_crosslinks_data(dsu_300_datafile);
+crosslinks_300_df = import_crosslinks_data(dsu_200_datafile);
 ax = plt.axes();
 
 plot_crosslinks_vs_rho_gap(crosslinks_300_df, 0.33, "red", r"$\chi = 0.33$", "-")
 plot_crosslinks_vs_rho_gap(crosslinks_300_df, 0.72, "blue", r"$\chi = 0.72$", "-")
-plot_crosslinks_vs_rho_gap(crosslinks_300_df, 1.00, "black", r"$\chi = 1.00$", "-")
+#plot_crosslinks_vs_rho_gap(crosslinks_300_df, 1.00, "black", r"$\chi = 1.00$", "-")
 # 0.65576966 0.75625    0.86388966
 # 0.25 +/- 0.086: 0.69696 0.75625 0.81796
 expected_crosslinkage_range = [0.446, 0.606+0.02] # Glauner 1998, Vollmer 2010, Stationary Phase KN126 E.Coli, 60% mean, std = 2%
-plot_expected_ranges([0.69696, 0.81796], expected_crosslinkage_range)
+plot_expected_ranges([0.60, 0.89], expected_crosslinkage_range)
 
 #selected_density = 0.67; #0.7;
 selected_density = 0.76;

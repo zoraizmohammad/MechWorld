@@ -1,4 +1,4 @@
-from utils_helpers import find_files, get_confidence_intervals, add_curve_with_ci
+from utils_helpers import find_files, get_confidence_intervals, add_curve_with_ci, get_initial_density_from_filename, get_crosslinkage_from_filename, bandpass_df
 import os
 import re
 from dataclasses import dataclass, asdict
@@ -153,11 +153,16 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> li
             filepath = os.path.join(dirpath,filename)
             dataclasses_from_file = import_ElasticTensorStructs_from_file(filepath)
             df = pd.DataFrame([asdict(n) for n in dataclasses_from_file])
+            df['rho_0'] = [get_initial_density_from_filename(filename)] * len(df);
+            df['rho_f'] = df["rho_0"] / (1+df["strain"])**2;
+
+            linkage = get_crosslinkage_from_filename(filename);
+            if linkage: df['linkage'] = [linkage] * len(df);
 
             if type(combined_df) == str:
                 combined_df = df;
             else:
-                combined_df = pd.concat([combined_df,df])
+                combined_df = pd.concat([combined_df,df]);
             
     if (type(combined_df) == str):
         raise FileNotFoundError(f"No files were found in: {dirpath} matching regex: {regex_pattern}");
@@ -167,17 +172,16 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> li
 ## TODO: Check reduced stiffness matrix for unstable modes, look at eigenvalues
 
 ## PLOTTING FUNCTIONS -- Ex,Ey,Gxy
-def add_moduli_curves(df : pd.DataFrame, color_name : str, extra_label_info : str):
-    # Ex
-    add_curve_with_ci(df, 'strain', 'Ex', curve_color=color_name, curve_linestyle="-", curve_label_override="$E_{xx}$"+extra_label_info)
+def full_moduli_figure(curves_information : list[tuple[str, str, str, str]], density_filter = None):
 
-    # Ey
-    add_curve_with_ci(df, 'strain', 'Ey', curve_color=color_name, curve_linestyle="--", curve_label_override="$E_{yy}$")
+    for curve_tuple in curves_information:
+        working_dir, regex_pattern, color_name, extra_label_info = curve_tuple;
+        df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
+        df = bandpass_df(df, 'rho_f', density_filter);
+        add_curve_with_ci(df, 'strain', 'Ex', curve_color=color_name, curve_linestyle="-", curve_label_override="$E_{xx}$"+extra_label_info)
+        add_curve_with_ci(df, 'strain', 'Ey', curve_color=color_name, curve_linestyle="--", curve_label_override="$E_{yy}$")
+        add_curve_with_ci(df, 'strain', 'Gxy', curve_color=color_name, curve_linestyle=":", curve_label_override="$G_{xy}$")
 
-    # Gxy
-    add_curve_with_ci(df, 'strain', 'Gxy', curve_color=color_name, curve_linestyle=":", curve_label_override="$G_{xy}$")
-
-def finish_moduli_curve():
     plt.legend();
     plt.title("Extensional and Shear Moduli")
     plt.ylabel("MPa*nm")
@@ -185,62 +189,15 @@ def finish_moduli_curve():
     plt.grid(True);
     plt.show();
 
-def full_moduli_figure(working_dir, regex_pattern):
-    df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
-    add_moduli_curves(df, "black", r" $\alpha = 0.925$")
-    finish_moduli_curve()
-
-## SIMPLIFIED ESTIMATES OF WHAT THE YAO1999/XU1996 DISPLACEMENT TEST WOULD MEASURE FOR THIS NETWORK
-# YAO 1999 uses analysis procedure from XU 1996, which assumes a single isotropic modulus in the network.
-# Most likely we will not need 
-
-def add_Yao1999_regions(df):
-    plt.fill_between(
-        x = [min(df['strain']),max(df['strain'])],
-        y1 = [15*12, 15*12],
-        y2 = [30*12, 30*12],
-        alpha = 0.2,
-        color = "orange",
-        label = "Ex, Yao1999")
-    
-    plt.fill_between(
-        x = [min(df['strain']),max(df['strain'])],
-        y1 = [35*12, 35*12],
-        y2 = [60*12, 60*12],
-        alpha = 0.2,
-        color = "green",
-        label = "Ey, Yao1999")
-
-def add_simple_compensation_for_Xu1996_curves(df : pd.DataFrame, color_name : str, labelstr : str):
-    # 'Ex'
-    # Simplified compensation, actual function would be complex product of slot geometry and Ex Ey Vxy Vyx Gxy
-    # this compensation notes that Xu1996 can only measure the magnitude of the stress but cannot know what component it comes from
-    # so, it will attribute the all stresses to a single modulus. Assume no shear.
-    df["Xu1996_Ex"] = np.sqrt(df['Ex']**2 + df['Vxy']*df['Ey']**2)
-    df["Xu1996_Ey"] = np.sqrt(df['Ey']**2 + df['Vyx']*df['Ex']**2)
-
-    add_curve_with_ci(df, 'strain', 'Xu1996_Ex', ":")
-    add_curve_with_ci(df, 'strain', 'Xu1996_Ey', "--")
-
-def simple_compensation_for_Xu1996_figure(working_dir, regex_pattern):
-    df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
-    add_simple_compensation_for_Xu1996_curves(df, "black", "a = 0.925")
-    add_Yao1999_regions(df);
-    finish_simple_compensation_for_Xu1996_curve();
-
-def finish_simple_compensation_for_Xu1996_curve():
-    plt.legend();
-    plt.title("Moduli vs Strain, as would be measured by Yao1996/Xu1996")
-    plt.ylabel("MPa*nm")
-    plt.xlabel(r"$\mathcal{E}$, Strain [a.u.]")
-    plt.grid(True);
-    plt.show();
-
 ## PLOTTING FUNCTIONS -- Vxy,Vyx
-def full_poisson_ratios_figure(working_dir, regex_pattern):
-    df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
-    add_curve_with_ci(df, 'strain', 'Vxy',"--", curve_label_override="$V_{xy}$")
-    add_curve_with_ci(df, 'strain', 'Vyx',":", curve_label_override="$V_{yx}$")
+def full_poisson_ratios_figure(curves_information : list[tuple[str, str, str, str]], density_filter = None):
+
+    for curve_tuple in curves_information:
+        working_dir, regex_pattern, color_name, extra_label_info = curve_tuple;
+        df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
+        df = bandpass_df(df, 'rho_f', density_filter); 
+        add_curve_with_ci(df, 'strain', 'Vxy',"--", curve_label_override="$V_{xy}$")
+        add_curve_with_ci(df, 'strain', 'Vyx',":", curve_label_override="$V_{yx}$")
     
     plt.legend()
     plt.title("Poisson Ratios")
@@ -258,5 +215,5 @@ def add_expected_tension_ratio(df : pd.DataFrame):
 
 def full_ratios_figure(working_dir, regex_pattern):
     df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
-    add_moduli_curves(df, "black", "a = 0.925")
-    finish_moduli_curve()
+    #add_moduli_curves(df, "black", "a = 0.925")
+    #finish_moduli_curve()

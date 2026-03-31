@@ -2,6 +2,7 @@ from scipy import stats
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Union
 import re
 import os
 
@@ -36,9 +37,29 @@ def find_files(dirpath, regex_pattern) -> set[str]:
 def get_initial_density_from_filename(filename : str) -> float:
     rho_0_str = re.match(r".+_rho(\d+\.?\d+).+",filename).group(1);
     if ("." in rho_0_str):
-        return float(rho_0_str)
+        return float(rho_0_str);
     else:
-        return float(rho_0_str)/100
+        return float(rho_0_str)/100;
+
+def get_crosslinkage_from_filename(filename : str) -> float:
+    link_str_match = re.match(r".+_link(0\.+\d+).+",filename);
+    if link_str_match:
+        return float(link_str_match.group(1));
+    else:
+        return None;
+
+def bandpass_df(df : pd.DataFrame, column_label : str, min_max_tuple : Union[tuple[float,float],None]):
+    if min_max_tuple:
+        mask = (df[column_label] >= min_max_tuple[0]) & (df[column_label] <= min_max_tuple[1])
+        return df[mask];
+    else:
+        return df;
+
+def flory_schulz_mean_length(a : Union[str,float]):
+    return 2/(1-float(a))-1;
+
+def bucket_round(data : float, to : float):
+    return np.round(data / to) * to;
 
 def get_angle_between_vectors(v, u):
     return np.rad2deg(np.arccos(np.dot(v, u) / (np.linalg.norm(v)*np.linalg.norm(u))));
@@ -63,6 +84,9 @@ def get_confidence_intervals(df : pd.DataFrame, confidence, x : str, y : str):
             'upper': mean + h,
             'count': n
         })
+
+    if len(df) == 0:
+        return pd.Series({'mean': np.nan, 'lower': np.nan, 'upper': np.nan})
 
     result = df.groupby(x)[y].apply(calculate_ci).unstack()
     return result

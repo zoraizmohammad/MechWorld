@@ -43,9 +43,9 @@ distribution = process_distribution_string(distrib_str, size)
 
 os.makedirs(outdir, exist_ok=True)
 
-filename = os.path.join(f"{outdir}",f"job{id1}.{id2}_dsu{size}_rho{int(rho_gap*100)}_a{int(anisotropy*100)}.network")
+filename_wo_lnk = os.path.join(f"{outdir}",f"job{id1}.{id2}_dsu{size}_rho{float(rho_gap)}_a{int(anisotropy*100)}.network")
 
-(_, _, _, _, _, _) = generate_pg_network(size, rho_gap, anisotropy, distribution, filename, False)
+filename_w_lnk = generate_pg_network(size, rho_gap, anisotropy, distribution, filename_wo_lnk, False)
 
 # Standard list of outputs
 if write_dumps:
@@ -65,7 +65,7 @@ else:
 print(std_restart_criteria)
 
 run_isotropic_prestrain_minimize(
-    filename, 
+    filename_w_lnk, 
     max_strain           = max_strain,
     number_strain_steps  = None, 
     write_debug_images   = write_images, 

@@ -383,7 +383,7 @@ def put_the_atoms_into_a_spatial_hash_smh(atoms, cell_size, simbox_lx, simbox_ly
     
     return grid, ids_of_eligible_atoms
 
-def form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly, override_radius = None, override_energy = None):
+def form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly, override_radius = None, override_energy = None, linkage_limit = None):
     
     if override_radius:
         peptide_bond_search_radius = override_radius;
@@ -403,8 +403,18 @@ def form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly, override_rad
     molecule_bonding_matrix = defaultdict(int);
 
     # Each atom will search for neighbors to bond with
-    for id in ids_of_eligible_atoms:
-        create_peptide_with_nearby_neighbor(id, grid, peptide_bond_search_radius, molecule_bonding_matrix, atoms, bonds, glycans, simbox_lx, simbox_ly, override_energy)
+    if linkage_limit:
+        num_glycan_bonds = len(bonds);
+        num_atoms = len(atoms);
+        for id in ids_of_eligible_atoms:
+            crosslinkage = 2*(len(bonds) - num_glycan_bonds)/num_atoms;
+            if crosslinkage >= linkage_limit:
+                break;
+            else:
+                create_peptide_with_nearby_neighbor(id, grid, peptide_bond_search_radius, molecule_bonding_matrix, atoms, bonds, glycans, simbox_lx, simbox_ly, override_energy);
+    else:
+        for id in ids_of_eligible_atoms:
+            create_peptide_with_nearby_neighbor(id, grid, peptide_bond_search_radius, molecule_bonding_matrix, atoms, bonds, glycans, simbox_lx, simbox_ly, override_energy)
     
     pairwise_list = list(molecule_bonding_matrix.values());
     histo = dict();
@@ -541,12 +551,13 @@ def visualizeBonds(
 def generate_pg_network(
         Ny           : int   = 100,     # Total number of DSU in the y direction for the network
         mesh_density : float = 1.0,     # Target density, units of (number of DSU) / (DSU length scale)**2
-        anisotropy   : float = 0.65,    # 0.0 => glycans are perfectly hoop-aligned (+y)
+        anisotropy   : float = 0.75,    # 0.0 => glycans are perfectly hoop-aligned (+y)
                                         # 1.0 => glycans orientation is completely random
         distribution : list[int] = None,
         filepath     : str  = None,          # If set, write file to this filepath. File is lammps-compatible.
         generate_figure_of_steps   : bool     = False, # Plot bonds for debug purposes?
-        plot_network_on_these_axes : plt.Axes = None
+        plot_network_on_these_axes : plt.Axes = None,
+        linkage_limit : float = None   # Stop adding crosslinks once this fraction is reached
         ):
     
     if distribution == None:
@@ -613,15 +624,15 @@ def generate_pg_network(
         visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax2, draw_stems=False);
 
     # Form peptide crosslinks based on distance and angle criteria
-    form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly);
+    form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly, linkage_limit=linkage_limit);
 
     # Count Cross-Linking
-    density_fraction, crosslink_ratio = compute_crosslink_ratio(atoms, bonds, simbox_lx, simbox_ly);
+    density_fraction, crosslinkage = compute_crosslink_ratio(atoms, bonds, simbox_lx, simbox_ly);
 
     if generate_figure_of_steps:
         print(f"Box Dimensions [nm] = ({simbox_lx}, {simbox_ly})")
         print(f"Density = {density_fraction}")
-        print(f"Crosslink Ratio = {crosslink_ratio}")
+        print(f"Crosslink Ratio = {crosslinkage}")
         visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax3, draw_stems=False);
         for a in [ax1,ax2,ax3]:
             a.set_xticks([]);
@@ -646,9 +657,11 @@ def generate_pg_network(
     
     if not filepath == None:
         # Write everything to LAMMPS datafile
-        write_to_laamps_datafile(filepath, atoms, bonds, angles, simbox_lx, simbox_ly);
-
-    return density_fraction, crosslink_ratio, glycans, atoms, bonds, angles;
+        filepath_w_lnk = filepath.replace(".network",f"_link{round(float(crosslinkage),3)}.network")
+        write_to_laamps_datafile(filepath_w_lnk, atoms, bonds, angles, simbox_lx, simbox_ly);
+        return filepath_w_lnk
+    else:
+        return density_fraction, crosslinkage, glycans, atoms, bonds, angles;
 
 # Functions to compare network distribution to theory distribution
 def normalized_length_distribution(distribution : list[int]):
@@ -679,7 +692,7 @@ def actual_length_distribution(glycans : dict[int,GlycanMolecule], distribution 
     return possible_glycan_lengths, actual_distrib
 
 # Generate Koch 2000 Network
-# In this model, glycan direction and length distribution are coupled.
+# In this model, glycan direction and length distribution are coupled
 # The assumption is that glycan strands in directions with greater tension are cleaved more often.
 # The distributions follow a pattern of "K additions per random cleavage event"
 

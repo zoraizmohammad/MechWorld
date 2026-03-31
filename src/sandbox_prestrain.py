@@ -15,8 +15,8 @@ nm_per_DSU = 1.1; # nm
 rho_under_prestrain = DSU_per_nm2*(nm_per_DSU**2); # number_of_DSU / DSU_length**2
 
 # Rojas 2018
-a = 0.13;
-b = 0.05;
+a = 0.25;
+b = 0.11;
 prestrain = np.array([a-b, a, a+b, 0.30]);
 rho_relaxed = rho_under_prestrain * (1+prestrain)**2
 
