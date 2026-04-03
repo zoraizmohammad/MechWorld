@@ -51,14 +51,14 @@ filename_w_lnk = generate_pg_network(size, rho_gap, anisotropy, distribution, fi
 if write_dumps:
     std_dump_criteria = [
         ("INITIAL", None,  None ),
-        ("FORCE",   0.13,  None ),
-        ("FINAL",   None,  None ),
+        ("FORCE",   0.15,  None ),
+        ("FORCE",   0.20,  None )
         ];
 else:
     std_dump_criteria = None;
 
 if write_restarts:
-    std_restart_criteria = [("FORCE", x,  None ) for x in arange(0.1,0.31,0.01)];
+    std_restart_criteria = [("FORCE", x,  None ) for x in arange(0.1,max_strain+0.01,0.01)];
 else:
     std_restart_criteria = None;
 

@@ -235,7 +235,7 @@ def full_pore_size_distribution_figure(working_directory, filename_0, filename_f
     if os.path.exists(pores_filepath) and (use_cached_results):
         pixels_sorted_by_pore_0 = load_pores_data(pores_filepath);
     else:
-        pixels_sorted_by_pore_0 = pizza_boy(image_filepath, 0.1)
+        pixels_sorted_by_pore_0 = pizza_boy(image_filepath, 0.0)
         pixels_sorted_by_pore_0 = disregard_pores_based_on_pixel_area_criteria(pixels_sorted_by_pore_0, min_area_DSU2*(scale_0)*(scale_0), None);
         save_pores_data(pixels_sorted_by_pore_0, pores_filepath);
 
@@ -270,7 +270,7 @@ def full_pore_size_distribution_figure(working_directory, filename_0, filename_f
     if os.path.exists(pores_filepath) and (use_cached_results):
         pixels_sorted_by_pore_f = load_pores_data(pores_filepath);
     else:
-        pixels_sorted_by_pore_f = pizza_boy(image_filepath, 0.1)
+        pixels_sorted_by_pore_f = pizza_boy(image_filepath, 0.0)
         pixels_sorted_by_pore_f = disregard_pores_based_on_pixel_area_criteria(pixels_sorted_by_pore_f, min_area_DSU2*(scale_f)*(scale_f), None);
         save_pores_data(pixels_sorted_by_pore_f, pores_filepath);
     
@@ -281,19 +281,17 @@ def full_pore_size_distribution_figure(working_directory, filename_0, filename_f
 
     #### Plots
     # add labels and titles
-    fig, ax = plt.subplots(1,2);
+    ax = plt.subplot();
     
     # Top-Left Plot: Relaxed Length vs Glycan Orientation
-    ax[0].hist(areas_0, bins = n_bins);
-    ax[0].set_title("Initial Distribution of Pore Areas")
-    ax[0].set_ylabel("Number of Pores")
-    ax[0].set_xlabel("Area [DSU^2]")
-    ax[0].set_xlim(0,max_area);
-
-    ax[1].hist(areas_f, bins = n_bins);
-    ax[1].set_title("Final Distribution of Pore Areas")
-    ax[1].set_ylabel("Number of Pores")
-    ax[1].set_xlabel("Area [DSU^2]")
-    ax[1].set_xlim(0,max_area);
+    ax.hist(areas_0, bins = n_bins, alpha=0.3, density=True, color="blue", label=r"$\mathcal{E}_f = 0$");
+    ax.hist(areas_f, bins = n_bins, alpha=0.3, density=True, color="red", label=r"$\mathcal{E}_f = 0.212$");
+    ax.legend()
+    ax.set_title("Pore Area Distributions")
+    ax.set_ylabel("Fraction of Pores")
+    ax.set_xlabel("Area ${L_{DSU}}^2$")
+    ax.set_xlim(0,max_area);
 
     plt.show()
+
+# TODO: Add regex version to combine lots of files

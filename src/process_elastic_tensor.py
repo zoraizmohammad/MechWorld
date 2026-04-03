@@ -1,4 +1,5 @@
 from utils_helpers import find_files, get_confidence_intervals, add_curve_with_ci, get_initial_density_from_filename, get_crosslinkage_from_filename, bandpass_df
+from simulation_constants_settings import DSU
 import os
 import re
 from dataclasses import dataclass, asdict
@@ -195,6 +196,11 @@ def full_moduli_figure(curves_information : list[tuple[str, str, str, str]], den
 
     if thickness_nm:
         title_str += "; $t = "+str(thickness_nm)+"nm$"
+
+    if density_filter:
+        title_str += r", $\rho_{f} = "+str(round(density_filter[0]/(DSU**2),2))+r"-"+str(round(density_filter[1]/(DSU**2),2))+r"$ $\frac{DSU}{nm^2}$"
+    else:
+        title_str += r", all $\rho_{f}$"
 
     plt.title(title_str);
 
