@@ -216,9 +216,9 @@ def insert_forced_strain_criteria(
         if criteria[0] == "FORCE":
             # Add this strain to the list, maintain monotonically increasing
             prescribed_strain : float = criteria[1];
-            idx = len(stepwise_strains[stepwise_strains <= prescribed_strain]);
+            idx = len(stepwise_strains[stepwise_strains < prescribed_strain]);
 
-            if prescribed_strain == stepwise_strains[idx]:
+            if (prescribed_strain == stepwise_strains[idx]):
                 # Another criteria has added this strain, so we don't add it again
                 output_specifications[i] = ("ONCE", prescribed_strain - 1E-6, prescribed_strain + 1E-6);
                 continue;
