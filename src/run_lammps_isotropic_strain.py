@@ -212,13 +212,19 @@ def insert_forced_strain_criteria(
         return output_specifications, stepwise_strains;
 
     for i,criteria in enumerate(output_specifications):
-        print(criteria)
         if criteria[0] == "FORCE":
             # Add this strain to the list, maintain monotonically increasing
+            print(stepwise_strains)
             prescribed_strain : float = criteria[1];
             idx = len(stepwise_strains[stepwise_strains < prescribed_strain]);
 
-            if (prescribed_strain == stepwise_strains[idx]):
+            # for some reason everything in the array might be smaller than the prescribed step
+            # this is a problem because there might not be intermediate steps needed for simulation stability
+            # if encountered, then skip
+            if idx == len(stepwise_strains): continue;
+
+            # Don't insert duplicates, just remind the program to write an output at that step
+            if (abs(prescribed_strain - stepwise_strains[idx]) < 1E-6):
                 # Another criteria has added this strain, so we don't add it again
                 output_specifications[i] = ("ONCE", prescribed_strain - 1E-6, prescribed_strain + 1E-6);
                 continue;

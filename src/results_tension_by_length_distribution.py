@@ -1,26 +1,35 @@
 from process_network_ensembles import *
+from utils_helpers import PROJECT_ROOT_DIR
 
 ### START OF PROGRAM FOR TESTING
 # Settings
 #working_dirpath = os.path.join(os.path.curdir,"results", "hoffman", "results");
-project_root = os.path.join(os.path.dirname(__file__), "..");
 
+rho0 = 0.62;
 size = 300;
+isotropy = 0.75;
+
+size_re = r"dsu"+str(size)+r".*"
+rho0_re = r"rho"+str(int(rho0*100)).replace(".",r"\.")+r".*"
+isotropy_re = r"a"+str(int(isotropy*100))+r".*"
+full_re = r".*" + size_re + rho0_re + isotropy_re + r"\.out"
+print(full_re)
+
 curves_info = [
-    (os.path.join(project_root,"results","090-FS"),
-      r".*_dsu"+str(size)+r".*_a72.*.out", 
+    (os.path.join(PROJECT_ROOT_DIR,"results","090-FS"),
+      full_re, 
       "orange", 
       f"Flory-Schulz Distribution 2-100, a=0.9, $\chi = 0.72$"
     ),
-    (os.path.join(project_root,"results","093-FS"),
-      r".*_dsu"+str(size)+r".*_a72.*.out", 
+    (os.path.join(PROJECT_ROOT_DIR,"results","093-FS"),
+      full_re, 
       "red", 
       f"Flory-Schulz Distribution 2-100, a=0.93, $\chi = 0.72$"
     ),
-    (os.path.join(project_root,"results","096-FS"),
-      r".*_dsu"+str(size)+r".*_a72.*.out", 
+    (os.path.join(PROJECT_ROOT_DIR,"results","094-FS"),
+      full_re, 
       "green", 
-      f"Flory-Schulz Distribution 2-100, a=0.96, $\chi = 0.72$"
+      f"Flory-Schulz Distribution 2-100, a=0.94, $\chi = 0.72$"
     )
 ]
 full_tension_figure(

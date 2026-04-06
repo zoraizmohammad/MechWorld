@@ -41,7 +41,7 @@ def import_2D_triclinic_box_bounds_from_dump(filename : str) -> tuple[float, flo
 
     return (xlo, xhi, xy, ylo, yhi)
 
-def import_atoms_from_dump(filename : str, triclinic_bounds) -> dict[int,Atom]:
+def import_atoms_from_dump(filename : str, triclinic_bounds = None) -> dict[int,Atom]:
     """
     Expected format format:
         ITEM: TIMESTEP
@@ -54,6 +54,9 @@ def import_atoms_from_dump(filename : str, triclinic_bounds) -> dict[int,Atom]:
         <atom lines...>
         <EOF>
     """
+
+    if not triclinic_bounds:
+        triclinic_bounds = import_2D_triclinic_box_bounds_from_dump(filename)
 
     (xlo, xhi, xy, ylo, yhi) = triclinic_bounds;
 

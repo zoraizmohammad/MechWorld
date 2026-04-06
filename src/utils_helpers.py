@@ -8,6 +8,16 @@ import os
 
 PROJECT_ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
 
+def regex_network_files(size : Union[int,None], rho_0 : Union[float,None], isotropy : Union[float,None]) -> str:
+    regex_pattern = r".*"
+    if size:
+        regex_pattern += r"dsu"+str(size)+r".*";
+    if rho_0:
+        regex_pattern += r"rho"+str(int(100*rho_0))+r".*";
+    if isotropy:
+        regex_pattern += r"a"+str(int(100*isotropy))+r".*";
+    return regex_pattern + r"\.out"
+
 def add_curve_with_ci(df, x_name, y_name, curve_linestyle = "-", curve_color = "black", curve_label_override = None):
 
     if curve_label_override == None:

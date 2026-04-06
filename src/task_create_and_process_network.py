@@ -58,7 +58,10 @@ else:
     std_dump_criteria = None;
 
 if write_restarts:
-    std_restart_criteria = [("FORCE", x,  None ) for x in arange(0.1,max_strain+0.01,0.01)];
+    start = 0.1;
+    stop = max_strain;
+    step = 0.01;
+    std_restart_criteria = [("FORCE", x,  None ) for x in arange(start,max_strain,step)];
 else:
     std_restart_criteria = None;
 

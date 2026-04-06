@@ -7,6 +7,7 @@ from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule
 from simulation_constants_settings import *
 from lammps_PG_objects import peptide_energy_lammps, shortest_path_is_periodic_x, shortest_path_is_periodic_y
 import matplotlib.pyplot as plt
+import matplotlib.colors as mpl_colors
 from scipy.stats import gamma, lognorm
 
 rng = np.random.default_rng()
@@ -501,23 +502,22 @@ def populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx 
             cm_y += DSU*(length_of_glycan_DSU/2) + vertical_gap_between_glycans;
 
 #### DEBUG INSPECTION FUNCTIONS
-
-def visualizeBonds(
+def visualize_bonds(
         atoms : dict[int, Atom], 
         bonds : dict[int,Bond], 
         glycans : dict[int,GlycanMolecule], 
         xlo, xhi, ylo, yhi, 
         ax : plt.Axes = None, 
-        draw_stems : bool = True):
+        draw_stems : bool = True,
+        strain_colormap = None,
+        strain_colormap_norm_glycan = None,
+        strain_colormap_norm_peptide = None):
     
     if ax == None:
         fig, ax = plt.subplots()
         show_now = True;
     else:
         show_now = False;
-
-    #for g in glycans.values():
-    #    plt.scatter(g.cm_x, g.cm_y, color='red');
 
     for b in bonds.values():
             
@@ -533,7 +533,23 @@ def visualizeBonds(
         linestyle_arr = ["","-","--"]
 
         # Big ol'd bonds
-        ax.plot([a1.x,a2.x],[a1.y,a2.y], color=color_arr[b.bond_type],linestyle=linestyle_arr[b.bond_type]);
+        if strain_colormap:
+            if b.bond_type == BOND_TYPE_GLYCAN:
+                ax.plot(
+                    [a1.x,a2.x],[a1.y,a2.y],
+                    color=strain_colormap(strain_colormap_norm_glycan(b.get_strain())),
+                    linestyle=linestyle_arr[b.bond_type],
+                    alpha=0.5+0.5*strain_colormap_norm_glycan(b.get_strain()));
+            elif b.bond_type == BOND_TYPE_PEPTIDE:
+                ax.plot(
+                    [a1.x,a2.x],[a1.y,a2.y],
+                    color=strain_colormap(strain_colormap_norm_peptide(b.get_strain())),
+                    linestyle=linestyle_arr[b.bond_type],
+                    alpha=0.5+0.5*strain_colormap_norm_glycan(b.get_strain()));
+            else:
+                continue;
+        else:
+            ax.plot([a1.x,a2.x],[a1.y,a2.y], color=color_arr[b.bond_type],linestyle=linestyle_arr[b.bond_type]);
 
         # Cute lil' stems
         if draw_stems:
@@ -598,7 +614,7 @@ def generate_pg_network(
     if generate_figure_of_steps:
         fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, gridspec_kw={'height_ratios': [1.5, 1, 1]})
         ax1 : plt.Axes; ax2 : plt.Axes; ax3 : plt.Axes
-        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax1, draw_stems=False);
+        visualize_bonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax1, draw_stems=False);
 
     # Jangle the glycans
     for g in glycans.values():
@@ -621,7 +637,7 @@ def generate_pg_network(
         g.correct_orthogonal_PCB(atoms, 0, simbox_lx, 0, simbox_ly);
 
     if generate_figure_of_steps:
-        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax2, draw_stems=False);
+        visualize_bonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax2, draw_stems=False);
 
     # Form peptide crosslinks based on distance and angle criteria
     form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly, linkage_limit=linkage_limit);
@@ -633,7 +649,7 @@ def generate_pg_network(
         print(f"Box Dimensions [nm] = ({simbox_lx}, {simbox_ly})")
         print(f"Density = {density_fraction}")
         print(f"Crosslink Ratio = {crosslinkage}")
-        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax3, draw_stems=False);
+        visualize_bonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax3, draw_stems=False);
         for a in [ax1,ax2,ax3]:
             a.set_xticks([]);
             a.set_yticks([]);
@@ -645,7 +661,7 @@ def generate_pg_network(
         plt.show()
 
     if plot_network_on_these_axes:
-        visualizeBonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, plot_network_on_these_axes, draw_stems=False);
+        visualize_bonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, plot_network_on_these_axes, draw_stems=False);
 
     #Delete free-floating glycans
     #for g in glycans.values():

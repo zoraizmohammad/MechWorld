@@ -1,4 +1,4 @@
-from assemble_pg_network import visualizeBonds, compute_crosslink_ratio, form_peptide_bonds, add_simple_glycan, create_peptide_with_nearby_neighbor
+from assemble_pg_network import visualize_bonds, compute_crosslink_ratio, form_peptide_bonds, add_simple_glycan, create_peptide_with_nearby_neighbor
 from lammps_PG_objects import GlycanMolecule
 from math import pi
 import matplotlib.pyplot as plt
@@ -42,6 +42,6 @@ fig, ax = plt.subplots(1,1)
 
 #ax.scatter([atoms[15].x,atoms[24].x],[atoms[15].y,atoms[24].y])
 
-visualizeBonds(atoms, bonds, glycans, xlo, xhi, ylo, yhi, ax=ax, draw_stems=True)
+visualize_bonds(atoms, bonds, glycans, xlo, xhi, ylo, yhi, ax=ax, draw_stems=True)
 fig.set_size_inches(xhi/2,yhi/2)
 plt.show()

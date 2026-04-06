@@ -227,7 +227,7 @@ def add_tension_curve(df : pd.DataFrame, curves_color : str, extra_label_info):
 
 def finish_tension_curve():
     plt.title("Directional Tension during Isotropic Pre-Strain")
-    plt.ylabel("$\gamma$ [N/m]")
+    plt.ylabel(r"$\gamma$ [N/m]")
     plt.xlabel(r"$\mathcal{E}$, Strain")
     plt.legend()
     plt.grid()
@@ -318,11 +318,7 @@ def full_tension_ratio_figure(curves_information : list[tuple[str, str, str, str
         add_tension_ratio_curve(combined_df, colorname, labelstr);
     
     if show_laplace_region:
-        expected_ratio = 0.5;
-        margin_ratio = 0.1;
-        ylo = expected_ratio * (1-margin_ratio);
-        yhi = expected_ratio * (1+margin_ratio);
-        ax.fill_between([0,0.3],[ylo,ylo],[yhi,yhi], alpha=0.2, color="green", hatch="/", label="Expected Ratio for Cylindrical Shell")
+        ax.plot([0,0.3],[0.5,0.5], linestyle="--", color="green", label="Expected Ratio for Cylindrical Shell")
 
     finish_tension_ratio_curve();
 
@@ -428,120 +424,6 @@ def full_turgor_strain_figure(
     plt.grid()
     plt.show()
 
-#### Peptide Strain Histograms
-def full_bonds_strain_figure(working_dirpath : str, regex_pattern_no_extension : str):
-    pass
-    bonds_in_relaxed_state : list[Bond] = list()
-    bonds_in_final_state : list[Bond] = list()
-    regex_relaxed_bonds = regex_pattern_no_extension + r"\.relaxed.bonds"
-    regex_final_bonds = regex_pattern_no_extension + r"\.final.bonds"
-    for filename in os.listdir(working_dirpath):
-        if re.match(regex_relaxed_bonds, filename):
-            bonds_in_relaxed_state.extend(
-                import_bonds_from_dump(os.path.join(working_dirpath,filename)))
-        elif re.match(regex_final_bonds, filename):
-            bonds_in_final_state.extend(
-                import_bonds_from_dump(os.path.join(working_dirpath,filename)))
-    
-    # todo: make better function to overlay initial & final on one figure (transparency)
-    plot_combined_histogram(bonds_in_relaxed_state, bonds_in_final_state)
-
-def plot_combined_histogram(bonds_in_relaxed_state : list[Bond], bonds_in_final_state : list[Bond]):
-    #https://matplotlib.org/stable/gallery/statistics/hist.html
-
-    # Lists to keep track of strain in network initial state
-    glycan_strain_0  : list[float] = list()
-    peptide_strain_0 : list[float] = list()
-
-    for b in bonds_in_relaxed_state: 
-        if b.bond_type == BOND_TYPE_GLYCAN:
-            glycan_strain_0.append(b.get_strain());
-        elif b.bond_type == BOND_TYPE_PEPTIDE:
-            peptide_strain_0.append(b.get_strain());
-        else:
-            continue;
-    
-    # Lists to keep track of strain in network final state
-    glycan_strain_f  : list[float] = list()
-    peptide_strain_f : list[float] = list()
-
-    for b in bonds_in_final_state:
-        if b.bond_type == BOND_TYPE_GLYCAN:
-            glycan_strain_f.append(b.get_strain());
-        elif b.bond_type == BOND_TYPE_PEPTIDE:
-            peptide_strain_f.append(b.get_strain());
-        else:
-            continue;
-
-    # Figure stuff
-    fig, ax = plt.subplots(2,1,tight_layout=True)
-    
-    peptide_max = max(max(peptide_strain_f), max(peptide_strain_0))
-    peptide_min = min(min(peptide_strain_f), min(peptide_strain_0))
-    glycan_max =  max(max(glycan_strain_f),  max(glycan_strain_0))
-    glycan_min =  min(min(glycan_strain_f),  min(glycan_strain_0))
-
-    # We can set the number of bins with the *bins* keyword argument.
-    n_bins = 100;
-    alpha_setting = 0.5;
-    print(len(glycan_strain_f) - len(glycan_strain_0))
-    print(len(peptide_strain_f) - len(peptide_strain_0))
-
-    ax[0].hist(
-        glycan_strain_0, 
-        bins  = n_bins, 
-        range = (glycan_min, glycan_max),
-        log   = True, 
-        color = "green", 
-        alpha = alpha_setting,
-        label = "Relaxed State",
-    )
-    
-    ax[0].hist(
-        glycan_strain_f, 
-        bins  = n_bins, 
-        range = (glycan_min, glycan_max),
-        log   = True, 
-        color = "red", 
-        alpha = alpha_setting,
-        label = "Deformed State",
-    )
-
-    ax[1].hist(
-        peptide_strain_0, 
-        bins  = n_bins, 
-        range = (peptide_min, peptide_max),
-        log   = True, 
-        color = "green", 
-        alpha = alpha_setting,
-        label = "Relaxed State",
-    )
-
-    ax[1].hist(
-        peptide_strain_f, 
-        bins  = n_bins, 
-        range = (peptide_min, peptide_max),
-        log   = True, 
-        color = "red", 
-        alpha = alpha_setting,
-        label = "Deformed State",
-    )
-
-    ax[0].set_ylabel('Number of Bonds');
-    ax[0].set_xlabel('Bond Strain [a.u.]')
-    ax[0].set_title("Glycan")
-
-    ax[1].set_ylabel('Number of Bonds');
-    ax[1].set_xlabel('Bond Strain [a.u.]')
-    ax[1].set_title("Peptide")
-
-    # Print Some Stats
-    print(f"(Mean, Std) of Glycan in relaxed network: ({np.mean(glycan_strain_0)}, {np.std(glycan_strain_0)})")
-    print(f"(Mean, Std) of Peptide in relaxed network: ({np.mean(peptide_strain_0)}, {np.std(peptide_strain_0)})")
-    print(f"(Mean, Std) of Glycan in deformed network: ({np.mean(peptide_strain_f)}, {np.std(peptide_strain_f)})")
-    print(f"(Mean, Std) of Peptide in deformed network: ({np.mean(peptide_strain_f)}, {np.std(peptide_strain_f)})")
-
-    plt.show();
 
 #### Compare Two Networks of Different Sizes
 
@@ -549,7 +431,7 @@ def add_network_ratio(df, colornamestr, labelstr):
     # tension_xx
     ci_df = get_confidence_intervals(df, 0.95, "strain", "comparison_ratio_xx")
     n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=colornamestr, linestyle="-", label=labelstr+", $\tension_(xx)$")
+    plt.plot(ci_df.index, ci_df['mean'], color=colornamestr, linestyle="-", label=labelstr+r", $\tension_(xx)$")
     plt.fill_between(
         ci_df.index,
         ci_df['lower'],
