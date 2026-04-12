@@ -33,7 +33,9 @@ cd /u/home/j/jrrm/Eldredge-PG-Sim
 echo "Loading venv from $(pwd)..."
 source .venv/bin/activate
 
-network_case=($SGE_TASK_ID % 3)
+network_case=$(($SGE_TASK_ID % 3))
+
+echo "Running case $network_case with task id $SGE_TASK_ID"
 
 case $network_case in
 
