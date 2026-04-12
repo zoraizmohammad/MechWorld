@@ -33,9 +33,9 @@ cd /u/home/j/jrrm/Eldredge-PG-Sim
 echo "Loading venv from $(pwd)..."
 source .venv/bin/activate
 
-NetworkCase = $SGE_TASK_ID % 3
+network_case=($SGE_TASK_ID % 3)
 
-case $NetworkCase in
+case $network_case in
 
     0) 
         python src/task_create_and_process_network.py 300 0.72 0.75 results/090-FS/ ${JOB_ID} ${SGE_TASK_ID} --dist "FS=2=100=0.90" --max_strain 0.40 --write_dumps
