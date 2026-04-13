@@ -2,39 +2,54 @@ from scipy import stats
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Union
+from typing import Union, Iterable
 import re
 import os
 
 PROJECT_ROOT_DIR = os.path.join(os.path.dirname(__file__),"..")
 
-def regex_network_files(size : Union[int,None], rho_0 : Union[float,None], isotropy : Union[float,None]) -> str:
-    regex_pattern = r".*"
+def regex_network_files(jobid : Union[int,None], size : Union[int,None], rho_0 : Union[float,None], isotropy : Union[float,None], extension : str = "out") -> str:
+    if jobid:
+        regex_pattern = "job"+str(jobid)+r".*"
+    else:
+        regex_pattern = r".*"
+
     if size:
         regex_pattern += r"dsu"+str(size)+r".*";
     if rho_0:
-        regex_pattern += r"rho"+str(int(100*rho_0))+r".*";
+        regex_pattern += r"rho"+str(rho_0)+r".*";
     if isotropy:
         regex_pattern += r"a"+str(int(100*isotropy))+r".*";
-    return regex_pattern + r"\.out"
+    return regex_pattern + r"\." + extension
 
-def add_curve_with_ci(df, x_name, y_name, curve_linestyle = "-", curve_color = "black", curve_label_override = None):
+def add_curve_with_ci(df, x_name, y_name, curve_linestyle = "-", curve_color = "black", curve_label_override = None, ax : plt.Axes = None):
 
     if curve_label_override == None:
         label_str = y_name;
     else:
         label_str = curve_label_override;
-
+    
     ci_df = get_confidence_intervals(df, 0.95, x_name, y_name);
     n = int(len(df)/len(ci_df))
-    plt.plot(ci_df.index, ci_df['mean'], color=curve_color, linestyle=curve_linestyle, label=label_str)
-    plt.fill_between(
-        ci_df.index,
-        ci_df['lower'],
-        ci_df['upper'],
-        color=curve_color, 
-        alpha=0.2
-    )
+    
+    if ax:
+        ax.plot(ci_df.index, ci_df['mean'], color=curve_color, linestyle=curve_linestyle, label=label_str)
+        ax.fill_between(
+            ci_df.index,
+            ci_df['lower'],
+            ci_df['upper'],
+            color=curve_color, 
+            alpha=0.2
+        ) 
+    else:
+        plt.plot(ci_df.index, ci_df['mean'], color=curve_color, linestyle=curve_linestyle, label=label_str)
+        plt.fill_between(
+            ci_df.index,
+            ci_df['lower'],
+            ci_df['upper'],
+            color=curve_color, 
+            alpha=0.2
+        )
 
 def find_files(dirpath, regex_pattern) -> set[str]:
     filepaths = set();
@@ -58,12 +73,17 @@ def get_crosslinkage_from_filename(filename : str) -> float:
     else:
         return None;
 
-def bandpass_df(df : pd.DataFrame, column_label : str, min_max_tuple : Union[tuple[float,float],None]):
-    if min_max_tuple:
-        mask = (df[column_label] >= min_max_tuple[0]) & (df[column_label] <= min_max_tuple[1])
-        return df[mask];
-    else:
+def apply_band_filters_to_df(df, bandpass_filters : Iterable[tuple[float,str,float]]):
+    if not bandpass_filters:
         return df;
+
+    for filter_tuple in bandpass_filters:
+        if not filter_tuple:
+            continue
+
+        min_allowed, column_label, max_allowed = filter_tuple;
+        mask = (df[column_label] >= min_allowed) & (df[column_label] <= max_allowed)
+        return df[mask];
 
 def flory_schulz_mean_length(a : Union[str,float]):
     return 2/(1-float(a))-1;

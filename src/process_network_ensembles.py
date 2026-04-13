@@ -7,7 +7,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from utils_helpers import get_confidence_intervals, find_files, add_curve_with_ci, get_initial_density_from_filename, get_crosslinkage_from_filename, bucket_round, bandpass_df
+from utils_helpers import get_confidence_intervals, find_files, add_curve_with_ci, get_initial_density_from_filename, get_crosslinkage_from_filename, bucket_round, apply_band_filters_to_df
 from assemble_pg_network import generate_pg_network
 from run_lammps_isotropic_strain import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
 from lammps_PG_objects import Bond
@@ -136,7 +136,7 @@ def calculate_tension_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
     ratio = tension_xx / tension_yy;
     ratio[0] = ratio[1];
 
-    d = {"strain":strain, "tension_xx":tension_xx, "tension_yy":tension_yy, "tension_xy":tension_xy, "ratio":ratio, "rho_f":rho_f}
+    d = {"strain":strain, "tension_xx":tension_xx, "tension_yy":tension_yy, "tension_xy":tension_xy, "ratio":ratio, "rho_f":rho_f, "rho_0":rho_0}
     return pd.DataFrame(d)
 
 def calc_energy_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
@@ -146,15 +146,17 @@ def calc_energy_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
     glycan_pe  = file_df['glycan_pe'].to_numpy()
     angle_pe   = file_df['angle_pe'].to_numpy()
     peptide_pe = file_df['peptide_pe'].to_numpy()
+    rho_0 = file_df['rho_0'].to_numpy();
 
-    strain   = (lx - lx[0]) / lx[0]
+    strain   = (lx - lx[0]) / lx[0];
+    rho_f = rho_0 / (1+strain)**2;
     total_pe = glycan_pe + angle_pe + peptide_pe;
     glycan_pe_frac  = glycan_pe  / total_pe;
     angle_pe_frac   = angle_pe   / total_pe;
     peptide_pe_frac = peptide_pe / total_pe;
     energy_density = pe / (lx * ly)
 
-    d = {"strain":strain, "glycan_pe_frac":glycan_pe_frac, "angle_pe_frac":angle_pe_frac, "peptide_pe_frac":peptide_pe_frac,"energy_density":energy_density}
+    d = {"strain":strain, "glycan_pe_frac":glycan_pe_frac, "angle_pe_frac":angle_pe_frac, "peptide_pe_frac":peptide_pe_frac,"energy_density":energy_density, "rho_f":rho_f, "rho_0":rho_0}
     return pd.DataFrame(d)
 
 def file_dfs_to_combined_tension_df(file_dfs : pd.DataFrame) -> pd.DataFrame:
@@ -322,9 +324,9 @@ def full_tension_ratio_figure(curves_information : list[tuple[str, str, str, str
 
     finish_tension_ratio_curve();
 
-def full_energy_ratio_figure(curves_information : list[tuple[str, str, str, str]]):
+def full_energy_ratio_figure(curves_information : list[tuple[str, str, str, str]], bsize = None, ax = None):
     for i in range(0,len(curves_information)):
-        (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
+        (working_dirpath, output_regex, colorname, labelstr, curve_filters) = curves_information[i];
 
         dfs = collect_list_of_prestrain_dataframes(working_dirpath, output_regex)
 
@@ -336,6 +338,12 @@ def full_energy_ratio_figure(curves_information : list[tuple[str, str, str, str]
             continue;
         else:
             combined_energy_ratio_df = pd.concat(energy_ratio_dfs)
+
+            combined_energy_ratio_df = apply_band_filters_to_df(combined_energy_ratio_df, curve_filters)
+
+            # Group nearby x values together with confidence interval analysis
+            if bsize:
+                combined_energy_ratio_df['strain'] = bucket_round(combined_energy_ratio_df['strain'],bsize);
 
         add_energy_ratio_curves(combined_energy_ratio_df, colorname, labelstr);
 
@@ -367,25 +375,35 @@ def full_turgor_strain_figure(
         pressure_filter_atm : tuple[float,float] = (0.3,3.0),
         ):
     
+    # Loop through each curve, add them to figure one by one
     for i in range(0,len(curves_information)):
-        (working_dirpath, output_regex, curve_color, curve_label) = curves_information[i];
+        (working_dirpath, output_regex, curve_color, curve_label, curve_filters) = curves_information[i];
 
         dfs = collect_list_of_prestrain_dataframes(working_dirpath, output_regex)
+        print(f"Curve #{i}: collected {len(dfs)} output files from regex pattern")
 
         tension_dfs = list()
         for file_df in dfs:
             new_tension_df = calculate_tension_df_from_file_df(file_df);
 
-            new_tension_df = bandpass_df(new_tension_df, "rho_f", density_filter);
-
             if len(new_tension_df) != 0:
                 tension_dfs.append(new_tension_df);
 
+        # If we filtered all the data point away, skip the curve
         if len(tension_dfs) == 0:
             continue;
         else:
+            # Place results from each file into one big dataframe
             combined_tension_df : pd.DataFrame = pd.concat(tension_dfs)
-            combined_tension_df['strain'] = bucket_round(combined_tension_df['strain'],0.01);
+
+            if density_filter:
+                combined_tension_df = apply_band_filters_to_df(combined_tension_df, [(density_filter[0],"rho_f",density_filter[1])])
+            
+            combined_tension_df = apply_band_filters_to_df(combined_tension_df, curve_filters)
+
+            # Group nearby x values together with confidence interval analysis
+            bsize = 1E-2; # 1% strain
+            combined_tension_df['strain'] = bucket_round(combined_tension_df['strain'],bsize);
         
         # Correct for density variation in the range we are examining. Assuming linear tension relation for small values.
         if density_filter:
@@ -394,13 +412,15 @@ def full_turgor_strain_figure(
 
         ci_pyy_df = get_confidence_intervals(combined_tension_df, 0.95, "strain", "tension_yy")
 
+        # estimate pressure from tension in the y direction
         turgor_pressure_df = pd.DataFrame();
         turgor_pressure_df['strain'] = ci_pyy_df.index;
         turgor_pressure_df['upper'] = ci_pyy_df['upper'].to_numpy() / (min(diameter_bounds_m)/2 * u_ATM_to_PASCAL);
         turgor_pressure_df['mean']  = ci_pyy_df['mean'].to_numpy()  / (np.mean(diameter_bounds_m)/2 * u_ATM_to_PASCAL);
         turgor_pressure_df['lower'] = ci_pyy_df['lower'].to_numpy() / (max(diameter_bounds_m)/2 * u_ATM_to_PASCAL);
 
-        turgor_pressure_df = bandpass_df(turgor_pressure_df, "mean", pressure_filter_atm);
+        # restrict plot to a region that is relevant to E.Coli
+        turgor_pressure_df = apply_band_filters_to_df(turgor_pressure_df, [(pressure_filter_atm[0],"mean",pressure_filter_atm[1])]);
 
         plt.plot(turgor_pressure_df['strain'], turgor_pressure_df['mean'], color=curve_color, linestyle="-", label=curve_label)
         plt.fill_between(

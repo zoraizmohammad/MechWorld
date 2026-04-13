@@ -36,7 +36,7 @@ if args.size and args.rho and args.anisotropy and args.output_directory and args
 write_images   = args.write_images;
 write_dumps    = args.write_dumps;
 write_restarts = args.write_restarts;
-distrib_str    = args.dist;
+distrib_str : str  = args.dist;
 max_strain     = float(args.max_strain);
 
 distribution = process_distribution_string(distrib_str, size)
@@ -48,24 +48,38 @@ filename_wo_lnk = os.path.join(f"{outdir}",f"job{id1}.{id2}_dsu{size}_rho{float(
 filename_w_lnk = generate_pg_network(size, rho_gap, anisotropy, distribution, filename_wo_lnk, False)
 
 # Standard list of outputs
+
+# Dumps are needed to analyze bonds and atoms for: determining pore sizes, bond strain histogram, glycan orientation
 if write_dumps:
-    std_dump_criteria = [
-        ("INITIAL", None,  None ),
-        ("FORCE",   0.15,  None ),
-        ("FORCE",   0.20,  None )
-        ];
+    start = 0.1;
+    stop = max_strain;
+    step = 0.1;
+    std_dump_criteria = [("FORCE", x,  None ) for x in arange(start,max_strain,step)];
+    std_dump_criteria.append(("FORCE", max_strain,  None));
+
+    if "0.94" in distrib_str:
+        std_dump_criteria.append(("FORCE", 0.182,  None));
+
+    if "0.93" in distrib_str:
+        std_dump_criteria.append(("FORCE", 0.211,  None));
+
+    if "0.90" in distrib_str:
+        std_dump_criteria.append(("FORCE", 0.297,  None));
 else:
     std_dump_criteria = None;
 
+# Restarts are needed to determine the elastic 
 if write_restarts:
     start = 0.1;
     stop = max_strain;
     step = 0.01;
     std_restart_criteria = [("FORCE", x,  None ) for x in arange(start,max_strain,step)];
+    std_restart_criteria.append(("FORCE", max_strain,  None));
 else:
     std_restart_criteria = None;
 
-print(std_restart_criteria)
+print("Criteria to write DUMP file = ",std_dump_criteria)
+print("Criteria to write RESTART file = ",std_restart_criteria)
 
 run_isotropic_prestrain_minimize(
     filename_w_lnk, 

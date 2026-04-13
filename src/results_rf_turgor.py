@@ -1,5 +1,5 @@
 from process_network_ensembles import full_turgor_strain_figure
-from utils_helpers import flory_schulz_mean_length
+from utils_helpers import flory_schulz_mean_length, regex_network_files
 from simulation_constants_settings import DSU
 import os
 from sandbox_expected_tension import tension_xx, tension_yy
@@ -19,19 +19,21 @@ dir3 = os.path.join(project_root,"results",f"{alpha_FS_str3.replace(".","")}-FS"
 mean_final_density = 1 / (2.5/(DSU**2));
 tol = 0.05;
 rho_f_filter = (mean_final_density*(1-tol),mean_final_density*(1+tol));
-print(rho_f_filter);
 
 def FS_label(alpha_str):
-    return r"$\alpha_{FS}$ = "+alpha_str+r", $\bar{L}_{W} = "+str(round(flory_schulz_mean_length(alpha_str),1))+r"$ $DSU$"
+    #return r"$\alpha_{FS}$ = "+alpha_str+r", $\bar{L}_{W} = "+str(round(flory_schulz_mean_length(alpha_str),1))+r"$ $DSU$"
+    return r"$\bar{L}_{W} = "+str(round(flory_schulz_mean_length(alpha_str),1))+r"$ $DSU$"
 
-size = 300;
+network_pattern = regex_network_files(jobid=None, size=300, rho_0=None, isotropy=0.75)
+
 curves_info = [
-    (dir1, r".*_dsu"+str(size)+r".*_a75.*.out", "purple", FS_label(alpha_FS_str1)),
-    (dir2, r"job12780.*_dsu"+str(size)+r".*_a75.*.out", "blue", FS_label(alpha_FS_str2)),
-    (dir3, r".*_dsu"+str(size)+r".*_a75.*.out", "green", FS_label(alpha_FS_str3)),
+    (dir1, network_pattern, "purple", FS_label(alpha_FS_str1), None),
+    (dir2, network_pattern, "blue",   FS_label(alpha_FS_str2), None),
+    (dir3, network_pattern, "green",  FS_label(alpha_FS_str3), None),
 ]
 
 full_turgor_strain_figure(curves_info,
-                          density_filter=rho_f_filter)
+                          density_filter=rho_f_filter,
+                          pressure_filter_atm=(0.3,3.0))
 
 print(rho_f_filter)

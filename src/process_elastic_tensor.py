@@ -1,4 +1,4 @@
-from utils_helpers import find_files, get_confidence_intervals, add_curve_with_ci, get_initial_density_from_filename, get_crosslinkage_from_filename, bandpass_df
+from utils_helpers import find_files, get_confidence_intervals, add_curve_with_ci, get_initial_density_from_filename, get_crosslinkage_from_filename, apply_band_filters_to_df
 from simulation_constants_settings import DSU
 import os
 import re
@@ -144,10 +144,10 @@ def import_ElasticTensorStructs_from_file(filepath : str) -> list[ElasticTensorS
 
     return structs
 
-def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> list[pd.DataFrame]:
+def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> pd.DataFrame:
     combined_df : pd.DataFrame = "-";
+    files_found_cnt = 0;
     
-    # Returns a list of dataframes, one from each file
     for filename in listdir(dirpath):
         if re.search(regex_pattern, filename):
             #print(f"{filename} is a match")
@@ -156,6 +156,7 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> li
             df = pd.DataFrame([asdict(n) for n in dataclasses_from_file])
             df['rho_0'] = [get_initial_density_from_filename(filename)] * len(df);
             df['rho_f'] = df["rho_0"] / (1+df["strain"])**2;
+            df['ratio'] = (df["C11"]+df["C12"])/(df["C12"]+df["C22"])
 
             linkage = get_crosslinkage_from_filename(filename);
             if linkage: df['linkage'] = [linkage] * len(df);
@@ -164,21 +165,25 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> li
                 combined_df = df;
             else:
                 combined_df = pd.concat([combined_df,df]);
+    
+            files_found_cnt += 1;
             
     if (type(combined_df) == str):
         raise FileNotFoundError(f"No files were found in: {dirpath} matching regex: {regex_pattern}");
 
-    return combined_df;
+    return combined_df, files_found_cnt;
 
 ## TODO: Check reduced stiffness matrix for unstable modes, look at eigenvalues
 
 ## PLOTTING FUNCTIONS -- Ex,Ey,Gxy
-def full_moduli_figure(curves_information : list[tuple[str, str, str, str]], density_filter = None, thickness_nm = None):
+def full_moduli_figure(curves_information : list[tuple[str, str, str, str]], thickness_nm = None):
 
-    for curve_tuple in curves_information:
-        working_dir, regex_pattern, color_name, extra_label_info = curve_tuple;
-        df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
-        df = bandpass_df(df, 'rho_f', density_filter);
+    for i,curve_tuple in enumerate(curves_information):
+        working_dir, regex_pattern, color_name, extra_label_info, curve_filters = curve_tuple;
+        df, file_cnt = collect_combined_elastic_dataframe(working_dir, regex_pattern)
+        print(f"Curve #{i}: collected {file_cnt} output files from regex pattern")
+
+        df = apply_band_filters_to_df(df, curve_filters);
 
         # convert to MPa if thickness is specified
         if thickness_nm:
@@ -197,11 +202,6 @@ def full_moduli_figure(curves_information : list[tuple[str, str, str, str]], den
     if thickness_nm:
         title_str += "; $t = "+str(thickness_nm)+"nm$"
 
-    if density_filter:
-        title_str += r", $\rho_{f} = "+str(round(density_filter[0]/(DSU**2),2))+r"-"+str(round(density_filter[1]/(DSU**2),2))+r"$ $\frac{DSU}{nm^2}$"
-    else:
-        title_str += r", all $\rho_{f}$"
-
     plt.title(title_str);
 
     if thickness_nm:
@@ -214,12 +214,15 @@ def full_moduli_figure(curves_information : list[tuple[str, str, str, str]], den
     plt.show();
 
 ## PLOTTING FUNCTIONS -- Vxy,Vyx
-def full_poisson_ratios_figure(curves_information : list[tuple[str, str, str, str]], density_filter = None):
+def full_poisson_ratios_figure(curves_information : list[tuple[str, str, str, str]]):
 
-    for curve_tuple in curves_information:
-        working_dir, regex_pattern, color_name, extra_label_info = curve_tuple;
-        df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
-        df = bandpass_df(df, 'rho_f', density_filter); 
+    for i,curve_tuple in enumerate(curves_information):
+        working_dir, regex_pattern, color_name, extra_label_info, curve_filters = curve_tuple;
+        df, file_cnt = collect_combined_elastic_dataframe(working_dir, regex_pattern)
+        print(f"Curve #{i}: collected {file_cnt} output files from regex pattern")
+
+        df = apply_band_filters_to_df(df, curve_filters);
+
         add_curve_with_ci(df, 'strain', 'Vxy',"--", curve_label_override="$V_{xy}$"+extra_label_info,curve_color=color_name)
         add_curve_with_ci(df, 'strain', 'Vyx',":", curve_label_override="$V_{yx}$",curve_color=color_name)
     
@@ -241,3 +244,59 @@ def full_ratios_figure(working_dir, regex_pattern):
     df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
     #add_moduli_curves(df, "black", "a = 0.925")
     #finish_moduli_curve()
+
+## PLOTTING FUNCTIONS -- Subplots Galore
+def full_subplots_figure(curves_information : list[tuple[str, str, str, str]], thickness_nm=6.0):
+
+    fig, axes = plt.subplots(2,3, sharey="row", sharex="row", tight_layout=True)
+
+    axes[0,0].set_title(r"$E_{xx}$")
+    axes[0,1].set_title(r"$E_{yy}$")
+    axes[0,2].set_title(r"$G_{xy}$")
+    axes[1,0].set_title(r"$V_{xy}$")
+    axes[1,1].set_title(r"$V_{yx}$")
+    axes[1,2].set_title(r"$\sigma_{xx} / \sigma_{yy}$")
+
+    for i,curve_tuple in enumerate(curves_information):
+        working_dir, regex_pattern, color_name, extra_label_info, curve_filters = curve_tuple;
+        df, file_cnt = collect_combined_elastic_dataframe(working_dir, regex_pattern)
+        print(f"Curve #{i}: collected {file_cnt} output files from regex pattern")
+
+        df = apply_band_filters_to_df(df, curve_filters);
+
+        # convert to MPa if thickness is specified
+        if thickness_nm:
+            df['Ex'] = df["Ex"]/thickness_nm;
+            df['Ey'] = df["Ey"]/thickness_nm;
+            df['Gxy'] = df["Gxy"]/thickness_nm;
+
+        add_curve_with_ci(df, 'strain', 'Ex',"-", curve_label_override=extra_label_info,curve_color=color_name
+            , ax=axes[0,0])
+        add_curve_with_ci(df, 'strain', 'Ey',"-", curve_label_override=extra_label_info,curve_color=color_name
+            , ax=axes[0,1])
+        add_curve_with_ci(df, 'strain', 'Gxy',"-", curve_label_override=extra_label_info,curve_color=color_name
+            , ax=axes[0,2])
+        add_curve_with_ci(df, 'strain', 'Vxy',"-", curve_label_override=extra_label_info,
+            curve_color=color_name, ax=axes[1,0])
+        add_curve_with_ci(df, 'strain', 'Vyx',"-", curve_label_override=extra_label_info,curve_color=color_name
+            , ax=axes[1,1])
+        add_curve_with_ci(df, 'strain', 'ratio',"-", curve_label_override=extra_label_info,curve_color=color_name
+            , ax=axes[1,2])
+    
+    axes[0,0].legend()
+
+    for ax in axes.flat:
+        ax.grid(True)
+        ax.set_xlabel(r"$\mathcal{E}$")
+
+    for ax in axes[1,:]:
+        ax.set_ylim(0,None)
+
+    if thickness_nm:
+        axes[0,0].set_ylabel(r"$MPa$")
+    else:
+        axes[0,0].set_ylabel(r"$MPa*nm$")
+
+    axes[1,0].set_ylabel(r"$a.u.$")
+
+    plt.show()

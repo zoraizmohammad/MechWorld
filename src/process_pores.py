@@ -205,93 +205,108 @@ def calculate_pixel_scale(filename, triclinic_bounds):
     return (xPX / xDSU);
 
 #### Produce a figure comparing the initial state and final state of orientation, like Xaoxuan Figure 4B-D
-def full_pore_size_distribution_figure(working_directory, filename_0, filename_f, use_cached_results = True, min_area_DSU2 : float = 1):
-    # skeleton of figure
-
-    filepath_0 = os.path.join(working_directory,filename_0)
-
-    # Remove extension to get basepath, only if needed
-    if str(filepath_0).endswith(".atoms") or str(filepath_0).endswith(".bonds"):
-        filepath_0 = os.path.splitext(filename_0)[0];
+def get_pore_area_array(filepath : str, use_cached_results : bool, min_area_sqDSU : float) -> np.ndarray:
     
-    # relaxed data
-    atoms_filepath = filepath_0 + ".atoms"
-    bonds_filepath = filepath_0 + ".bonds"
-    image_filepath = filepath_0 + ".png"
-    pores_filepath = filepath_0 + ".pores"
+    # do some light sanitization of the filepath, remove potential extensions
+    if str(filepath).endswith(".atoms") or str(filepath).endswith(".bonds") or str(filepath).endswith(".pores"):
+        filepath = os.path.splitext(filepath)[0];
+    
+    # These are the corresponding files for this network
+    atoms_filepath = filepath + ".atoms"
+    bonds_filepath = filepath + ".bonds"
+    image_filepath = filepath + ".png"
+    pores_filepath = filepath + ".pores"
 
+    # Import atoms and bonds from dumps
     triclinic_bounds = import_2D_triclinic_box_bounds_from_dump(atoms_filepath);
     atoms = import_atoms_from_dump(atoms_filepath, triclinic_bounds);
     bonds = import_bonds_from_dump(bonds_filepath);
-    
+
+    # If needed, create a black and white image for the flood fill algorithm
     if os.path.exists(image_filepath) and use_cached_results:
         pass
     else:
         save_png_of_network(atoms, bonds, triclinic_bounds, image_filepath, True);
     
-    # scale_0 [px/DSU]
-    scale_0 = calculate_pixel_scale(image_filepath, triclinic_bounds);
-    
+    scale_px_to_DSU = calculate_pixel_scale(image_filepath, triclinic_bounds);
+
+    # Either load pores from file, or run flood fill to create said file
     if os.path.exists(pores_filepath) and (use_cached_results):
-        pixels_sorted_by_pore_0 = load_pores_data(pores_filepath);
+        pixels_sorted_by_pore = load_pores_data(pores_filepath);
     else:
-        pixels_sorted_by_pore_0 = pizza_boy(image_filepath, 0.0)
-        pixels_sorted_by_pore_0 = disregard_pores_based_on_pixel_area_criteria(pixels_sorted_by_pore_0, min_area_DSU2*(scale_0)*(scale_0), None);
-        save_pores_data(pixels_sorted_by_pore_0, pores_filepath);
-
-
-    areas_0 = calculate_array_of_areas(pixels_sorted_by_pore_0, scale_0);
-
-    ### FINAL STATE
-    filepath_f = os.path.join(working_directory,filename_f)
-
-    # Remove extension to get basepath, only if needed
-    if str(filepath_f).endswith(".atoms") or str(filepath_f).endswith(".bonds"):
-        filepath_f = os.path.splitext(filename_f)[0];
+        pixels_sorted_by_pore = pizza_boy(image_filepath, 0.0)
+        pixels_sorted_by_pore = disregard_pores_based_on_pixel_area_criteria(pixels_sorted_by_pore, min_area_sqDSU*(scale_px_to_DSU)*(scale_px_to_DSU), None);
+        save_pores_data(pixels_sorted_by_pore, pores_filepath);
     
-    # relaxed data
-    atoms_filepath = filepath_f + ".atoms"
-    bonds_filepath = filepath_f + ".bonds"
-    image_filepath = filepath_f + ".png"
-    pores_filepath = filepath_f + ".pores"
+    # Condense the pixel information into an array of areas, 
+    # we collect the pixels so we could do more complicated analysis (like aspect ratio) in the future if we want
+    pore_areas : np.ndarray = calculate_array_of_areas(pixels_sorted_by_pore, scale_px_to_DSU);
 
-    triclinic_bounds = import_2D_triclinic_box_bounds_from_dump(atoms_filepath);
-    atoms = import_atoms_from_dump(atoms_filepath, triclinic_bounds);
-    bonds = import_bonds_from_dump(bonds_filepath);
-    
-    if os.path.exists(image_filepath) and use_cached_results:
-        pass
-    else:
-        save_png_of_network(atoms, bonds, triclinic_bounds, image_filepath, True);
-    
-    # scale_f
-    scale_f = calculate_pixel_scale(image_filepath, triclinic_bounds);
-    
-    if os.path.exists(pores_filepath) and (use_cached_results):
-        pixels_sorted_by_pore_f = load_pores_data(pores_filepath);
-    else:
-        pixels_sorted_by_pore_f = pizza_boy(image_filepath, 0.0)
-        pixels_sorted_by_pore_f = disregard_pores_based_on_pixel_area_criteria(pixels_sorted_by_pore_f, min_area_DSU2*(scale_f)*(scale_f), None);
-        save_pores_data(pixels_sorted_by_pore_f, pores_filepath);
-    
-    areas_f = calculate_array_of_areas(pixels_sorted_by_pore_f, scale_f);
+    return pore_areas;
 
-    max_area = max(max(areas_0),max(areas_f));
+def collect_combined_pore_area_array(dirpath : str, regex_pattern : str, use_cached_results, min_area_sqDSU) -> np.ndarray:
+    # Returns a list of dataframes, one from each file
+    combined_areas = 0;
+
+    for filename in os.listdir(dirpath):
+        if re.search(regex_pattern, filename):
+            filepath = os.path.join(dirpath, filename)
+            new_areas = get_pore_area_array(filepath, use_cached_results, min_area_sqDSU)
+
+            if type(combined_areas) == int:
+                combined_areas = new_areas;
+            else:
+                combined_areas = np.append(combined_areas, new_areas)
+
+    return combined_areas
+
+def full_pore_sizes_file_figure(curves_info : tuple[str, str, str, str], use_cached_results = True, min_area_sqDSU : float = 1, ax : plt.Axes = None):
+
+    if not ax:
+        ax = plt.subplot();
+    
+    max_area = 0;
     n_bins = 100;
 
-    #### Plots
-    # add labels and titles
-    ax = plt.subplot();
-    
-    # Top-Left Plot: Relaxed Length vs Glycan Orientation
-    ax.hist(areas_0, bins = n_bins, alpha=0.3, density=True, color="blue", label=r"$\mathcal{E}_f = 0$");
-    ax.hist(areas_f, bins = n_bins, alpha=0.3, density=True, color="red", label=r"$\mathcal{E}_f = 0.212$");
+    for curve_info in curves_info:
+        (curve_dir, curve_filename, curve_label, curve_color) = curve_info;
+
+        filepath = os.path.join(curve_dir,curve_filename)
+        pore_areas : np.ndarray = get_pore_area_array(filepath, use_cached_results, min_area_sqDSU);
+
+        max_area = max(max_area, max(pore_areas))
+
+        # Add histogram for this data
+        ax.hist(pore_areas, bins = n_bins, alpha=0.3, density=True, log=True, color=curve_color, label=curve_label);
+
     ax.legend()
     ax.set_title("Pore Area Distributions")
     ax.set_ylabel("Fraction of Pores")
     ax.set_xlabel("Area ${L_{DSU}}^2$")
     ax.set_xlim(0,max_area);
-
     plt.show()
 
-# TODO: Add regex version to combine lots of files
+def full_pore_sizes_regex_figure(curves_info : tuple[str, str, str, str], use_cached_results = True, min_area_sqDSU : float = 1, ax : plt.Axes = None):
+
+    if not ax:
+        ax = plt.subplot();
+    
+    max_area = 0;
+    n_bins = 100;
+
+    for curve_info in curves_info:
+        (curve_dir, curve_regex, curve_label, curve_color) = curve_info;
+
+        combined_pore_areas : np.ndarray = collect_combined_pore_area_array(curve_dir, curve_regex, use_cached_results, min_area_sqDSU);
+
+        max_area = max(max_area, max(combined_pore_areas))
+
+        # Add histogram for this data
+        ax.hist(combined_pore_areas, bins = n_bins, alpha=0.3, density=True, log=True, color=curve_color, label=curve_label);
+
+    ax.legend()
+    ax.set_title("Pore Area Distributions")
+    ax.set_ylabel("Fraction of Pores")
+    ax.set_xlabel("Area ${L_{DSU}}^2$")
+    ax.set_xlim(0,max_area);
+    plt.show()

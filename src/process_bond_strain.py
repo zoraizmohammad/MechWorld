@@ -37,9 +37,12 @@ def full_chain_figure(filepath_0, title_0, filepath_f = None, title_f = None):
         force_chain_and_histogram_combo(ax[0,1],ax[1,1],filepath_f, max_gly_strain, min_gly_strain, max_pep_strain, min_pep_strain, cmap, gnorm, pnorm)
         ax[0,0].set_title(title_0);
         ax[0,1].set_title(title_f);
+        ax[1,0].set_title("Glycan Strain")
+        ax[1,1].set_title("Glycan Strain")
     else:
         force_chain_and_histogram_combo(ax[0],ax[1],filepath_0, max_gly_strain, min_gly_strain, max_pep_strain, min_pep_strain, cmap, gnorm, pnorm)
         ax[0].set_title(title_0);
+        ax[1].set_title("Glycan Strain")
 
     plt.show()
 
@@ -132,7 +135,8 @@ def strain_histogram(
         alpha_setting = 0.5,
         colormap = None, 
         colormap_norm = None,
-        use_log = True):
+        use_log = True,
+        use_density = True):
 
     # We can set the number of bins with the *bins* keyword argument.
     n_bins = 100;
@@ -145,6 +149,7 @@ def strain_histogram(
         color = uniform_color,
         alpha = alpha_setting,
         label = label,
+        density = use_density,
     )
 
     # if a colormap and normalization function is provided, then we will recolor our bins to match

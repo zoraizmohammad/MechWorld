@@ -32,11 +32,7 @@ curves_info = [
       f"Flory-Schulz Distribution 2-100, a=0.94, $\chi = 0.72$"
     )
 ]
-full_tension_figure(
-    curves_info,
-    (0.23, 0.27),
-    (0.0159586875, 0.031917375),
-    (0.031917375, 0.060794999999999995));
-full_tension_ratio_figure(curves_info)
+#full_tension_figure(curves_info)
+#full_tension_ratio_figure(curves_info)
 full_energy_ratio_figure(curves_info)
-full_PE_figure(curves_info)
+#full_PE_figure(curves_info)
