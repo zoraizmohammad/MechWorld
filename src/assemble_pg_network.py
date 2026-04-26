@@ -9,6 +9,7 @@ from lammps_PG_objects import peptide_energy_lammps, shortest_path_is_periodic_x
 import matplotlib.pyplot as plt
 import matplotlib.colors as mpl_colors
 from scipy.stats import gamma, lognorm
+from operator import methodcaller
 
 rng = np.random.default_rng()
 
@@ -518,8 +519,17 @@ def visualize_bonds(
         show_now = True;
     else:
         show_now = False;
+    
+    if strain_colormap:
+        # Sort bonds
+        print("DEBUG: Sorting bonds to highlight those with highest strain")
+        bonds_iterable = list(bonds.values())
+        bonds_iterable.sort(key=methodcaller("get_tension"), reverse=False)
+        print("DEBUG: Sorting complete")
+    else:
+        bonds_iterable = bonds.values()
 
-    for b in bonds.values():
+    for b in bonds_iterable:
             
         a1 = atoms[b.atom_id_1];
         a2 = atoms[b.atom_id_2];
@@ -537,15 +547,17 @@ def visualize_bonds(
             if b.bond_type == BOND_TYPE_GLYCAN:
                 ax.plot(
                     [a1.x,a2.x],[a1.y,a2.y],
-                    color=strain_colormap(strain_colormap_norm_glycan(b.get_strain())),
+                    color=strain_colormap(strain_colormap_norm_glycan(b.get_tension())),
                     linestyle=linestyle_arr[b.bond_type],
-                    alpha=0.5+0.5*strain_colormap_norm_glycan(b.get_strain()));
+                    alpha=1#0.5+0.5*strain_colormap_norm_glycan(b.get_tension())
+                    );
             elif b.bond_type == BOND_TYPE_PEPTIDE:
                 ax.plot(
                     [a1.x,a2.x],[a1.y,a2.y],
-                    color=strain_colormap(strain_colormap_norm_peptide(b.get_strain())),
+                    color=strain_colormap(strain_colormap_norm_peptide(b.get_tension())),
                     linestyle=linestyle_arr[b.bond_type],
-                    alpha=0.5+0.5*strain_colormap_norm_glycan(b.get_strain()));
+                    alpha=1#0.5+0.5*strain_colormap_norm_glycan(b.get_tension())
+                    );
             else:
                 continue;
         else:

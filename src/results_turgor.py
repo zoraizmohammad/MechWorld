@@ -34,6 +34,7 @@ curves_info = [
 
 full_turgor_strain_figure(curves_info,
                           density_filter=rho_f_filter,
-                          pressure_filter_atm=(0.3,3.0))
+                          pressure_filter_atm=(0.3,3.0),
+                          diameter_bounds_m=(0.99E-6,1.01E-6))
 
 print(rho_f_filter)

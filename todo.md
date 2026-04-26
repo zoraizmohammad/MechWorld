@@ -241,13 +241,139 @@ Todo:
 * [ ] Compare pore sizes for 0.13
 * [ ] Compare Turner 2018 metric of orientation against our parameter of 0.72
 
+sigma_xx / sigma_yy = (E11 + v12*E2) / (E22 + v21*E1)
+
 # 3/13/2026
+Recent Developments
+* I began looking at alternate length distributions that can better satisfy the expected Laplace tension.
+   * src\results_compare_network
 * Justifying ratio of elastic coefficents. 
    * The elastic coefficents, at least for the alpha=0.72 case, are consistent with the 2:1 stress ratio during isotropic deformation.
    * The poisson ratio Vxy is 0.3->0.2 during the sweep of isotropic pre-strain. (x is transverse/induced, y is axial/applied)
    * The poisson ratio Vyx is ~0.8-0.9. (y is transverse/induced, x is axial/applied). This means that if you were to take the PG and stretch it along the longitudinal direction, the hoop direction would significantly contract. In fact, the area of the 2D surface would almost be unchanged.
    * These poisson ratios are physically possible for a non-isotropic material as their product is smaller than 1/2.
 * The "great re-uniting". Realized that virial pressure in 2D is force/length, not force/area. Redid and double-checked all the units. Moduli are looking a LOT BETTER! But I need to rerun my networks, old results have wrong units for spring constants (nN/nm, should be pN/nm).
+
+TODO:
+* Look at predicted vs observed stiffness ratio at each step of strain.
+* Because I have stiffness tensor, I can look at eigenvalues to find unstable modes.
+
+TODO:
+* [x] Send elastic moduli data to Giacomo so he can try to fit a continuum model to it.
+* [x] Force chains figure, histogram of 
+
+x = drafted
+
+Flow of Figures for First Paper
+* [x] Network Assembly
+   - 3 subplots, showing population, reorientation, and cross-linking
+* [x] Isotropic Expansion
+* Orientation Parameter (FS-090, alpha=0.33,0.75,100). Goal is 15 networks / isotropy [x]
+   * [x] Tension vs Strain
+   * [x] Tension Ratio, note Laplace Ratio
+* Length Distribution (FS-090,093,094). Goal is 150 networks / distribution [ ]
+   * [x] Pressure vs. Strain Curves
+   * [x] Ratio of Energy Sources -> Need more samples at constant same rho_0
+      * [x] Run 15 networks each from 0 to 0.4 strain at the starting densities noted.
+      * [x] Add lines to indicate 1 ATM of pressure
+* Tensile Tests (FS-090,093,094). Goal is 150 networks / distribution [ ]
+   * [x] Moduli Curves
+   * [x] Poisson Ratios
+   * [x] Expected Stress Ratio
+   * [x] For a given length distribution, how does density (starting) affect stiffness?
+* Pores
+   * [x] Group network ensembles into a single histogram
+   * [x] Pore histogram for Different Length Distributions (0.90, 0.93, 0.94) at equal density (2.5 nm2/DSU) and 1 atm of turgor pressure!
+   * [ ] Pore histogram for a single network at various degrees of strain
+* [x] Example of Force Chains
+   * [x] 0.1 -> 0.2 -> 0.3, with accompanying strain histogram below
+   * [x] Combine into a tension-based color map
+   * [ ] Look at what defines a 'force chain' rigorously in the literature
+      * 
+   * [x] Draw in order of lowest to highest strain/tension
+* [x] Add these figures to overleaf
+* SI -> Effect of patch size
+* Latex has a thing called overpick, it lets you include som basic text overlays. Tikx
+
+
+* Background on Networks
+   * [x] Assembly
+   * Strain Procedure -> Try to show a periodic version
+* Orientation Parameter
+   * [x] Tension Ratio
+   * [ ] Moduli
+* Impact of Length Distributions
+   * [x] Turgor Pressure
+   * [x] Moduli
+   * [x] Energy
+   * [x] Pores vs. Strain
+* Other
+   * [x] Pores Get Larger as Strain Increases
+   * [x] Well Defined Force Chains Form
+
+Write Elastic Testing Method in the Overleaf Document
+* Send email to Octavio when it is done
+
+Main points for captions:
+* Significant orientation is required to satisfy laplace
+* Material is highly anisotropic and strain-hardening 
+* Material is highly redundant, a small proportion of chains bear the load
+* For the same density and crosslinkage, stiffness increases with glycan length, but pore size doesn't decrease
+
+Some sort of redundancy plot would be awesome but time intensive:
+* Y-axis ideas:
+   * Pressure-bearing on y-axis
+   * Mean pore size
+   * Eigenvalues of elastic matrix (is it positive definite?)
+* % of crosslinks severed (0 -> 100%, 5% increments)
+* How many crosslinks can be lost without "killing" the network?
+
+
+Analysis:
+- Kill floaters before pore flood fill
+- Binary image with colored pores
+
+SI
+* [x] rho_0 vs. strain, curve of p_f = 0.4 (since this is pretty standard)
+* [x] rho_0 vs. crosslinkage
+* [x] strain vs. crosslinkage for rho_f = 0.4
+* [ ] effect of patch size
+ 
+Debugging Example: cat joblog.12661759 | grep -B 5 -A 5 "Error"
+
+# 3/16/2026
+* todo: Get started on Overleaf -> add to the document
+* Take the best results from today to tell the narrative -> make pdf versions of the plots. Add them all the to top of the overleaf document.
+   * Network Microstructure
+   * Density vs. Crosslink Percentage
+   * Axial & Hoop Tension
+   * Ratio: Axial & Hoop Tension
+   * Young's Moduli
+   * Poisson Ratio
+   * Ratio: Expected Tension
+* Sergey's hypothesis: he suggests the strain might be very high.
+
+# 3/23/2026
+Revisions:
+* Looking at higher strains suggested by 
+* Corrected mistake in FS distribution: I was using the wrong equation (weight pdf instead of molar pdf)
+* 
+
+Ideas -> 
+* How is the PG represented?
+   * Network of randomly oriented springs.
+* What levers can we adjust?
+   * Patch size -> chosen s.t. increasing the size further had no impact on material properties
+   * Mesoscopic energies -> previous molecular simulations
+   * Density -> experimentally determined
+   * Crosslinking Rules -> molecular structure & verified with experimental observation
+   * Orientation -> parameter found s.t. the networks satisfy the ratio of Laplace
+   * Distribution -> parameter found s.t. the networks satisfy the magnitude of Laplace
+* Results ->
+I want them to understand the degrees of freedom in the 
+
+# 3/23/2025
+* I read Rojas2018, and they measured a prestrain of 25% +/- 8.6%. But in the triangular network paper, a prestrain of 13% +/- 9% is used, and Rojas2018 is cited as one of several sources. I'm not able to track down the source of the 13% mean.
 
 Concerns/observations/question:
 

@@ -8,22 +8,38 @@ from math import floor, ceil
 
 from simulation_constants_settings import *
 
-# LAAMPS ENERGY FUNCTIONS
+# LAAMPS ENERGY (& TENSION) FUNCTIONS
 def peptide_energy_lammps(bond_distance) -> Union[float,None]:
-    return lammps_nonlinear(bond_distance, PEPTIDE_COEFFICIENTS[0], PEPTIDE_COEFFICIENTS[1], PEPTIDE_COEFFICIENTS[2])
+    return lammps_energy_nonlinear(bond_distance, PEPTIDE_COEFFICIENTS[0], PEPTIDE_COEFFICIENTS[1], PEPTIDE_COEFFICIENTS[2])
+
+def peptide_tension_lammps(bond_distance) -> Union[float,None]:
+    return lammps_tension_nonlinear(bond_distance, PEPTIDE_COEFFICIENTS[0], PEPTIDE_COEFFICIENTS[1], PEPTIDE_COEFFICIENTS[2])
 
 def glycan_energy_lammps(bond_distance) -> Union[float,None]:
-    return lammps_linear(bond_distance, GLYCAN_COEFFICIENTS[0], GLYCAN_COEFFICIENTS[1])
+    return lammps_energy_linear(bond_distance, GLYCAN_COEFFICIENTS[0], GLYCAN_COEFFICIENTS[1])
 
-def lammps_linear(r, K, r0) -> Union[float,None]:
+def glycan_tension_lammps(bond_distance) -> Union[float,None]:
+    return lammps_tension_linear(bond_distance, GLYCAN_COEFFICIENTS[0], GLYCAN_COEFFICIENTS[1])
+
+def lammps_energy_linear(r, K, r0) -> Union[float,None]:
     return K*(r-r0)**2;
 
-def lammps_nonlinear(r, epsil, r0, lambd) -> Union[float,None]:
+def lammps_tension_linear(r, K, r0) -> Union[float,None]:
+    return 2*K*(r-r0);
+
+def lammps_energy_nonlinear(r, epsil, r0, lambd) -> Union[float,None]:
     if ((r-r0) >= lambd):
         return None
     else:
         return epsil*(r-r0)**2 / (lambd**2 - (r-r0)**2);
 
+def lammps_tension_nonlinear(r, epsil, r0, lambd) -> Union[float,None]:
+    if ((r-r0) >= lambd):
+        return None
+    else:
+        return (2 * lambd**2 * epsil * (r-r0)) / (r**2 - (2*r0*r) + r0**2 - lambd**2)**2
+
+###
 @dataclass
 class TriclinicBounds:
     xlo : float
@@ -144,6 +160,14 @@ class Bond:
             return (self.dist - GLYCAN_COEFFICIENTS[1]) / GLYCAN_COEFFICIENTS[1]
         elif self.bond_type == BOND_TYPE_PEPTIDE:
             return (self.dist - PEPTIDE_COEFFICIENTS[1]) / PEPTIDE_COEFFICIENTS[1]
+        else:
+            return None;
+
+    def get_tension(self):
+        if self.bond_type == BOND_TYPE_GLYCAN:
+            return glycan_tension_lammps(self.dist);
+        elif self.bond_type == BOND_TYPE_PEPTIDE:
+            return peptide_tension_lammps(self.dist);
         else:
             return None;
 

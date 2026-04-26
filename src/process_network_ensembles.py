@@ -184,8 +184,8 @@ def add_energy_ratio_curves(df : pd.DataFrame, curves_color : str, extra_label_i
                       curve_linestyle="-", curve_color=curves_color, curve_label_override="Peptide Extension")
 
 def finish_energy_ratio_curve():
-    plt.legend();
-    plt.title("Fraction of Potential Energy vs Strain")
+    #plt.legend();
+    #plt.title("Fraction of Potential Energy vs Strain")
     plt.ylabel("Energy Fraction [a.u.]")
     plt.xlabel(r"$\mathcal{E}$, Strain [a.u.]")
     plt.grid(True);
@@ -227,40 +227,30 @@ def add_tension_curve(df : pd.DataFrame, curves_color : str, extra_label_info):
     add_curve_with_ci(df, 'strain', 'tension_xx', 
                     curve_linestyle="--", curve_color=curves_color, curve_label_override=r"$\gamma_{Axial}$")
 
-def finish_tension_curve():
-    plt.title("Directional Tension during Isotropic Pre-Strain")
-    plt.ylabel(r"$\gamma$ [N/m]")
-    plt.xlabel(r"$\mathcal{E}$, Strain")
-    plt.legend()
-    plt.grid()
-    plt.show()
-
 ## PLOTTING FUNCTIONS -- TENSION RATIO
 def add_tension_ratio_curve(df : pd.DataFrame, curve_color : str, extra_label_info : str):
     add_curve_with_ci(df, 'strain', 'ratio', 
-                curve_linestyle="-", curve_color=curve_color, curve_label_override="Tension Ratio"+extra_label_info)
+                curve_linestyle="-", curve_color=curve_color, curve_label_override=extra_label_info)
 
     ci_df = get_confidence_intervals(df, 0.95, 'strain', 'ratio')
     print(f"Mean Tension Ratio for {extra_label_info}: {np.mean(ci_df['mean'].to_numpy())}")
 
-def finish_tension_ratio_curve():
-    plt.title("Tension Ratio during Isotropic Pre-Strain")
-    plt.ylabel(r"$\gamma_{Axial}$ / $\gamma_{Hoop}$ [a.u.]")
-    plt.xlabel(r"$\mathcal{E}$, Strain")
-    plt.ylim([0,1.6])
-    plt.grid(True)
-    plt.legend()
-    plt.show()
+
 
 ## FULL FIGURE FUNCTIONS
 def full_tension_figure(
         curves_information : list[tuple[str, str, str, str]],
         expected_strain_tuple : tuple[float,float] = None,
         expected_tension_xx_tuple : tuple[float,float] = None,
-        expected_tension_yy_tuple : tuple[float,float] = None):
+        expected_tension_yy_tuple : tuple[float,float] = None,
+        ax : plt.Axes = None):
+    
+    was_axis_provided = (ax != None);
+    if not was_axis_provided:
+        ax = plt.subplot();
     
     for i in range(0,len(curves_information)):
-        (working_dirpath, output_regex, colorname, labelstr) = curves_information[i];
+        (working_dirpath, output_regex, curve_color, extra_label_info) = curves_information[i];
 
         dfs = collect_list_of_prestrain_dataframes(working_dirpath, output_regex)
 
@@ -273,7 +263,11 @@ def full_tension_figure(
         else:
             combined_tension_df = pd.concat(tension_dfs)
 
-        add_tension_curve(combined_tension_df, colorname, labelstr);
+        # Hoop (Higher)
+        add_curve_with_ci(combined_tension_df, 'strain', 'tension_yy',  "-", curve_color, r"$\gamma_{Hoop}$, "+extra_label_info, ax)
+
+        # Longitudinal (Lower)
+        add_curve_with_ci(combined_tension_df, 'strain', 'tension_xx', "--", curve_color, r"$\gamma_{Axial}$", ax)
     
     ci_df = get_confidence_intervals(combined_tension_df, 0.95, 'strain', 'tension_yy')
     ci_df = ci_df.loc[abs(ci_df.index-0.25)<=0.02]
@@ -296,11 +290,20 @@ def full_tension_figure(
                          alpha=0.4,
                          color="purple")
 
-    finish_tension_curve();
+    ax.set_ylabel(r"$\gamma$ [N/m]")
+    ax.set_xlabel(r"$\mathcal{E}$, Strain")
+    ax.legend()
+    ax.grid()
+    ax.set_title(r"Total Tension, $\gamma$")
 
-def full_tension_ratio_figure(curves_information : list[tuple[str, str, str, str]], ax : plt.Axes = None, show_laplace_region : bool = False):
+    if not was_axis_provided:
+        plt.title("Total Tension")
+        plt.show()
+
+def full_tension_ratio_figure(curves_information : list[tuple[str, str, str, str]], ax : plt.Axes = None, show_laplace_region : bool = False, add_legend = True):
     
-    if ax == None:
+    was_axis_provided = (ax != None);
+    if not was_axis_provided:
         ax = plt.subplot();
     
     for i in range(0,len(curves_information)):
@@ -321,8 +324,17 @@ def full_tension_ratio_figure(curves_information : list[tuple[str, str, str, str
     
     if show_laplace_region:
         ax.plot([0,0.3],[0.5,0.5], linestyle="--", color="green", label="Expected Ratio for Cylindrical Shell")
+    
+    ax.set_ylabel(r"$\gamma_{Axial}$ / $\gamma_{Hoop}$ [a.u.]")
+    ax.set_xlabel(r"$\mathcal{E}$, Strain")
+    ax.set_ylim([0,1.6])
+    ax.grid(True)
+    if add_legend: ax.legend();
+    ax.set_title("Tension Ratio")
 
-    finish_tension_ratio_curve();
+    if not was_axis_provided:
+        plt.title("Tension Ratio")
+        plt.show()
 
 def full_energy_ratio_figure(curves_information : list[tuple[str, str, str, str]], bsize = None, ax = None):
     for i in range(0,len(curves_information)):
@@ -347,7 +359,8 @@ def full_energy_ratio_figure(curves_information : list[tuple[str, str, str, str]
 
         add_energy_ratio_curves(combined_energy_ratio_df, colorname, labelstr);
 
-    finish_energy_ratio_curve();
+    if not ax:
+        finish_energy_ratio_curve();
 
 def full_PE_figure(curves_information : list[tuple[str, str, str, str]]):
     for i in range(0,len(curves_information)):
@@ -431,7 +444,7 @@ def full_turgor_strain_figure(
             alpha=0.2
         )
 
-    title_str = r"Turgor Pressure; $D = "+str(np.mean(diameter_bounds_m)*1E6)+r" \mu m $"
+    title_str = r"Turgor Pressure; $D = "+str(round(np.mean(diameter_bounds_m)*1E6,1))+r" \mu m $"
     if density_filter:
         title_str += r", $\rho_{f} = "+str(round(density_filter[0]/(DSU**2),2))+r"-"+str(round(density_filter[1]/(DSU**2),2))+r"$ $\frac{DSU}{nm^2}$"
     else:
@@ -439,8 +452,8 @@ def full_turgor_strain_figure(
 
     plt.title(title_str);
     plt.legend()
-    plt.xlabel(r"$\mathcal{E}_{f}$, Strain")
-    plt.ylabel("Turgor Pressure [atm]")
+    plt.xlabel(r"$\mathcal{E}$, Strain [a.u.]")
+    plt.ylabel(r"Equivalent Turgor [atm]")
     plt.grid()
     plt.show()
 

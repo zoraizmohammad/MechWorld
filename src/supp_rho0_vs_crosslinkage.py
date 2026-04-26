@@ -68,7 +68,7 @@ def sweep_data_points(datafile : str, size : int):
                 save_network_results_to_file(datafile, size, rho_gap, tilt_factor, distribution);
                 completed_networks += 1;
 
-def plot_crosslinks_vs_rho_gap(crosslinks_df, tilt : float, colorname : str, labelstr : str, linestylestr : str):
+def plot_crosslinks_vs_rho0(crosslinks_df, tilt : float, colorname : str, labelstr : str, linestylestr : str):
     filtered_crosslinks_df = crosslinks_df[crosslinks_df['tilt_factor'] == tilt]
     del crosslinks_df;
     
@@ -83,24 +83,30 @@ def plot_crosslinks_vs_rho_mesh(crosslinks_df, tilt : float, colorname : str, la
     if len(filtered_crosslinks_df) == 0:
         raise ValueError(f"No networks were found with tilt_factor of {tilt}")
     
-    ci_df = get_confidence_intervals(filtered_crosslinks_df, 0.95, 'rho_mesh', 'crosslinks')
+    add_curve_with_ci(filtered_crosslinks_df, 'rho_gap', 'crosslinks', curve_linestyle=linestylestr, curve_color=colorname, curve_label_override=labelstr)
 
-    n = int(len(filtered_crosslinks_df) / len(ci_df));
-    plt.plot(ci_df.index, ci_df['mean'], color=colorname, label=labelstr, linewidth=2, linestyle=linestylestr)
-    plt.fill_between(
-        ci_df.index, 
-        ci_df['lower'], 
-        ci_df['upper'], 
-        color=colorname, 
-        alpha=0.2, 
-        label=f'95% Confidence (nSamples={n})'
-    )
+def plot_crosslinks_vs_strain(crosslinks_df, tilt, rho_f, ax):
+    if tilt:
+        filtered_crosslinks_df = crosslinks_df[crosslinks_df['tilt_factor'] == tilt]
+        del crosslinks_df;
+    else:
+        filtered_crosslinks_df = crosslinks_df;
+    
+    if len(filtered_crosslinks_df) == 0:
+        raise ValueError(f"No networks were found with tilt_factor of {tilt}")
+
+    # Hold Final Density Constant
+    # rho_f = rho_0 / (1+s)**2
+    # s = (rho_0 / rho_f)**(1/2) - 1
+    filtered_crosslinks_df['strain_for_const_rho_f'] = (filtered_crosslinks_df['rho_gap'] / rho_f)**(1/2) - 1;
+    add_curve_with_ci(filtered_crosslinks_df, 'strain_for_const_rho_f', 'crosslinks', 
+        curve_label_override=r"$\rho_f = " + str(rho_f) + r"$", ax=ax)
 
 def plot_expected_ranges(x,y):
     plt.fill_between([x[0],x[1]], [y[0],y[0]], [y[1],y[1]], alpha = 0.3, color="green", hatch="/",
                      label="Experimentally Measured Values, E.Coli KN 126")
 
-def finish_crosslinks_vs_rho_gap_fig(ax : plt.Axes):
+def finish_crosslinks_vs_rho0_fig(ax : plt.Axes):
     plt.xlabel(r'$\rho_0$', fontsize=15)
     plt.ylabel(r'$\phi$', rotation=0, fontsize=15)
     #plt.title(r'$\phi$ vs $\rho$')
@@ -110,29 +116,30 @@ def finish_crosslinks_vs_rho_gap_fig(ax : plt.Axes):
     plt.savefig(os.path.join(PROJECT_ROOT_DIR,'figures','Crosslinkage.pdf'), format="PDF")
     plt.show()
 
-dsu_200_datafile = os.path.join(PROJECT_ROOT_DIR,"results","crosslinks200_stems.dump")
+# START OF PROGRAM
 dsu_300_datafile = os.path.join(PROJECT_ROOT_DIR,"results","crosslinks300_stems.dump")
 dsu_500_datafile = os.path.join(PROJECT_ROOT_DIR,"results","crosslinks500_stems.dump")
-
-if not os.path.exists(dsu_200_datafile):
-    sweep_data_points(dsu_200_datafile, 200)
 
 if not os.path.exists(dsu_300_datafile):
     sweep_data_points(dsu_300_datafile, 300)
 
-crosslinks_300_df = import_crosslinks_data(dsu_200_datafile);
+crosslinks_300_df = import_crosslinks_data(dsu_300_datafile);
 ax = plt.axes();
 
-plot_crosslinks_vs_rho_gap(crosslinks_300_df, 0.33, "red", r"$\chi = 0.33$", "-")
-plot_crosslinks_vs_rho_gap(crosslinks_300_df, 0.72, "blue", r"$\chi = 0.72$", "-")
-#plot_crosslinks_vs_rho_gap(crosslinks_300_df, 1.00, "black", r"$\chi = 1.00$", "-")
-# 0.65576966 0.75625    0.86388966
-# 0.25 +/- 0.086: 0.69696 0.75625 0.81796
-expected_crosslinkage_range = [0.446, 0.606+0.02] # Glauner 1998, Vollmer 2010, Stationary Phase KN126 E.Coli, 60% mean, std = 2%
-plot_expected_ranges([0.60, 0.89], expected_crosslinkage_range)
+plot_crosslinks_vs_rho0(crosslinks_300_df, 0.33, "red", r"$\chi = 0.33$", "-")
+plot_crosslinks_vs_rho0(crosslinks_300_df, 0.72, "blue", r"$\chi = 0.75$", "-")
+plot_crosslinks_vs_rho0(crosslinks_300_df, 1.00, "blue", r"$\chi = 1.00$", "-")
 
-#selected_density = 0.67; #0.7;
-selected_density = 0.76;
-plt.plot([selected_density,selected_density],[0,0.9],"--",label=f"Selected Density = {selected_density}")
+expected_crosslinkage_range = [0.446, 0.606] # Glauner 1998, Vollmer 2010, Stationary Phase KN126 E.Coli
+plot_expected_ranges([0.40, 0.8], expected_crosslinkage_range)
+finish_crosslinks_vs_rho0_fig(ax)
 
-finish_crosslinks_vs_rho_gap_fig(ax)
+ax = plt.axes();
+plot_crosslinks_vs_strain(crosslinks_300_df, tilt=None, rho_f=0.4, ax=ax)
+ax.legend(fontsize=15)
+ax.grid(True)
+ax.set_ylabel(r"$\phi$", rotation=0, fontsize=15)
+ax.yaxis.set_label_coords(-0.1,0.5)
+ax.set_xlabel(r"$\mathcal{E}$", rotation=0, fontsize=15)
+ax.set_xlim(0,0.4)
+plt.show()

@@ -234,7 +234,7 @@ def get_pore_area_array(filepath : str, use_cached_results : bool, min_area_sqDS
     if os.path.exists(pores_filepath) and (use_cached_results):
         pixels_sorted_by_pore = load_pores_data(pores_filepath);
     else:
-        pixels_sorted_by_pore = pizza_boy(image_filepath, 0.0)
+        pixels_sorted_by_pore = pizza_boy(image_filepath, 0.01) # The last 1% of pixels usually has areas of 1-10 px2, which would be filtered out anyway
         pixels_sorted_by_pore = disregard_pores_based_on_pixel_area_criteria(pixels_sorted_by_pore, min_area_sqDSU*(scale_px_to_DSU)*(scale_px_to_DSU), None);
         save_pores_data(pixels_sorted_by_pore, pores_filepath);
     
@@ -247,6 +247,7 @@ def get_pore_area_array(filepath : str, use_cached_results : bool, min_area_sqDS
 def collect_combined_pore_area_array(dirpath : str, regex_pattern : str, use_cached_results, min_area_sqDSU) -> np.ndarray:
     # Returns a list of dataframes, one from each file
     combined_areas = 0;
+    matches_counter = 0;
 
     for filename in os.listdir(dirpath):
         if re.search(regex_pattern, filename):
@@ -257,6 +258,11 @@ def collect_combined_pore_area_array(dirpath : str, regex_pattern : str, use_cac
                 combined_areas = new_areas;
             else:
                 combined_areas = np.append(combined_areas, new_areas)
+
+            matches_counter += 1;
+
+    if matches_counter == 0:
+        raise FileNotFoundError()
 
     return combined_areas
 
@@ -288,7 +294,9 @@ def full_pore_sizes_file_figure(curves_info : tuple[str, str, str, str], use_cac
 
 def full_pore_sizes_regex_figure(curves_info : tuple[str, str, str, str], use_cached_results = True, min_area_sqDSU : float = 1, ax : plt.Axes = None):
 
-    if not ax:
+    axes_not_provided : bool = (ax == None);
+
+    if axes_not_provided:
         ax = plt.subplot();
     
     max_area = 0;
@@ -302,11 +310,13 @@ def full_pore_sizes_regex_figure(curves_info : tuple[str, str, str, str], use_ca
         max_area = max(max_area, max(combined_pore_areas))
 
         # Add histogram for this data
-        ax.hist(combined_pore_areas, bins = n_bins, alpha=0.3, density=True, log=True, color=curve_color, label=curve_label);
+        ax.hist(combined_pore_areas, bins = n_bins, alpha=0.3, density=False, log=True, color=curve_color, label=curve_label);
 
     ax.legend()
     ax.set_title("Pore Area Distributions")
     ax.set_ylabel("Fraction of Pores")
     ax.set_xlabel("Area ${L_{DSU}}^2$")
     ax.set_xlim(0,max_area);
-    plt.show()
+
+    if axes_not_provided:
+        plt.show()
