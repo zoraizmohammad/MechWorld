@@ -1,4 +1,4 @@
-from process_elastic_tensor import full_subplots_figure
+from process_elastic_tensor import full_subplots_figure, full_positive_definite_figure
 from utils_helpers import flory_schulz_mean_length, regex_network_files
 from simulation_constants_settings import DSU
 import os
@@ -35,3 +35,7 @@ curves_info = [
 ]
 
 full_subplots_figure(curves_information = curves_info)
+
+full_positive_definite_figure(curves_info)
+
+# Eigenvalues

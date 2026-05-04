@@ -51,7 +51,7 @@ filename_w_lnk = generate_pg_network(size, rho_gap, anisotropy, distribution, fi
 
 # Dumps are needed to analyze bonds and atoms for: determining pore sizes, bond strain histogram, glycan orientation
 if write_dumps:
-    start = 0.1;
+    start = 0.0;
     stop = max_strain;
     step = 0.1;
     std_dump_criteria = [("FORCE", x,  None ) for x in arange(start,max_strain,step)];
@@ -68,7 +68,7 @@ if write_dumps:
 else:
     std_dump_criteria = None;
 
-# Restarts are needed to determine the elastic 
+# Restarts are needed to determine the elastic coefficents
 if write_restarts:
     start = 0.1;
     stop = max_strain;

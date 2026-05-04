@@ -215,11 +215,13 @@ class GlycanMolecule:
         self.bond_ids = set();
         self.angle_ids = set();
 
-    def delete_components(self, atoms : dict[int,Atom], bonds : dict[int,Bond], angles : dict[int,Angle]):
-        pass
+    def delete_components(self, atoms : dict[int,Atom], bonds : dict[int,Bond], angles : dict[int,Angle] = None):
         [atoms.pop(x) for x in self.atom_ids];
         [bonds.pop(x) for x in self.bond_ids];
-        [angles.pop(x) for x in self.angle_ids];
+        
+        # Angles is optional, will be deleted if provided
+        if (angles != None):
+            [angles.pop(x) for x in self.angle_ids];
     
     def add_atom_id(self, atom_id : int):
         self.atom_ids.add(atom_id);
@@ -230,7 +232,6 @@ class GlycanMolecule:
     def delete_if_free(self, atoms : dict[int,Atom], bonds : dict[int,Bond], angles : dict[int,Angle]) -> bool:
         if len(self.bond_ids) == (len(self.atom_ids)-1):
             self.delete_components(atoms, bonds, angles)
-            #print(f"Deleted free glycan with id = {self.id}")
 
     def get_orientation_vector(self, atoms : dict[int,Atom], triclinic_bounds):
         a0 = atoms[min(self.atom_ids)] # First atom placed. It is 'top' of glycan before rotation.

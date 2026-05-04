@@ -10,22 +10,58 @@ import re
 import matplotlib.pyplot as plt
 from matplotlib.image import imread
 
-def save_png_of_network(atoms, bonds, triclinic_bounds, save_to_filepath, overwrite = True):
+def save_monochrome_png_of_network(atoms, bonds, triclinic_bounds, save_to_filepath):
     print(f"Exporting monochrome network image to file: {save_to_filepath}")
     (xlo, xhi, xy, ylo, yhi) = triclinic_bounds;
     
     fig, ax = plt.subplots(frameon=False)
+
+    linewidth = 2;
     
     for b in bonds.values():
             
         a1 = atoms[b.atom_id_1];
         a2 = atoms[b.atom_id_2];
 
-        if shortest_path_is_periodic_x(a1, a2, xhi-xlo) or shortest_path_is_periodic_y(a1, a2, yhi-ylo):
-            continue;
+        x1 = a1.x; y1 = a1.y;
+        x2 = a2.x; y2 = a2.y;
+
+        #if shortest_path_is_periodic_x(a1, a2, xhi-xlo) or shortest_path_is_periodic_y(a1, a2, yhi-ylo):
+        #    continue
+
+        #ax.plot([x1,x2],[y1,y2], color="black", linewidth=linewidth);
+
+        if shortest_path_is_periodic_x(a1, a2, xhi-xlo):
+            if x1 > x2:
+                x1 = (x1-(xhi-xlo), x1);
+                x2 = (x2, x2+(xhi-xlo));
+            else:
+                x1 = (x1, x1+(xhi-xlo));
+                x2 = (x2-(xhi-xlo), x2);
+        
+        if shortest_path_is_periodic_y(a1, a2, yhi-ylo):
+            if y1 > y2:
+                y1 = (y1-(yhi-ylo), y1);
+                y2 = (y2, y2+(yhi-ylo));
+            else:
+                y1 = (y1, y1+(yhi-ylo));
+                y2 = (y2-(yhi-ylo), y2);
 
         # Big ol'd bonds
-        ax.plot([a1.x,a2.x],[a1.y,a2.y], color="black");
+        if (type(x1) == float) & (type(y1) == float):
+            ax.plot([x1,x2],[y1,y2], color="black", linewidth=linewidth);
+    
+        if (type(x1) == tuple) & (type(y1) == float):
+            ax.plot([x1[0],x2[0]],[y1,y2], color="black", linewidth=linewidth);
+            ax.plot([x1[1],x2[1]],[y1,y2], color="black", linewidth=linewidth);
+        
+        if (type(x1) == float) & (type(y1) == tuple):
+            ax.plot([x1,x2],[y1[0],y2[0]], color="black", linewidth=linewidth);
+            ax.plot([x1,x2],[y1[1],y2[1]], color="black", linewidth=linewidth);
+    
+        if (type(x1) == tuple) & (type(y1) == tuple):
+            ax.plot([x1[0],x2[0]],[y1[0],y2[0]], color="black", linewidth=linewidth);
+            ax.plot([x1[1],x2[1]],[y1[1],y2[1]], color="black", linewidth=linewidth);
     
     ax.set_xlim(xlo,xhi);
     ax.set_ylim(ylo,yhi);
@@ -172,14 +208,15 @@ def calculate_array_of_areas(list_pxs_in_pore : list[set[tuple[int,int]]], scale
 def calculate_center_of_pore(pxs_in_pore : set[tuple[int,int]], triclinic_bounds : tuple[float,float,float,float,float]):
     pass
 
-def save_pores_data(list_pores : list[set[tuple[int,int]]], save_to_filepath : str):
+# Pore Sets Save/Load
+def save_comprehensive_pores_data(list_pores : list[set[tuple[int,int]]], save_to_filepath : str):
     with open(save_to_filepath, "w") as f:
         for pore in list_pores:
             for px in pore:
                 f.write(f"({px[0]},{px[1]}) ")
             f.write("\n")
 
-def load_pores_data(load_from_filepath : str):
+def load_comprehensive_pores_data(load_from_filepath : str):
     pores : list[set[tuple[int,int]]] = list();
     with open(load_from_filepath, "r") as f:
         for line in f.readlines():
@@ -195,6 +232,20 @@ def load_pores_data(load_from_filepath : str):
     print(f"Loaded {len(pores)} pores from file {load_from_filepath}")
 
     return pores
+
+# Pore Areas Save/Load - much faster
+def save_pores_areas(pore_areas : list[float], save_to_filepath : str):
+    with open(save_to_filepath, "w") as f:
+        for a in pore_areas:
+            f.write(f"{str(a)}\n")
+
+def load_pores_areas(load_from_filepath : str):
+    pores : list[float] = list();
+    with open(load_from_filepath, "r") as f:
+        for line in f.readlines():
+            pores.append(float(line.strip()))
+    print(f"Loaded {len(pores)} areas from file {load_from_filepath}")
+    return np.array(pores)
 
 def calculate_pixel_scale(filename, triclinic_bounds):
     img_data = imread(filename);
@@ -216,31 +267,38 @@ def get_pore_area_array(filepath : str, use_cached_results : bool, min_area_sqDS
     bonds_filepath = filepath + ".bonds"
     image_filepath = filepath + ".png"
     pores_filepath = filepath + ".pores"
+    areas_filepath = filepath + ".pareas"
 
     # Import atoms and bonds from dumps
     triclinic_bounds = import_2D_triclinic_box_bounds_from_dump(atoms_filepath);
     atoms = import_atoms_from_dump(atoms_filepath, triclinic_bounds);
     bonds = import_bonds_from_dump(bonds_filepath);
+    molecules = reconstruct_molecule_objects(atoms, bonds);
+
+    for m in molecules.values():
+        m.delete_if_free(atoms, bonds, None)
 
     # If needed, create a black and white image for the flood fill algorithm
     if os.path.exists(image_filepath) and use_cached_results:
         pass
     else:
-        save_png_of_network(atoms, bonds, triclinic_bounds, image_filepath, True);
+        save_monochrome_png_of_network(atoms, bonds, triclinic_bounds, image_filepath);
     
     scale_px_to_DSU = calculate_pixel_scale(image_filepath, triclinic_bounds);
 
     # Either load pores from file, or run flood fill to create said file
-    if os.path.exists(pores_filepath) and (use_cached_results):
-        pixels_sorted_by_pore = load_pores_data(pores_filepath);
+    if os.path.exists(areas_filepath) and (use_cached_results):
+        pore_areas = load_pores_areas(areas_filepath);
     else:
-        pixels_sorted_by_pore = pizza_boy(image_filepath, 0.01) # The last 1% of pixels usually has areas of 1-10 px2, which would be filtered out anyway
-        pixels_sorted_by_pore = disregard_pores_based_on_pixel_area_criteria(pixels_sorted_by_pore, min_area_sqDSU*(scale_px_to_DSU)*(scale_px_to_DSU), None);
-        save_pores_data(pixels_sorted_by_pore, pores_filepath);
-    
-    # Condense the pixel information into an array of areas, 
-    # we collect the pixels so we could do more complicated analysis (like aspect ratio) in the future if we want
-    pore_areas : np.ndarray = calculate_array_of_areas(pixels_sorted_by_pore, scale_px_to_DSU);
+        if os.path.exists(pores_filepath) and (use_cached_results):
+            pixels_sorted_by_pore = load_comprehensive_pores_data(pores_filepath);
+        else:
+            pixels_sorted_by_pore = pizza_boy(image_filepath, 0.01) # The last 1% of pixels usually has areas of 1-10 px2, which would be filtered out anyway
+            pixels_sorted_by_pore = disregard_pores_based_on_pixel_area_criteria(pixels_sorted_by_pore, min_area_sqDSU*(scale_px_to_DSU)*(scale_px_to_DSU), None);
+            save_comprehensive_pores_data(pixels_sorted_by_pore, pores_filepath);
+        
+        pore_areas : np.ndarray = calculate_array_of_areas(pixels_sorted_by_pore, scale_px_to_DSU);
+        save_pores_areas(pore_areas, areas_filepath);
 
     return pore_areas;
 

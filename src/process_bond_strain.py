@@ -7,6 +7,7 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.colors as mplc
 import numpy as np
+from operator import methodcaller
 
 #### Force Chain Visualization w/ Histogram
 def sequential_force_chain_figure(curves_info : list[tuple[str,str,float]], ax = None):
@@ -113,16 +114,14 @@ def full_bonds_strain_figure(working_dirpath : str, initial_file_regex_pattern :
         elif re.match(regex_final_bonds, filename):
             bonds_in_final_state.extend(
                 import_bonds_from_dump(os.path.join(working_dirpath,filename)).values())
-    
-    # print(bonds_in_relaxed_state)
-    # todo: make better function to overlay initial & final on one figure (transparency)
 
     fig, ax = plt.subplots(2,1,tight_layout=True)
 
-    #cmap = plt.get_cmap('plasma')
-
     g0, p0 = split_strain_by_type(bonds_in_relaxed_state);
     gf, pf = split_strain_by_type(bonds_in_final_state);
+
+    print(f"Mean Strain of Bonds ({relaxed_label})", np.mean([b.get_strain() for b in bonds_in_relaxed_state]))
+    print(f"Mean Strain of Bonds ({final_label})", np.mean([b.get_strain() for b in bonds_in_final_state]))
 
     gmax = max(max(g0),max(gf)); gmin = min(min(g0),min(gf));
     pmax = max(max(p0),max(pf)); pmin = min(min(p0),min(pf));

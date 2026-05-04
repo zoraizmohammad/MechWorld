@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from import_data_from_dumps import DSU
 
 strain = np.linspace(0,0.4,100);
 rho_f = 0.4;

@@ -23,6 +23,8 @@ class ElasticTensorStruct:
     Vxy  : float = None;
     Vyx  : float = None;
     units : str = "MPa*nm";
+    tension_ratio_xx_over_yy : float = None;
+    positive_definite : bool = None;
 
     def calculate_orthotropic_moduli(self) -> None:
         # Theory of Plates & Shells, Colorado State University, 2006 -> Reduced Stiffness Matrix
@@ -51,11 +53,20 @@ class ElasticTensorStruct:
         self.calculate_orthotropic_moduli_compliance();
         print(self.line_data());
     
-    def expected_stress_ratio_xx_over_yy(self) -> float:
-        return (self.C11+self.C12)/(self.C12+self.C22)
+    def calculate_tension_ratio_xx_over_yy(self) -> float:
+        self.tension_ratio_xx_over_yy = (self.C11+self.C12)/(self.C12+self.C22)
 
     def line_data(self) -> str:
         return f"{self.strain} {self.C11} {self.C22} {self.C33} {self.C12} {self.C13} {self.C23} {self.Ex} {self.Ey} {self.Gxy} {self.Vxy} {self.Vyx} {self.units}\n"
+
+    def get_stiffness_tensor(self) -> np.ndarray:
+        return np.array([[self.C11, self.C12, self.C13],
+                         [self.C12, self.C22, self.C23],
+                         [self.C13, self.C23, self.C33]])
+
+    def calculate_positive_definite(self):
+        eigenvalues = np.linalg.eigvalsh(self.get_stiffness_tensor())
+        self.positive_definite = np.all(eigenvalues > 0) # note to self that .all() exists
 
 def combine_elastic_constant_files_into_one_file_per_network(working_dir : str):
     set_of_unique_basepaths = set();
@@ -140,6 +151,9 @@ def import_ElasticTensorStructs_from_file(filepath : str) -> list[ElasticTensorS
 
             assert struct.units == "MPa*nm"
 
+            struct.calculate_tension_ratio_xx_over_yy()
+            struct.calculate_positive_definite()
+
             structs.append(struct);
 
     return structs
@@ -156,7 +170,7 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> pd
             df = pd.DataFrame([asdict(n) for n in dataclasses_from_file])
             df['rho_0'] = [get_initial_density_from_filename(filename)] * len(df);
             df['rho_f'] = df["rho_0"] / (1+df["strain"])**2;
-            df['ratio'] = (df["C11"]+df["C12"])/(df["C12"]+df["C22"])
+            df['ratio'] = df["tension_ratio_xx_over_yy"];
 
             linkage = get_crosslinkage_from_filename(filename);
             if linkage: df['linkage'] = [linkage] * len(df);
@@ -233,18 +247,6 @@ def full_poisson_ratios_figure(curves_information : list[tuple[str, str, str, st
     plt.grid()
     plt.show()
 
-## PLOTTING FUNCTIONS -- Predicted Stress Ratio & Actual Stress Ratio
-from process_network_ensembles import add_tension_ratio_curve
-
-def add_expected_tension_ratio(df : pd.DataFrame):
-    df["xx_yy_ratio"] = (df["Ex"] + df['Vxy']*df['Ey']) / (df["Ey"] + df['Vyx']*df['Ex']);
-    pass
-
-def full_ratios_figure(working_dir, regex_pattern):
-    df = collect_combined_elastic_dataframe(working_dir, regex_pattern)
-    #add_moduli_curves(df, "black", "a = 0.925")
-    #finish_moduli_curve()
-
 ## PLOTTING FUNCTIONS -- Subplots Galore
 def full_subplots_figure(curves_information : list[tuple[str, str, str, str]], thickness_nm=6.0):
 
@@ -299,4 +301,25 @@ def full_subplots_figure(curves_information : list[tuple[str, str, str, str]], t
 
     axes[1,0].set_ylabel(r"$a.u.$")
 
+    plt.show()
+
+def full_positive_definite_figure(curves_information : list[tuple[str, str, str, str]], ax : plt.Axes = None):
+    if ax == None:
+        ax = plt.subplot()
+
+    for i, curve_tuple in enumerate(curves_information):
+        working_dir, regex_pattern, color_name, extra_label_info, curve_filters = curve_tuple;
+        df, file_cnt = collect_combined_elastic_dataframe(working_dir, regex_pattern)
+        print(f"Curve #{i}: collected {file_cnt} output files from regex pattern")
+
+        df = apply_band_filters_to_df(df, curve_filters);
+
+        add_curve_with_ci(df, 'strain', 'positive_definite',"-", 
+            curve_label_override=extra_label_info,
+            curve_color=color_name,
+            ax=ax)
+    
+    ax.set_ylabel("Is stiffness positive definite?")
+    ax.set_xlabel(r"$\mathcal{E}$")
+    ax.set_ylim([-0.1,1.1])
     plt.show()

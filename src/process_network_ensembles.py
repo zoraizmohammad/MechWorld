@@ -14,17 +14,6 @@ from lammps_PG_objects import Bond
 from import_data_from_dumps import *
 from dataclasses import dataclass
 
-## ENSEMBLE NETWORK CREATION
-def create_networks_in_groups_with_varying_isotropic_parameter(working_directory : str, size : int, rho_gap : float, isotropic_parameters : list[float], networks_per_group : int, rewrite : bool):
-    for group_index, alpha in enumerate(isotropic_parameters):
-        for network_index in range(0,networks_per_group):
-            filename = os.path.join(f"{working_directory}",f"n{network_index}_dsu{size}_rho{int(rho_gap*100)}_a{int(alpha*100)}.network")
-            if rewrite or not os.path.exists(filename):
-                (density_fraction, crosslink_ratio, _, _, _, _) = generate_pg_network(size, rho_gap, alpha, filename)
-            else:
-                print(f"[SKIPPED] Generating network {filename} b/c it already exists")
-                continue;
-
 ## ENSEMBLE REGEX-BASED NETWORK PROPAGATION
 def run_networks_nve(dirpath, regex_pattern, rerun):
     for filepath in find_files(dirpath, regex_pattern):
@@ -46,7 +35,7 @@ def run_networks_minimize(dirpath, regex_pattern, rerun : bool = False, remap : 
             print(f"[SKIPPED] Running {filepath} b/c existing output file was found")
             continue;
 
-### ISOTROPIC PRESTRAIN FILE IO & DATAFRAME MANIPULATION
+### ISOTROPIC PRE-STRAIN FILE IO & DATAFRAME MANIPULATION
 @dataclass
 class ThermoStruct:
     step  : int; 
@@ -63,7 +52,7 @@ class ThermoStruct:
     angle_pe   : float;
     peptide_pe : float;
 
-def import_isotropic_prestrain_data(filename : str) -> list[ThermoStruct]:
+def import_isotropic_prestrain_dataframe(filename : str) -> list[ThermoStruct]:
     # Break into lines
     with open(filename,"r") as f:
         lines = [line.strip() for line in f]
@@ -99,7 +88,17 @@ def import_isotropic_prestrain_data(filename : str) -> list[ThermoStruct]:
 
         lst_structs.append(struct);
 
-    return lst_structs
+    # List of Structs -> Dataframe
+    df = pd.DataFrame([asdict(n) for n in lst_structs])
+
+    # The file's name contains some information about the network, include it in df
+    rho_0 = get_initial_density_from_filename(filename);
+    if rho_0: df['rho_0'] = [rho_0] * len(df);
+
+    linkage = get_crosslinkage_from_filename(filename);
+    if linkage: df['linkage'] = [linkage] * len(df);
+
+    return df
 
 def collect_list_of_prestrain_dataframes(dirpath : str, regex_pattern : str) -> list[pd.DataFrame]:
     # Returns a list of dataframes, one from each file
@@ -108,20 +107,31 @@ def collect_list_of_prestrain_dataframes(dirpath : str, regex_pattern : str) -> 
     for filename in listdir(dirpath):
         if re.search(regex_pattern, filename):
             filepath = os.path.join(dirpath,filename)
-            dataclasses_from_file = import_isotropic_prestrain_data(filepath)
-            df = pd.DataFrame([asdict(n) for n in dataclasses_from_file])
-
-            rho_0 = get_initial_density_from_filename(filename);
-            if rho_0: df['rho_0'] = [rho_0] * len(df);
-
-            linkage = get_crosslinkage_from_filename(filename);
-            if linkage: df['linkage'] = [linkage] * len(df);
-
+            df = import_isotropic_prestrain_dataframe(filepath)
             dfs.append(df)
 
     return dfs
 
+# def calculate_tension_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
+#     lx  = file_df['lx'].to_numpy()
+#     pxx = file_df['pxx'].to_numpy()
+#     pyy = file_df['pyy'].to_numpy()
+#     pxy = file_df['pxy'].to_numpy()
+#     rho_0 = file_df['rho_0'].to_numpy();
+
+#     strain   = (lx - lx[0]) / lx[0];
+#     rho_f = rho_0 / (1+strain)**2;
+#     tension_xx = -(pxx - pxx[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
+#     tension_yy = -(pyy - pyy[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
+#     tension_xy = -(pxy - pxy[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
+#     ratio = tension_xx / tension_yy;
+#     ratio[0] = np.nan;
+
+#     d = {"strain":strain, "tension_xx":tension_xx, "tension_yy":tension_yy, "tension_xy":tension_xy, "ratio":ratio, "rho_f":rho_f, "rho_0":rho_0}
+#     return pd.DataFrame(d)
+
 def calculate_tension_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
+    # Ask Jeff which is preferred...
     lx  = file_df['lx'].to_numpy()
     pxx = file_df['pxx'].to_numpy()
     pyy = file_df['pyy'].to_numpy()
@@ -130,11 +140,10 @@ def calculate_tension_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
 
     strain   = (lx - lx[0]) / lx[0];
     rho_f = rho_0 / (1+strain)**2;
-    tension_xx = -(pxx - pxx[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
-    tension_yy = -(pyy - pyy[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
-    tension_xy = -(pxy - pxy[0]) * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
+    tension_xx = -pxx * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
+    tension_yy = -pyy * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
+    tension_xy = -pxy * u_2D_VIRIAL_PRESSURE_to_NEWTON_PER_METER;
     ratio = tension_xx / tension_yy;
-    ratio[0] = ratio[1];
 
     d = {"strain":strain, "tension_xx":tension_xx, "tension_yy":tension_yy, "tension_xy":tension_xy, "ratio":ratio, "rho_f":rho_f, "rho_0":rho_0}
     return pd.DataFrame(d)
