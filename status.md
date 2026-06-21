@@ -37,6 +37,6 @@ Results II: Exploration of glycan length distribution
 * [][] 
 * Table []: Mechanical properties of each ensemble at 1 ATM of equivalent turgor pressure.
 
-### Features
+### Codebase Features
 * [] Compare the closeness of should-be-symmetric components of the reduced stiffness matrix
-* [] Output eps_0 at 1 atm of equivalent turgor when plotting curve.
+* [x] Print the value of epsilon_0 at 1 atm of equivalent turgor when plotting curves.
