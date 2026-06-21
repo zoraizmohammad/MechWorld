@@ -33,7 +33,9 @@ Results I: Modest orientation preference
 Results II: Exploration of glycan length distribution
 // Must change characteristic diameter to 1 um.
 * [][] Equivalent turgor pressure
-* [][] Relative energy of glycan extension, glycan bending, and peptide extension.
+    * [] simulation runs needed, as 0.93 and 0.90 curves don't span full range of 0.3 atm to 3.0 atm
+* [x][] Relative energy of glycan extension, glycan bending, and peptide extension.
+    * relative_energy_by_distribution_D_of_1um.pdf
 * [][] 
 * Table []: Mechanical properties of each ensemble at 1 ATM of equivalent turgor pressure.
 

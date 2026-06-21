@@ -284,7 +284,7 @@ Flow of Figures for First Paper
 * Pores
    * [x] Group network ensembles into a single histogram
    * [x] Pore histogram for Different Length Distributions (0.90, 0.93, 0.94) at equal density (2.5 nm2/DSU) and 1 atm of turgor pressure!
-   * [ ] Pore histogram for a single network at various degrees of strain
+   * [x] Pore histogram for a single network at various degrees of strain
 * [x] Example of Force Chains
    * [x] 0.1 -> 0.2 -> 0.3, with accompanying strain histogram below
    * [x] Combine into a tension-based color map
@@ -298,26 +298,40 @@ Flow of Figures for First Paper
 
 * Background on Networks
    * [x] Assembly
-   * Strain Procedure -> Try to show a periodic version
+   * [x] Strain Procedure -> Try to show a periodic version
 * Orientation Parameter
    * [x] Tension Ratio
-   * [ ] Moduli
+   * [x] Moduli (Vyx of 3 is likely not stable)
+   * [x] Material Stability (Is Matrix Positive Definite? bool vs strain)
 * Impact of Length Distributions
    * [x] Turgor Pressure
    * [x] Moduli
+   * [x] Material Stability (Is Matrix Positive Definite? bool vs strain)
    * [x] Energy
    * [x] Pores vs. Strain
 * Other
    * [x] Pores Get Larger as Strain Increases
    * [x] Well Defined Force Chains Form
 
+Focus on Storytelling
+* Narrow down 5 things that I want as takeaways. These serve as a framework for how I interpret all my figures. I emphasize these in 
+* Connect the microstructure to the macroscopic behavior
+
 Write Elastic Testing Method in the Overleaf Document
 * Send email to Octavio when it is done
 
+* Get 5 major points, simple
+   * We show that random network with modest orientation preference leads to the observed stress ratio in rod shaped bacteria
+   * This random network model can be used to connect macroscopic behavior of the PG network (stiffness, pressure, pore size) to the microstructure parameters (glycan length, orientation, density)
+   * Generally, the networks are strain hardening and non-affine
+   * Tension ratio is governed primarily by orientation
+   * Stiffness magnitude is sensitive to density and crosslinking (obviously) and also length of glycans
+
 Main points for captions:
 * Significant orientation is required to satisfy laplace
-* Material is highly anisotropic and strain-hardening 
-* Material is highly redundant, a small proportion of chains bear the load
+* The stiffness of the network is highly sensitive to the orientation and length of glycans
+* Network is strain-hardening 
+* Network is highly redundant, a small proportion of chains bear the load
 * For the same density and crosslinkage, stiffness increases with glycan length, but pore size doesn't decrease
 
 Some sort of redundancy plot would be awesome but time intensive:
@@ -328,7 +342,6 @@ Some sort of redundancy plot would be awesome but time intensive:
 * % of crosslinks severed (0 -> 100%, 5% increments)
 * How many crosslinks can be lost without "killing" the network?
 
-
 Analysis:
 - Kill floaters before pore flood fill
 - Binary image with colored pores
@@ -337,7 +350,7 @@ SI
 * [x] rho_0 vs. strain, curve of p_f = 0.4 (since this is pretty standard)
 * [x] rho_0 vs. crosslinkage
 * [x] strain vs. crosslinkage for rho_f = 0.4
-* [ ] effect of patch size
+* [x] effect of patch size
  
 Debugging Example: cat joblog.12661759 | grep -B 5 -A 5 "Error"
 
@@ -372,12 +385,52 @@ Ideas ->
 * Results ->
 I want them to understand the degrees of freedom in the 
 
-# 3/23/2025
-* I read Rojas2018, and they measured a prestrain of 25% +/- 8.6%. But in the triangular network paper, a prestrain of 13% +/- 9% is used, and Rojas2018 is cited as one of several sources. I'm not able to track down the source of the 13% mean.
+# Reorganizing My To Do List, 5/18/2026
 
-Concerns/observations/question:
+Writing
+* [x] List of Main Takeaways
+* [x] Rough outline
+* [x] Review & update introduction (from Xaoxuan)
+   * The text is ready to review but figures need to be updated
+* [ ] Review & update methods
+   * [x] Course-Grained Representation of PG
+   * [ ] Assembling a Reference State
+      * [ ] Figure: 1-2-3 steps of assembly
+      * [ ] Figure: Histogram of Strains
+      * [ ] Does this represent a true zero-turgor state? No, but that's okay...
+   * [ ] Isotropic Prestrain
+      * [ ] How is pressure and stress computed?
+      * [ ] Figure: Periodic figure of assembled network
+   * [ ] Finite-Strain Tensile Testing
+      * [ ] Quick introduction, on superimposing a small strain on a large strain.
+      * [ ] Calculated coefficents from the tangiantial tensor
+   * [ ] Other Non-Affine Analysis
+      * [ ] Pores use a periodic flood-fill algorithm
+      * [ ] Histogram of bond energy
+   * [ ] Code Availability and Example Workflow
+* [ ] Review & update results
+* [ ] Review & update conclusion 
 
-1. Determining prestrain that corresponds to a biological scenario...
-   - Equating sigma_xx (axial) and sigma_yy (hoop) to turgor pressure?
+Theory
+* [ ] Hyperelatic definitions of strain/stiffness are computed w.r.t. a reference state.
+   * Understand the theory in the triangular network model
+   * What are we measuring with virial pressure from lammps?
 
-2. What is a truly "relaxed" state of the network. As strain occurs, I can observe a point where relative energy fraction starts to shifts from peptides to glycans.
+Coding
+* [ ] Figure of bond tension vs. bond direction 
+* [ ] Figure of total energy vs strain
+
+# Meeting 5/19
+
+Go over new visualizations:
+* Periodic Concept Image of Isotropy Prestrain
+
+Go over new writing:
+* Title?
+* Abstract
+* Introduction
+
+Work Session 6/20
+* [x] Review previous work and compile tasks.
+
+Created new file to keep track off feature status [[status.md]]

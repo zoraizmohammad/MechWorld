@@ -33,9 +33,10 @@ ax = plt.subplot()
 
 full_energy_ratio_figure(curves_information=curves_info, bsize=None, ax=ax)
 
-iso_p_1 = 0.182;
-iso_p_2 = 0.211;
-iso_p_3 = 0.297;
+# values taken from results_turgor.py with characteristic diameter of 1um
+iso_p_1 = 0.202;
+iso_p_2 = 0.231;
+iso_p_3 = 0.320;
 
 ax.plot([iso_p_1]*2, [0,0.9], linestyle="-.", color="purple")
 ax.plot([iso_p_2]*2, [0,0.94], linestyle="-.", color="blue")
