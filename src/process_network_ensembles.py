@@ -378,7 +378,7 @@ def full_PE_figure(curves_information : list[tuple[str, str, str, str]]):
 
 def full_turgor_strain_figure(
         curves_information : list[tuple[str, str, str, str]],
-        diameter_bounds_m : tuple[float, float] = (0.74*1E-6,0.76*1E-6),
+        diameter_bounds_m : tuple[float, float] = (0.99*1E-6,1.01*1E-6),
         density_filter : tuple[float,float] = None,
         pressure_filter_atm : tuple[float,float] = (0.3,3.0),
         ):
@@ -438,6 +438,11 @@ def full_turgor_strain_figure(
             color=curve_color, 
             alpha=0.2
         )
+
+        # Print the reference_strain at 1 atm of turgor pressure
+        ref_pressure = 1.0;
+        ref_strain = np.interp(ref_pressure, turgor_pressure_df["mean"], turgor_pressure_df["strain"])
+        print(f"For curve '{curve_label}', epsilon_0 = {round(ref_strain,3)} at P_t = {ref_pressure}")
 
     title_str = r"Turgor Pressure; $D = "+str(round(np.mean(diameter_bounds_m)*1E6,1))+r" \mu m $"
     if density_filter:
