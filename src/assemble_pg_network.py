@@ -571,9 +571,6 @@ def visualize_bonds(
     ax.plot([xlo,xhi,xhi,xlo,xlo],[ylo,ylo,yhi,yhi,ylo],color='red',linestyle=":")
     ax.set_aspect('equal')
 
-    if show_now:
-        plt.show();
-
 #### MAIN FUNCTION FOR MAKING NETWORKS
 
 def generate_pg_network(
@@ -666,10 +663,18 @@ def generate_pg_network(
             a.set_xticks([]);
             a.set_yticks([]);
         
-        ax1.set_title(r"$L_0=50, \rho=0.7, \alpha_{FS}=0.9$")
-        ax2.set_title(r"$\chi=0.72$")
-        ax3.set_title(r"$\Delta\theta_{stem} ≤ \pi, \epsilon_p ≤ 0.75$")
+        #ax1.set_title(r"$L_0=50, \rho=0.7, \alpha_{FS}=0.9$")
+        #ax2.set_title(r"$\chi=0.72$")
+        #ax3.set_title(r"$\Delta\theta_{stem} ≤ \pi, \epsilon_p ≤ 0.75$")
         fig.set_size_inches(3,8)
+
+        for i, axis in enumerate([ax1,ax2,ax3]):
+            # Get the bounding box of the axes including labels and titles
+            extent = axis.get_tightbbox(fig.canvas.get_renderer()).transformed(fig.dpi_scale_trans.inverted())
+
+            # Save just that extent
+            fig.savefig(f'plot_{i}.', bbox_inches=extent, dpi=300)
+
         plt.show()
 
     if plot_network_on_these_axes:

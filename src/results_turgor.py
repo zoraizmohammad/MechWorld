@@ -21,7 +21,6 @@ tol = 0.05;
 rho_f_filter = (mean_final_density*(1-tol),mean_final_density*(1+tol));
 
 def FS_label(alpha_str):
-    #return r"$\alpha_{FS}$ = "+alpha_str+r", $\bar{L}_{W} = "+str(round(flory_schulz_mean_length(alpha_str),1))+r"$ $DSU$"
     return r"$\bar{L}_{W} = "+str(round(flory_schulz_mean_length(alpha_str),1))+r"$ $DSU$"
 
 network_pattern = regex_network_files(jobid=None, size=300, rho_0=None, isotropy=0.75)

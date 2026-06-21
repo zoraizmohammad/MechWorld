@@ -150,6 +150,8 @@ def lammps_calculate_elastic_tensor(filepath_restart : str) -> bool:
     L.command("variable C22all equal ${C22}");
     L.command("variable C33all equal ${C33}");
 
+    # TODO: Implement check to report the relative difference between them
+
     L.command("variable C12all equal 0.5*(${C12}+${C21})");
     L.command("variable C13all equal 0.5*(${C13}+${C31})");
     L.command("variable C23all equal 0.5*(${C23}+${C32})");

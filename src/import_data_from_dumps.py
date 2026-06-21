@@ -1,9 +1,6 @@
 from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule;
 from simulation_constants_settings import *;
-import numpy as np;
-import matplotlib.pyplot as plt;
-import matplotlib as mpl;
-from utils_helpers import get_angle_between_vectors;
+import os;
 
 def import_2D_triclinic_box_bounds_from_dump(filename : str) -> tuple[float, float, float, float, float]:
     """
@@ -143,3 +140,14 @@ def reconstruct_molecule_objects(atoms : dict[int,Atom], bonds : dict[int,Bond])
             molecules[molecule_id].add_bond_id(b.id)
 
     return molecules;
+
+def import_all_from_dump(working_directory : str, filename_no_extension : str) -> tuple[tuple, dict[int,Atom], dict[int,Bond], dict[int,GlycanMolecule]]:
+    filepath_initial_atoms = os.path.join(working_directory, filename_no_extension + ".atoms");
+    filepath_initial_bonds = os.path.join(working_directory, filename_no_extension + ".bonds");
+
+    bounds = import_2D_triclinic_box_bounds_from_dump(filepath_initial_bonds)
+    atoms = import_atoms_from_dump(filepath_initial_atoms, bounds);
+    bonds = import_bonds_from_dump(filepath_initial_bonds);
+    molecules = reconstruct_molecule_objects(atoms, bonds);
+
+    return bounds, atoms, bonds, molecules;

@@ -202,29 +202,15 @@ def finish_energy_ratio_curve():
 
 ## PLOTTING FUNCTIONS -- ENERGY DENSITY
 def add_PE_density_curve(df : pd.DataFrame, colorname : str, labelstr : str):
-    ci_df = get_confidence_intervals(df, 0.95, "strain", "energy_density")
-
-    plt.plot(
-        ci_df.index, 
-        ci_df['mean'], 
-        label = labelstr,
-        color = colorname
-    )
-    plt.fill_between(
-        ci_df.index,
-        ci_df['upper'],
-        ci_df['lower'],
-        color = colorname,
-        alpha = 0.2
-    )
+    add_curve_with_ci(df, "strain", "energy_density", curve_color=colorname, curve_label_override=labelstr)
 
 def finish_PE_density_curve():
     plt.legend()
-    plt.title("Potential Energy Density")
-    plt.ylabel("Potential Energy Density [aJ/nm2]")
+    #plt.title("Potential Energy Density")
+    plt.ylabel(r"$e$, Energy Density [aJ / $\text{nm}^2$]")
     plt.xlabel(r"$\mathcal{E}$, Strain [a.u.]")
     plt.grid(True);
-    plt.show()
+    plt.show();
 
 ## PLOTTING FUNCTIONS -- TENSION
 def add_tension_curve(df : pd.DataFrame, curves_color : str, extra_label_info):

@@ -5,8 +5,12 @@ import matplotlib as mpl
 size = 30;
 rho = 0.7;
 isotropy = 0.5;
-distribution = process_distribution_string("FS-2-15-0.9", size)
+distribution = process_distribution_string("FS=2=15=0.90", size)
 density_fraction, crosslink_ratio, glycans, atoms, bonds, angles = generate_pg_network(size, rho, isotropy, distribution, None, True);
+
+
+# Save each of the three subplots without their titles
+
 #print(f"density: ", density_fraction);
 #print(f"crosslink ratio: ", crosslink_ratio);
 
@@ -19,10 +23,10 @@ density_fraction, crosslink_ratio, glycans, atoms, bonds, angles = generate_pg_n
 #plt.ylabel("Prevalence [a.u.]")
 #plt.show()
 
-a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.90", 300))
-plt.plot(a,b, label=r"$\alpha=0.9")
-a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.93", 300))
-plt.plot(a,b, label=r"$\alpha=0.93")
-a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.96", 300))
-plt.plot(a,b, label=r"$\alpha=0.96")
-plt.show()
+#a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.90", 300))
+#plt.plot(a,b, label=r"$\alpha=0.9")
+#a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.93", 300))
+#plt.plot(a,b, label=r"$\alpha=0.93")
+#a,b = normalized_length_distribution(process_distribution_string("FS-2-100-0.96", 300))
+#plt.plot(a,b, label=r"$\alpha=0.96")
+#plt.show()

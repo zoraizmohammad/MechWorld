@@ -264,6 +264,9 @@ class GlycanMolecule:
         glycan_vector = self.get_orientation_vector(atoms, triclinic_bounds)
         angle = get_angle_between_vectors(hoop_vector, glycan_vector);
 
+        if (angle > 90):
+            angle = angle - 180;
+
         # If (Top_x - Bottom_x) > 0 -> Flip angle b/c glycan is tilted in -Z direction
         if glycan_vector[0] > 0:
             return -1 * angle;
@@ -343,6 +346,9 @@ class GlycanMolecule:
 
     def get_length(self) -> int:
         return len(self.atom_ids);
+
+    def get_tension(self, bonds : dict[int,Bond]):
+        return np.mean([b.get_tension() for b in [bonds.get(bid) for bid in self.bond_ids]])
 
     def correct_orthogonal_PCB(self, atoms : dict[int,Atom], xlo, xhi, ylo, yhi):
         

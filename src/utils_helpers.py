@@ -88,7 +88,7 @@ def apply_band_filters_to_df(df, bandpass_filters : Iterable[tuple[float,str,flo
 def flory_schulz_mean_length(a : Union[str,float]):
     return 2/(1-float(a))-1;
 
-def bucket_round(data : float, to : float):
+def bucket_round(data : float, to : float) -> float:
     return np.round(data / to) * to;
 
 def get_angle_between_vectors(v, u):
@@ -100,7 +100,7 @@ def get_confidence_intervals(df : pd.DataFrame, confidence, x : str, y : str):
     def calculate_ci(group):
         n = len(group)
         if n < 2:
-            return pd.Series({'mean': group.mean(), 'lower': np.nan, 'upper': np.nan})
+            return pd.Series({'mean': group.mean(), 'lower': np.nan, 'upper': np.nan, 'count':1})
         
         mean = np.mean(group)
         sem = stats.sem(group) # Standard Error of the Mean
