@@ -33,13 +33,13 @@ cd /u/home/j/jrrm/Eldredge-PG-Sim
 echo "Loading venv from $(pwd)..."
 source .venv/bin/activate
 
-params=($(seq 0.61 0.01 1.00)) # ranges from eps_0 ~ 0.1 to 0.5 to reach final density of 0.4
+params=($(seq 0.61 0.01 1.00)) # ranges from eps_0 ~ 0.1 to 0.6 to reach final density of 0.4
 params_length=${#params[@]}
 c_density_parameter=${params[$SGE_TASK_ID % $params_length]}
 
 echo "Running Task ${SGE_TASK_ID} with parameter: ${c_density_parameter}"
 
-python src/task_create_and_process_network.py 300 ${c_density_parameter} 0.75 results/090-FS/ ${JOB_ID} ${SGE_TASK_ID} --dist "FS=2=100=0.90" --max_strain 0.40 --write_dumps --write_restarts
+python src/task_create_and_process_network.py 300 ${c_density_parameter} 0.75 results/090-FS/ ${JOB_ID} ${SGE_TASK_ID} --dist "FS=2=100=0.90" --max_strain 0.60 --write_dumps --write_restarts
 
 # echo job info on joblog:
 echo "Job $JOB_ID ended on:   " `hostname -s`
