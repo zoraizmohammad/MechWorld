@@ -5,40 +5,68 @@
 * Bold, large, clear legends.
 * Units in Roman Font.
 
-[Status of Image] [Status of Caption]
+[Status of Image] [Status of Caption] [Confirmed in Overleaf]
 
 Other/Unassigned
-* [x][] Stress vs. Orientation
+* [x][][] Stress vs. Orientation
     * oriented_tension.pdf
-* [][] Length vs. Orientation, increasing Strain
+* [][][] Length vs. Orientation, increasing Strain
     * [] simulation needed: 1 network, strain dumps at 0.0, 0.1, 0.2, 0.3, 0.4 
     * [x] full_figure function is implemented: results_orientation_changes.py
-* [x][] Total Energy vs. Strain
+* [x][][] Total Energy vs. Strain
     * potential_energy_vs_strain.pdf
 
 Introduction
-* [][] Visual comparison of traditional strong-alignment model vs. chaotically distributed imaging
+* [][][] Visual comparison of traditional strong-alignment model vs. chaotically distributed imaging
     * Permission: [] a, [] b, [] c
-* [][]
+* [][][]
 
 Methods
-* [x][x] Step-by-step assembly of a data file
-* [x][x] Before/after isotropic prestrain
+* [x][x][x] Step-by-step assembly of a data file
+* [x][x][x] Before/after isotropic prestrain
 * [][] Examples of each tensile test on a strained network
 
 Results I: Modest orientation preference
-* [][]
-* [][]
+* [x][][]
+* [][][]
 
 Results II: Exploration of glycan length distribution
 // Must change characteristic diameter to 1 um.
-* [][] Equivalent turgor pressure
+* [][][] Equivalent turgor pressure
     * [] simulation runs needed, as 0.93 and 0.90 curves don't span full range of 0.3 atm to 3.0 atm
-* [x][] Relative energy of glycan extension, glycan bending, and peptide extension.
+* [x][][] Relative energy of glycan extension, glycan bending, and peptide extension.
     * relative_energy_by_distribution_D_of_1um.pdf
-* [][] 
+* [][][]
 * Table []: Mechanical properties of each ensemble at 1 ATM of equivalent turgor pressure.
+
+Results III: Deformation Mechanics
+* [][][] Emergence of Force Chains
+* [][][] Change in Orientation is Length-Dependent
 
 ### Codebase Features
 * [] Compare the closeness of should-be-symmetric components of the reduced stiffness matrix
 * [x] Print the value of epsilon_0 at 1 atm of equivalent turgor when plotting curves.
+* [...] simulations were submitted to the cluster 6/21 to fill gaps for length vs. orientation and turgor pressure. Check status until complete.
+
+Example of retrieving results from hoffman2:
+$ sftp H2
+sftp> cd Eldredge-PG-Sim/results/090-FS
+sftp> lcd results/090-FS
+sftp> get job13726218.*.out
+sftp> get job13726218.*.atoms
+sftp> get job13726218.*.bonds
+sftp> lcd ../093-FS
+sftp> cd ../093-FS
+sftp> get job13726225.*.out
+sftp> get job13726225.*.atoms
+sftp> get job13726225.*.bonds
+sftp> lcd ../093-FS
+sftp> cd ../093-FS
+sftp> get job13726225.*.out
+sftp> get job13726225.*.atoms
+sftp> get job13726225.*.bonds
+sftp> lcd ../094-FS
+sftp> cd ../093-FS
+sftp> get job13726230.*.out
+sftp> get job13726230.*.atoms
+sftp> get job13726230.*.bonds

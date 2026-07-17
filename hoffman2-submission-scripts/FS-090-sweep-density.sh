@@ -17,7 +17,7 @@
 #$ -m bea
 
 ## Run multiple copies of the script, one for each isotropy level [0.33, 0.72, 1.00]
-#$ -t 1-30:1
+#$ -t 1-40:1
 
 # echo job info on joblog:
 echo "Job $JOB_ID started on:   " `hostname -s`
@@ -33,7 +33,7 @@ cd /u/home/j/jrrm/Eldredge-PG-Sim
 echo "Loading venv from $(pwd)..."
 source .venv/bin/activate
 
-params=($(seq 0.47 0.01 0.80)) # ranges from eps_0 ~ 0.1 to 0.4 to reach final density of 0.4
+params=($(seq 0.61 0.01 1.00)) # ranges from eps_0 ~ 0.1 to 0.5 to reach final density of 0.4
 params_length=${#params[@]}
 c_density_parameter=${params[$SGE_TASK_ID % $params_length]}
 
