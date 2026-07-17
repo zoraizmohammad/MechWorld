@@ -29,9 +29,9 @@ network_pattern = regex_network_files(jobid=None, size=300, rho_0=None, isotropy
 shared_curve_filters = None
 
 curves_info = [
-    (dir1, network_pattern, "purple", FS_label(alpha_FS_str1),  shared_curve_filters),
-    (dir2, network_pattern, "blue",   FS_label(alpha_FS_str2),  shared_curve_filters),
-    (dir3, network_pattern, "green",  FS_label(alpha_FS_str3),  shared_curve_filters),
+    (dir1, network_pattern, "purple", FS_label(alpha_FS_str1),  shared_curve_filters, 0.202),
+    (dir2, network_pattern, "blue",   FS_label(alpha_FS_str2),  shared_curve_filters, 0.239),
+    (dir3, network_pattern, "green",  FS_label(alpha_FS_str3),  shared_curve_filters, 0.319),
 ]
 
 full_subplots_figure(curves_information = curves_info)

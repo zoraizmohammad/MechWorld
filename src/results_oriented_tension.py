@@ -9,5 +9,4 @@ full_oriented_stress_figure(working_dir, regex)
 
 # todo:
 # Add axis labels 
-# Add titles
 # Fix/ignore orientation of periodic glycan strands

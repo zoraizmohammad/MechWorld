@@ -27,21 +27,22 @@ Methods
 * [][] Examples of each tensile test on a strained network
 
 Results I: Modest orientation preference
-* [x][][]
-* [][][]
+* [x][x][x] Tension vs Strain (varying chi), Tension Ratio vs Strain (varying chi)
+* [][][] Mechanical Properties vs Strain (varying chi)
 
 Results II: Exploration of glycan length distribution
 // Must change characteristic diameter to 1 um.
 * [][][] Equivalent turgor pressure
-    * [] simulation runs needed, as 0.93 and 0.90 curves don't span full range of 0.3 atm to 3.0 atm
+    * [up to 0.4? x Not Enough] [up to 0.6? ...] simulation runs needed, as 0.93 and 0.90 curves don't span full range of 0.3 atm to 3.0 atm
 * [x][][] Relative energy of glycan extension, glycan bending, and peptide extension.
     * relative_energy_by_distribution_D_of_1um.pdf
-* [][][]
-* Table []: Mechanical properties of each ensemble at 1 ATM of equivalent turgor pressure.
+* [][][] Mechanical properties vs strain for varying length distribution
+* Table [x][x]: Mechanical properties of each ensemble at 1 ATM of equivalent turgor pressure.
 
 Results III: Deformation Mechanics
 * [][][] Emergence of Force Chains
-* [][][] Change in Orientation is Length-Dependent
+* [x][][] Strain-Induced Reorientation is Length-Dependent
+    * reorientation_by_length_094_FS.pdf
 
 ### Codebase Features
 * [] Compare the closeness of should-be-symmetric components of the reduced stiffness matrix

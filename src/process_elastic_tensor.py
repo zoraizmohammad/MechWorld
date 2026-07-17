@@ -248,7 +248,7 @@ def full_poisson_ratios_figure(curves_information : list[tuple[str, str, str, st
     plt.show()
 
 ## PLOTTING FUNCTIONS -- Subplots Galore
-def full_subplots_figure(curves_information : list[tuple[str, str, str, str]], thickness_nm=6.0):
+def full_subplots_figure(curves_information : list[tuple[str, str, str, str, float]], thickness_nm=6.0):
 
     fig, axes = plt.subplots(2,3, sharey="row", sharex="row", tight_layout=True)
 
@@ -260,7 +260,7 @@ def full_subplots_figure(curves_information : list[tuple[str, str, str, str]], t
     axes[1,2].set_title(r"$\sigma_{xx} / \sigma_{yy}$")
 
     for i,curve_tuple in enumerate(curves_information):
-        working_dir, regex_pattern, color_name, extra_label_info, curve_filters = curve_tuple;
+        working_dir, regex_pattern, color_name, extra_label_info, curve_filters, print_this_strain = curve_tuple;
         df, file_cnt = collect_combined_elastic_dataframe(working_dir, regex_pattern)
         print(f"Curve #{i}: collected {file_cnt} output files from regex pattern")
 
@@ -284,6 +284,12 @@ def full_subplots_figure(curves_information : list[tuple[str, str, str, str]], t
             , ax=axes[1,1])
         add_curve_with_ci(df, 'strain', 'ratio',"-", curve_label_override=extra_label_info,curve_color=color_name
             , ax=axes[1,2])
+        
+        print(f"Ex,  $\epsilon_0$ {print_this_strain}", np.interp(print_this_strain, df["strain"], df["Ex"]))
+        print(f"Ey,  $\epsilon_0$ {print_this_strain}", np.interp(print_this_strain, df["strain"], df["Ey"]))
+        print(f"Gxy, $\epsilon_0$ {print_this_strain}", np.interp(print_this_strain, df["strain"], df["Gxy"]))
+        print(f"Vxy, $\epsilon_0$ {print_this_strain}", np.interp(print_this_strain, df["strain"], df["Vxy"]))
+        print(f"Vyx, $\epsilon_0$ {print_this_strain}", np.interp(print_this_strain, df["strain"], df["Vyx"]))
     
     axes[0,0].legend()
 

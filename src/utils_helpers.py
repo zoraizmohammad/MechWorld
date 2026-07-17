@@ -25,7 +25,7 @@ def regex_network_files(jobid : Union[int,None], size : Union[int,None], rho_0 :
 def add_curve_with_ci(df, x_name, y_name, curve_linestyle = "-", curve_color = "black", curve_label_override = None, ax : plt.Axes = None):
 
     if curve_label_override == None:
-        label_str = y_name;
+        label_str = None;
     else:
         label_str = curve_label_override;
     

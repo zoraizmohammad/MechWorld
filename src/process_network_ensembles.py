@@ -259,10 +259,12 @@ def full_tension_figure(
             combined_tension_df = pd.concat(tension_dfs)
 
         # Hoop (Higher)
-        add_curve_with_ci(combined_tension_df, 'strain', 'tension_yy',  "-", curve_color, r"$\gamma_{Hoop}$, "+extra_label_info, ax)
+        #add_curve_with_ci(combined_tension_df, 'strain', 'tension_yy',  "-", curve_color, r"$\gamma_{Hoop}$, "+extra_label_info, ax)
+        add_curve_with_ci(combined_tension_df, 'strain', 'tension_yy',  "-", curve_color, extra_label_info, ax)
 
         # Longitudinal (Lower)
-        add_curve_with_ci(combined_tension_df, 'strain', 'tension_xx', "--", curve_color, r"$\gamma_{Axial}$", ax)
+        #add_curve_with_ci(combined_tension_df, 'strain', 'tension_xx', "--", curve_color, r"$\gamma_{Axial}$", ax)
+        add_curve_with_ci(combined_tension_df, 'strain', 'tension_xx', "--", curve_color, None, ax)
     
     ci_df = get_confidence_intervals(combined_tension_df, 0.95, 'strain', 'tension_yy')
     ci_df = ci_df.loc[abs(ci_df.index-0.25)<=0.02]
@@ -287,7 +289,7 @@ def full_tension_figure(
 
     ax.set_ylabel(r"$\gamma$ [N/m]")
     ax.set_xlabel(r"$\mathcal{E}$, Strain")
-    ax.legend()
+    ax.legend(prop={'size': 15})
     ax.grid()
     ax.set_title(r"Total Tension, $\gamma$")
 
