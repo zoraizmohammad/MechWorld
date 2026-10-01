@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="9" skipped="0" tests="36" time="0.364" timestamp="2026-10-01T18:32:08.883029" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_loading" name="test_deformation_modes_have_absolute_and_multiplicative_increment_contracts[isotropic-updates0-expected0]" time="0.035" /><testcase classname="tests.physics.test_loading" name="test_deformation_modes_have_absolute_and_multiplicative_increment_contracts[axial-updates1-expected1]" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_deformation_modes_have_absolute_and_multiplicative_increment_contracts[hoop-updates2-expected2]" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_deformation_modes_have_absolute_and_multiplicative_increment_contracts[unequal_biaxial-updates3-expected3]" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_deformation_modes_have_absolute_and_multiplicative_increment_contracts[engineering_simple_shear-updates4-expected4]" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_simple_shear_requires_explicit_engineering_component" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_cyclic_progress_is_monotone_through_unloading_without_time_claims" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_cyclic_config_rejects_fields_unused_by_its_base_mode[strain_direction-value0]" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;">field = 'strain_direction', value = {'epsilon_xx': 1.0, 'epsilon_yy': 0.5}
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [("strain_direction", {"epsilon_xx": 1.0, "epsilon_yy": 0.5}), ("shear_component", "xy")],
+    )
+    def test_cyclic_config_rejects_fields_unused_by_its_base_mode(
+        field: str, value: object
+    ) -&gt; None:
+        config = _deformation_config(
+            "cyclic", base_mode="axial", lambda_values=[0.0, 0.01, 0.0]
+        )
+        config[field] = value
+&gt;       with pytest.raises(ControlValidationError, match="unexpected"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;
+
+tests\physics\test_loading.py:138: Failed</failure></testcase><testcase classname="tests.physics.test_loading" name="test_cyclic_config_rejects_fields_unused_by_its_base_mode[shear_component-xy]" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;">field = 'shear_component', value = 'xy'
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [("strain_direction", {"epsilon_xx": 1.0, "epsilon_yy": 0.5}), ("shear_component", "xy")],
+    )
+    def test_cyclic_config_rejects_fields_unused_by_its_base_mode(
+        field: str, value: object
+    ) -&gt; None:
+        config = _deformation_config(
+            "cyclic", base_mode="axial", lambda_values=[0.0, 0.01, 0.0]
+        )
+        config[field] = value
+&gt;       with pytest.raises(ControlValidationError, match="unexpected"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;
+
+tests\physics\test_loading.py:138: Failed</failure></testcase><testcase classname="tests.physics.test_loading" name="test_rotation_transforms_deformation_and_axis_basis_covariantly" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_pressure_targets_encode_only_declared_closed_cylinder_balance" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_pressure_tension_transforms_as_second_order_tensor" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_pressure_target_rejects_ambiguous_units_or_assumptions[pressure_unit-Pa]" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_pressure_target_rejects_ambiguous_units_or_assumptions[radius_unit-m]" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_pressure_target_rejects_ambiguous_units_or_assumptions[tension_unit-Pa]" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_pressure_target_rejects_ambiguous_units_or_assumptions[shell_geometry-sphere]" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_pressure_target_rejects_ambiguous_units_or_assumptions[location_assumption-unspecified]" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_prescribed_weakening_is_per_interaction_and_preserves_chemical_type" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_prescribed_removal_uses_alive_mask_not_material_rupture_semantics" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_intervention_rejects_unknown_or_duplicate_stable_ids" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_deformation_controls_reject_nonfinite_singular_or_ambiguous_input[mutation0]" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_deformation_controls_reject_nonfinite_singular_or_ambiguous_input[mutation1]" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_deformation_controls_reject_nonfinite_singular_or_ambiguous_input[mutation2]" time="0.000" /><testcase classname="tests.physics.test_loading" name="test_deformation_controls_reject_nonfinite_singular_or_ambiguous_input[mutation3]" time="0.000" /><testcase classname="tests.physics.test_loading" name="test_deformation_controls_reject_nonfinite_singular_or_ambiguous_input[mutation4]" time="0.000" /><testcase classname="tests.physics.test_loading" name="test_deformation_controls_reject_nonfinite_singular_or_ambiguous_input[mutation5]" time="0.000" /><testcase classname="tests.physics.test_loading" name="test_axis_frame_rejects_singular_or_nonfinite_basis" time="0.000" /><testcase classname="tests.physics.test_loading" name="test_all_versioned_configs_are_deterministic_parseable_and_cover_required_modes" time="0.008" /><testcase classname="tests.physics.test_loading" name="test_unknown_fields_and_wrong_schema_fail_closed" time="0.001" /><testcase classname="tests.physics.test_loading" name="test_direct_schedule_construction_cannot_bypass_contract[schema_version-forged]" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;">field = 'schema_version', value = 'forged'
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("schema_version", "forged"),
+            ("absolute_reference", "reset_reference"),
+            ("reference_reset_policy", "reset_each_step"),
+            ("load_coordinate_kind", "physical_time"),
+            ("progress_semantics", "signed_lambda"),
+        ],
+    )
+    def test_direct_schedule_construction_cannot_bypass_contract(
+        field: str, value: object
+    ) -&gt; None:
+        schedule = build_deformation_schedule(_deformation_config("axial"))
+&gt;       with pytest.raises(ControlValidationError):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;
+
+tests\physics\test_loading.py:436: Failed</failure></testcase><testcase classname="tests.physics.test_loading" name="test_direct_schedule_construction_cannot_bypass_contract[absolute_reference-reset_reference]" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;">field = 'absolute_reference', value = 'reset_reference'
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("schema_version", "forged"),
+            ("absolute_reference", "reset_reference"),
+            ("reference_reset_policy", "reset_each_step"),
+            ("load_coordinate_kind", "physical_time"),
+            ("progress_semantics", "signed_lambda"),
+        ],
+    )
+    def test_direct_schedule_construction_cannot_bypass_contract(
+        field: str, value: object
+    ) -&gt; None:
+        schedule = build_deformation_schedule(_deformation_config("axial"))
+&gt;       with pytest.raises(ControlValidationError):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;
+
+tests\physics\test_loading.py:436: Failed</failure></testcase><testcase classname="tests.physics.test_loading" name="test_direct_schedule_construction_cannot_bypass_contract[reference_reset_policy-reset_each_step]" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;">field = 'reference_reset_policy', value = 'reset_each_step'
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("schema_version", "forged"),
+            ("absolute_reference", "reset_reference"),
+            ("reference_reset_policy", "reset_each_step"),
+            ("load_coordinate_kind", "physical_time"),
+            ("progress_semantics", "signed_lambda"),
+        ],
+    )
+    def test_direct_schedule_construction_cannot_bypass_contract(
+        field: str, value: object
+    ) -&gt; None:
+        schedule = build_deformation_schedule(_deformation_config("axial"))
+&gt;       with pytest.raises(ControlValidationError):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;
+
+tests\physics\test_loading.py:436: Failed</failure></testcase><testcase classname="tests.physics.test_loading" name="test_direct_schedule_construction_cannot_bypass_contract[load_coordinate_kind-physical_time]" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;">field = 'load_coordinate_kind', value = 'physical_time'
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("schema_version", "forged"),
+            ("absolute_reference", "reset_reference"),
+            ("reference_reset_policy", "reset_each_step"),
+            ("load_coordinate_kind", "physical_time"),
+            ("progress_semantics", "signed_lambda"),
+        ],
+    )
+    def test_direct_schedule_construction_cannot_bypass_contract(
+        field: str, value: object
+    ) -&gt; None:
+        schedule = build_deformation_schedule(_deformation_config("axial"))
+&gt;       with pytest.raises(ControlValidationError):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;
+
+tests\physics\test_loading.py:436: Failed</failure></testcase><testcase classname="tests.physics.test_loading" name="test_direct_schedule_construction_cannot_bypass_contract[progress_semantics-signed_lambda]" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;">field = 'progress_semantics', value = 'signed_lambda'
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("schema_version", "forged"),
+            ("absolute_reference", "reset_reference"),
+            ("reference_reset_policy", "reset_each_step"),
+            ("load_coordinate_kind", "physical_time"),
+            ("progress_semantics", "signed_lambda"),
+        ],
+    )
+    def test_direct_schedule_construction_cannot_bypass_contract(
+        field: str, value: object
+    ) -&gt; None:
+        schedule = build_deformation_schedule(_deformation_config("axial"))
+&gt;       with pytest.raises(ControlValidationError):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;
+
+tests\physics\test_loading.py:436: Failed</failure></testcase><testcase classname="tests.physics.test_loading" name="test_direct_intervention_construction_cannot_bypass_contract" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;">def test_direct_intervention_construction_cannot_bypass_contract() -&gt; None:
+        intervention = load_control_config(
+            LOAD_CONFIG_DIR / "prescribed_local_weakening_v1.json"
+        )
+        for field, value in (
+            ("schema_version", "forged"),
+            ("control_family", "material_rupture"),
+            ("reference_reset_policy", "reset_each_step"),
+            ("load_coordinate_kind", "physical_time"),
+        ):
+&gt;           with pytest.raises(ControlValidationError):
+E           Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;
+
+tests\physics\test_loading.py:450: Failed</failure></testcase><testcase classname="tests.physics.test_loading" name="test_weakening_parameter_names_must_be_nonempty_strings" time="0.001"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;">def test_weakening_parameter_names_must_be_nonempty_strings() -&gt; None:
+        raw = json.loads(
+            (LOAD_CONFIG_DIR / "prescribed_local_weakening_v1.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        for invalid in ([1], [""], ["K_pN_per_nm", "K_pN_per_nm"]):
+            raw["parameter_names"] = invalid
+&gt;           with pytest.raises(ControlValidationError, match="parameter_names"):
+E           Failed: DID NOT RAISE &lt;class 'pgworld.simulation.controls.ControlValidationError'&gt;
+
+tests\physics\test_loading.py:462: Failed</failure></testcase></testsuite></testsuites>

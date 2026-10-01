@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="107.991" timestamp="2026-10-01T18:33:44.163695" hostname="MZoraiz_P15"><testcase classname="tests.release.test_wheel_install" name="test_wheel_installs_profiles_legacy_core_console_and_solver" time="107.930" /></testsuite></testsuites>
