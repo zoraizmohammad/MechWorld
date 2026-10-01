@@ -1,0 +1,2 @@
+﻿compileall_src_exit=1
+targeted_py_compile_exit=0

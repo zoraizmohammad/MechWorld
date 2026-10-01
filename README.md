@@ -12,12 +12,14 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-09-30, three isolated
 | Python baseline | Verified after local dependency repair | Initial collection failed on missing `pandas`; ignored `.venv` rerun passed 5 tests in 12.32s under `evidence/baseline/` |
 | Historical defects | Reproduced | A01-A05 reproduced against the live source under `evidence/source_audit_live/`; no solver was used by that diagnostic |
 | LAMMPS environment | In progress | LAMMPS 2 Sep 2026 instantiated and completed a bounded `run 0`; repeatable doctor/integration test is assigned under P00-03 |
-| Inherited mechanics repair | In progress | First A01/A02 dump-parser regression and minimal fix is the next integration target |
+| Inherited mechanics repair | In progress | P01-02 A03/A04/A06 control-flow defects are fixed with 4 targeted tests; first A01/A02 dump-parser integration remains active |
 | Rupture, dataset, models, evaluation, explorer | Not started | Dependency-gated behind verified mechanics and actual topology-changing trajectories |
 | Experimental validation | Blocked on human/data inputs | Actual lab protocol, acquisition, raw files, calibration, and review cannot be fabricated or replaced by synthetic data |
 | Release | Not started | G0-G11 remain unaccepted; no public push, hosting, data release, or paper submission is authorized |
 
 No simulation, training, viewer, or experimental job is currently running.
+
+Latest integrated verification before this commit: the P01-02 target passed 4 tests and the complete suite passed 9 tests. Exact pre/post logs are under `evidence/regressions/P01-02/`.
 
 ## Active work
 
@@ -25,6 +27,7 @@ No simulation, training, viewer, or experimental job is currently running.
 - P00-05: review the three isolated worktree reports/commits and verify that no shared path was edited.
 - P01-01 on `research/p01-01-periodic-bounds`: add the first failing A01/A02 regression, repair orthogonal/restricted-triclinic bounds parsing, and verify compatibility.
 - P01-05 support on `research/p01-05-physics-audit`: perform a source-only physics/units audit without self-approving lab-dependent coefficients.
+- Compatibility follow-up: seven inherited plotting/result scripts fail Python 3.11 compilation because of nested f-string quote syntax; targeted repaired files compile, and the broader issue is queued before P01-11.
 
 ## Remaining path
 

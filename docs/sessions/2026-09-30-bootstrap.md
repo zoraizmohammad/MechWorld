@@ -19,3 +19,9 @@ Read the complete execution packet, reconciled it with the actual Git checkout, 
 ## Limitations
 
 No PG solver trajectory, rupture event, trained model, experimental file, viewer, production campaign, or release claim was validated by bootstrap. The packet's historical archive hash remains historical evidence because the archive bytes were not supplied in this checkout.
+
+## First integration-worktree repair after bootstrap
+
+P01-02 added four regressions for A03/A04/A06. All four failed before the source change. The repair accumulates dataframe band filters, persists consumption of `ONCE`/`INITIAL` output criteria through the caller-owned list, and updates the ensemble minimization wrapper to named current arguments with automatic step selection, initial/final dumps, and explicit remap propagation. The target then passed 4 tests and the complete suite passed 9 tests. Logs are in `evidence/regressions/P01-02/`.
+
+The modified files also passed targeted `py_compile`. A separate broad `compileall -q src` found seven inherited figure/result scripts with Python 3.11-invalid nested f-string quotes. That exact failure is retained in the same evidence directory and queued as a separate P01-11 compatibility gap.

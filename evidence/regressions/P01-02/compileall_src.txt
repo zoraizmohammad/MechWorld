@@ -1,0 +1,41 @@
+*** Error compiling 'src\\fig_R2_energy_by_length_distribution.py'...
+  File "src\fig_R2_energy_by_length_distribution.py", line 13
+    dir_1 = os.path.join(PROJECT_ROOT_DIR,"results",f"{alpha_FS_str1.replace(".","")}-FS");
+                                                                              ^
+SyntaxError: f-string: unmatched '('
+
+*** Error compiling 'src\\fig_R2_turgor.py'...
+  File "src\fig_R2_turgor.py", line 15
+    dir1 = os.path.join(project_root,"results",f"{alpha_FS_str1.replace(".","")}-FS");
+                                                                         ^
+SyntaxError: f-string: unmatched '('
+
+*** Error compiling 'src\\results_PE_by_isotropy.py'...
+  File "src\results_PE_by_isotropy.py", line 20
+    dir1 = os.path.join(project_root,"results",f"{alpha_FS_str1.replace(".","")}-FS");
+                                                                         ^
+SyntaxError: f-string: unmatched '('
+
+*** Error compiling 'src\\results_moduli_by_distribution.py'...
+  File "src\results_moduli_by_distribution.py", line 14
+    dir1 = os.path.join(project_root,"results",f"{alpha_FS_str1.replace(".","")}-FS");
+                                                                         ^
+SyntaxError: f-string: unmatched '('
+
+*** Error compiling 'src\\results_moduli_by_isotropy.py'...
+  File "src\results_moduli_by_isotropy.py", line 12
+    working_dir = os.path.join(project_root,"results",f"{alpha_FS.replace(".","")}-FS");
+                                                                           ^
+SyntaxError: f-string: unmatched '('
+
+*** Error compiling 'src\\results_moduli_combined.py'...
+  File "src\results_moduli_combined.py", line 14
+    dir1 = os.path.join(project_root,"results",f"{alpha_FS_str1.replace(".","")}-FS");
+                                                                         ^
+SyntaxError: f-string: unmatched '('
+
+*** Error compiling 'src\\results_moduli_subplots_density.py'...
+  File "src\results_moduli_subplots_density.py", line 12
+    dir = os.path.join(project_root,"results",f"{alpha_FS_str.replace(".","")}-FS");
+                                                                       ^
+SyntaxError: f-string: unmatched '('

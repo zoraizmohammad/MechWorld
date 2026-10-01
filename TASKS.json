@@ -389,7 +389,7 @@
       "id": "P01-02",
       "work_package": "WP1",
       "title": "Fix multi-filter analysis, one-shot outputs, and stale function calls",
-      "status": "TODO",
+      "status": "DONE",
       "owner_role": "simulation",
       "execution_kind": "agent",
       "mandatory": true,
@@ -412,11 +412,21 @@
       "planned_verification_commands": [
         "python -m pytest tests/unit/test_legacy_control_flow.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_2026-09-30; PRE_FIX_4_FAILED_EXPECTED; POST_FIX_4_PASSED; FULL_SUITE_9_PASSED",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "tests/unit/test_legacy_control_flow.py",
+        "evidence/regressions/P01-02/before_fix.txt",
+        "evidence/regressions/P01-02/after_fix.txt",
+        "evidence/regressions/P01-02/after_fix.xml",
+        "evidence/regressions/P01-02/full_suite.txt",
+        "evidence/regressions/P01-02/full_suite.xml",
+        "evidence/regressions/P01-02/compileall_src.txt",
+        "evidence/regressions/P01-02/compile_context.txt",
+        "evidence/regressions/P01-02/source_audit_after/reproduced_issues.json"
+      ],
       "blocked_by": [],
-      "notes": ""
+      "notes": "The modified files pass targeted py_compile. A broader Python 3.11 compileall exposed seven pre-existing figure/result-script f-string quoting errors; this is recorded separately and does not invalidate the targeted P01-02 tests."
     },
     {
       "id": "P01-03",
@@ -724,7 +734,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": ""
+      "notes": "Python 3.11 compileall currently fails in seven inherited figure/result scripts because nested double-quoted replace calls are invalid in f-strings before Python 3.12. Repair and regression-test this compatibility gap before clean-install acceptance."
     },
     {
       "id": "P02-01",

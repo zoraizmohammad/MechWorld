@@ -1,0 +1,144 @@
+FFFF                                                                     [100%]
+================================== FAILURES ===================================
+______________ test_apply_band_filters_accumulates_every_filter _______________
+
+    def test_apply_band_filters_accumulates_every_filter() -> None:
+        frame = pd.DataFrame({"x": [1, 2, 3], "y": [0, 9, 0]})
+
+        filtered = apply_band_filters_to_df(
+            frame,
+            [(0, "x", 4), (-1, "y", 1)],
+        )
+
+>       assert filtered.index.tolist() == [0, 2]
+E       assert [0, 1, 2] == [0, 2]
+E         At index 1 diff: 1 != 2
+E         Left contains one more item: 2
+E         Use -v to get more diff
+
+tests\unit\test_legacy_control_flow.py:26: AssertionError
+_____________ test_once_output_criterion_is_consumed_across_calls _____________
+
+    def test_once_output_criterion_is_consumed_across_calls() -> None:
+        criteria = [("ONCE", 0.1, 0.3)]
+
+        assert to_write_or_not_to_write(criteria, 0.15, False) is True
+>       assert to_write_or_not_to_write(criteria, 0.20, False) is False
+E       AssertionError: assert True is False
+E        +  where True = to_write_or_not_to_write([('ONCE', 0.1, 0.3)], 0.2, False)
+
+tests\unit\test_legacy_control_flow.py:33: AssertionError
+__________ test_minimize_wrapper_uses_named_current_arguments[False] __________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002177FEB5F10>
+remap = False
+
+    @pytest.mark.parametrize("remap", [False, True])
+    def test_minimize_wrapper_uses_named_current_arguments(
+        monkeypatch: pytest.MonkeyPatch,
+        remap: bool,
+    ) -> None:
+        calls: list[tuple[tuple[object, ...], dict[str, object]]] = []
+        monkeypatch.setattr(
+            process_network_ensembles,
+            "find_files",
+            lambda _directory, _pattern: {"sample.network"},
+        )
+        monkeypatch.setattr(process_network_ensembles.os.path, "exists", lambda _path: False)
+        monkeypatch.setattr(
+            process_network_ensembles,
+            "run_isotropic_prestrain_minimize",
+            lambda *args, **kwargs: calls.append((args, kwargs)),
+        )
+
+        process_network_ensembles.run_networks_minimize(
+            "unused-directory",
+            r".*\.network",
+            rerun=False,
+            remap=remap,
+        )
+
+>       assert calls == [
+            (
+                (),
+                {
+                    "network_filepath": "sample.network",
+                    "max_strain": 0.3,
+                    "number_strain_steps": None,
+                    "write_debug_images": True,
+                    "dump_specs": [
+                        ("INITIAL", None, None),
+                        ("FINAL", None, None),
+                    ],
+                    "restart_specs": None,
+                    "remap": remap,
+                },
+            )
+        ]
+E       AssertionError: assert [(('sample.ne..., False), {})] == [((), {'dump_...: None, ...})]
+E         At index 0 diff: (('sample.network', 0.3, True, True, False), {}) != ((), {'network_filepath': 'sample.network', 'max_strain': 0.3, 'number_strain_steps': None, 'write_debug_images': True, 'dump_specs': [('INITIAL', None, None), ('FINAL', None, None)], 'restart_specs': None, 'remap': False})
+E         Use -v to get more diff
+
+tests\unit\test_legacy_control_flow.py:62: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Running sample.network...
+__________ test_minimize_wrapper_uses_named_current_arguments[True] ___________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x000002170F0729D0>
+remap = True
+
+    @pytest.mark.parametrize("remap", [False, True])
+    def test_minimize_wrapper_uses_named_current_arguments(
+        monkeypatch: pytest.MonkeyPatch,
+        remap: bool,
+    ) -> None:
+        calls: list[tuple[tuple[object, ...], dict[str, object]]] = []
+        monkeypatch.setattr(
+            process_network_ensembles,
+            "find_files",
+            lambda _directory, _pattern: {"sample.network"},
+        )
+        monkeypatch.setattr(process_network_ensembles.os.path, "exists", lambda _path: False)
+        monkeypatch.setattr(
+            process_network_ensembles,
+            "run_isotropic_prestrain_minimize",
+            lambda *args, **kwargs: calls.append((args, kwargs)),
+        )
+
+        process_network_ensembles.run_networks_minimize(
+            "unused-directory",
+            r".*\.network",
+            rerun=False,
+            remap=remap,
+        )
+
+>       assert calls == [
+            (
+                (),
+                {
+                    "network_filepath": "sample.network",
+                    "max_strain": 0.3,
+                    "number_strain_steps": None,
+                    "write_debug_images": True,
+                    "dump_specs": [
+                        ("INITIAL", None, None),
+                        ("FINAL", None, None),
+                    ],
+                    "restart_specs": None,
+                    "remap": remap,
+                },
+            )
+        ]
+E       AssertionError: assert [(('sample.ne...e, True), {})] == [((), {'dump_...: None, ...})]
+E         At index 0 diff: (('sample.network', 0.3, True, True, True), {}) != ((), {'network_filepath': 'sample.network', 'max_strain': 0.3, 'number_strain_steps': None, 'write_debug_images': True, 'dump_specs': [('INITIAL', None, None), ('FINAL', None, None)], 'restart_specs': None, 'remap': True})
+E         Use -v to get more diff
+
+tests\unit\test_legacy_control_flow.py:62: AssertionError
+---------------------------- Captured stdout call -----------------------------
+Running sample.network...
+=========================== short test summary info ===========================
+FAILED tests/unit/test_legacy_control_flow.py::test_apply_band_filters_accumulates_every_filter
+FAILED tests/unit/test_legacy_control_flow.py::test_once_output_criterion_is_consumed_across_calls
+FAILED tests/unit/test_legacy_control_flow.py::test_minimize_wrapper_uses_named_current_arguments[False]
+FAILED tests/unit/test_legacy_control_flow.py::test_minimize_wrapper_uses_named_current_arguments[True]
+4 failed in 9.64s

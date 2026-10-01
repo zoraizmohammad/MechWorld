@@ -77,13 +77,16 @@ def apply_band_filters_to_df(df, bandpass_filters : Iterable[tuple[float,str,flo
     if not bandpass_filters:
         return df;
 
+    filtered_df = df;
     for filter_tuple in bandpass_filters:
         if not filter_tuple:
             continue
 
         min_allowed, column_label, max_allowed = filter_tuple;
-        mask = (df[column_label] >= min_allowed) & (df[column_label] <= max_allowed)
-        return df[mask];
+        mask = (filtered_df[column_label] >= min_allowed) & (filtered_df[column_label] <= max_allowed)
+        filtered_df = filtered_df[mask];
+
+    return filtered_df;
 
 def flory_schulz_mean_length(a : Union[str,float]):
     return 2/(1-float(a))-1;

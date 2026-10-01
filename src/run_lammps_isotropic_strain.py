@@ -168,37 +168,36 @@ def to_write_or_not_to_write(output_specifications : Union[list[tuple[str,float,
     if (output_specifications == None):
         return False;
 
-    # Remove all elements that have been suppressed in previous calls
-    filtered_specifications = list();
-    for spec_tuple in output_specifications:
-        if (spec_tuple != None) and (spec_tuple != (None, None, None)):
-            filtered_specifications.append(spec_tuple);
-    output_specifications = filtered_specifications;
-
-    if (len(output_specifications) == 0):
+    if not any(
+        spec_tuple is not None and spec_tuple != (None, None, None)
+        for spec_tuple in output_specifications
+    ):
         return False;
 
     # Look at the criteria one by one
-    for spec in output_specifications:
+    for i, spec in enumerate(output_specifications):
+        if spec is None:
+            continue
+
         assert (type(spec) == tuple) or (type(spec) == None)
         # Indicates that this criteria has been fulfilled, no longer needed
         if spec[0] == None:
             continue
 
         if (spec[0] == "INITIAL") and (cur_strain == 0):
-            spec = (None, None, None); # Suppress, skip in future
+            output_specifications[i] = (None, None, None); # Suppress, skip in future
             return True
         elif (spec[0] == "FINAL") and (is_final_step):
             return True
         elif (spec[0] == "ALL") and (spec[1] <= cur_strain) and (cur_strain <= spec[2]):
             return True;
         elif (spec[0] == "ONCE") and (spec[1] <= cur_strain) and (cur_strain <= spec[2]):
-            spec = (None, None, None); # Suppress, skip in future
+            output_specifications[i] = (None, None, None); # Suppress, skip in future
             return True;
 
         # If the maximum strain has been passed, we don't need to eval because strain is monotonically increasing
         if ((spec[0] == "ALL") or (spec[0] == "ONCE")) and (cur_strain > spec[2]):
-            spec = (None, None, None); # Suppress, skip in future
+            output_specifications[i] = (None, None, None); # Suppress, skip in future
             continue;
 
     return False;

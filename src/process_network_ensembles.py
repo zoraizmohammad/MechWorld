@@ -30,7 +30,15 @@ def run_networks_minimize(dirpath, regex_pattern, rerun : bool = False, remap : 
         expected_output_filepath = os.path.splitext(filepath)[0] + ".out";
         if rerun or not os.path.exists(expected_output_filepath):
             print(f"Running {filepath}...")
-            run_isotropic_prestrain_minimize(filepath, 0.3, True, True, remap)
+            run_isotropic_prestrain_minimize(
+                network_filepath=filepath,
+                max_strain=0.3,
+                number_strain_steps=None,
+                write_debug_images=True,
+                dump_specs=[("INITIAL", None, None), ("FINAL", None, None)],
+                restart_specs=None,
+                remap=remap,
+            )
         else:
             print(f"[SKIPPED] Running {filepath} b/c existing output file was found")
             continue;
