@@ -1,0 +1,28 @@
+{
+  "artifact_layout": {
+    "dumps": "dumps",
+    "images": "images",
+    "raw": "raw",
+    "restarts": "restarts",
+    "solver_log": "solver/log.lammps",
+    "solver_screen": "solver/screen.txt"
+  },
+  "compute": {
+    "allow_gpu": false,
+    "allow_mpi": false,
+    "allow_scheduler_submission": false,
+    "backend": "local",
+    "max_concurrent_runs": 1,
+    "memory_mb": 1024,
+    "schema_version": "pgworld.compute.local.v1",
+    "threads_per_run": 1,
+    "walltime_seconds": 60
+  },
+  "parameters": {
+    "fixture": "one-atom-run0",
+    "purpose": "adapter-compatibility-only"
+  },
+  "run_id": "serial-lammps-run0",
+  "schema_version": "pgworld.run.v1",
+  "seed": 20261001
+}

@@ -1,0 +1,20 @@
+{
+  "config_hash": "389a1ac9b0290f78818366ed4115ac81f67051810ac3487166d710df2df076d8",
+  "failure": null,
+  "finished_at_utc": "2026-10-01T04:12:58.190643Z",
+  "quality_status": "accepted",
+  "result": {
+    "atoms": 1,
+    "lammps_version": 20260902,
+    "steps": 0
+  },
+  "run_id": "serial-lammps-run0",
+  "schema_version": "pgworld.run.v1",
+  "solver": {
+    "close_attempted": true,
+    "close_succeeded": true,
+    "created": true
+  },
+  "started_at_utc": "2026-10-01T04:12:58.140592Z",
+  "termination_reason": "completed"
+}

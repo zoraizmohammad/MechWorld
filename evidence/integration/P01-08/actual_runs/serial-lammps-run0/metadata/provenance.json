@@ -1,0 +1,10 @@
+{
+  "config_hash": "389a1ac9b0290f78818366ed4115ac81f67051810ac3487166d710df2df076d8",
+  "platform": "Windows-10-10.0.26200-SP0",
+  "python_implementation": "CPython",
+  "python_version": "3.11.9",
+  "run_schema_version": "pgworld.run.v1",
+  "source_commit": "9429b4ca530ef3307bd0dd693d05e6c32f8ececd",
+  "source_dirty": true,
+  "source_tree_hash": "6614de440eba99967cf2bcb9052e8b41c2a2ca55"
+}

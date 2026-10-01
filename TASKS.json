@@ -641,7 +641,7 @@
       "id": "P01-08",
       "work_package": "WP1",
       "title": "Make runs isolated, portable, restartable, and resource-safe",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "simulation",
       "execution_kind": "agent",
       "mandatory": true,
@@ -666,11 +666,25 @@
       "planned_verification_commands": [
         "python -m pytest tests/integration/test_run_isolation.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_INTEGRATION_2026-10-01; RED_IMPORT_FAILURE_CAPTURED; TARGETED_10_PASSED; FULL_SUITE_50_PASSED; COMPILE_AND_CONFIG_SANITIZATION_PASSED; REAL_SERIAL_LAMMPS_RUN0_ACCEPTED_AND_CLOSED",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "src/pgworld/simulation/run_manager.py",
+        "configs/compute/README.md",
+        "configs/compute/local_smoke.json",
+        "configs/compute/scheduler_disabled.json",
+        "tests/integration/test_run_isolation.py",
+        "docs/subagents/P01-08-run-isolation.md",
+        "evidence/subagents/P01-08/red.txt",
+        "evidence/subagents/P01-08/green_target.txt",
+        "evidence/subagents/P01-08/green_full.txt",
+        "evidence/integration/P01-08/verification.md",
+        "evidence/integration/P01-08/targeted.xml",
+        "evidence/integration/P01-08/full_suite.xml",
+        "evidence/integration/P01-08/actual_runs/serial-lammps-run0/metadata/run_status.json"
+      ],
       "blocked_by": [],
-      "notes": "Isolated implementation assigned on research/p01-08-run-isolation at 833273e. Scope is bounded local run isolation/configuration, failure cleanup, and tests only; no production job, scheduler submission, or inherited-account reuse is authorized."
+      "notes": "Integrated as 9429b4c. Typed local configs, immutable collision-safe run roots, scoped artifacts, deterministic config/provenance, per-process concurrency, and close/failure lifecycle records are verified. Integration additionally routed a real serial LAMMPS 2 Sep 2026 one-atom run 0 through the manager. Inherited entry points are not migrated; restart resume/equivalence is not implemented; walltime is cooperative, memory declarative, and no scheduler/MPI/GPU/remote/production job is authorized or claimed."
     },
     {
       "id": "P01-09",

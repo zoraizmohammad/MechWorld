@@ -1,0 +1,5 @@
+Command: dependency-complete Python invoked RunManager with configs/compute/local_smoke.json, a RunConfig rooted at evidence/integration/P01-08/actual_runs, the installed lammps Python library as solver_factory, and a one-atom two-dimensional nano-units run 0 callback.
+Date: 2026-10-01
+Exit: 0
+Result: LAMMPS version 20260902; 1 atom; 0 steps; quality_status accepted; solver created; close attempted and succeeded.
+Scope: actual serial adapter-compatibility smoke only. No bond, fracture, restart, MPI, GPU, scheduler, remote, or production claim.
