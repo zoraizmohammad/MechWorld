@@ -411,7 +411,7 @@
         "evidence/integration/P01-01/source_audit_after/reproduced_issues.json"
       ],
       "blocked_by": [],
-      "notes": "A01/A02 orthogonal and restricted-triclinic bounds parser slice is integrated. P01-01 remains IN_PROGRESS: add explicit general-triclinic rejection plus repeated/large-offset wrapping, image-shift, minimum-image, and persistent periodic-identity tests before DONE."
+      "notes": "A01/A02 orthogonal and restricted-triclinic bounds parser slice is integrated. The remaining explicit general-triclinic rejection plus repeated/large-offset wrapping, image-shift, minimum-image, and persistent periodic-identity slice is assigned on research/p01-01-periodic-identities at 833273e; keep P01-01 IN_PROGRESS until integration verification passes."
     },
     {
       "id": "P01-02",
@@ -630,7 +630,7 @@
       "id": "P01-08",
       "work_package": "WP1",
       "title": "Make runs isolated, portable, restartable, and resource-safe",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "simulation",
       "execution_kind": "agent",
       "mandatory": true,
@@ -659,7 +659,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": ""
+      "notes": "Isolated implementation assigned on research/p01-08-run-isolation at 833273e. Scope is bounded local run isolation/configuration, failure cleanup, and tests only; no production job, scheduler submission, or inherited-account reuse is authorized."
     },
     {
       "id": "P01-09",
