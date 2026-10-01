@@ -1,0 +1,34 @@
+Task: P01-03 isolated distribution repair
+Worktree: C:\Users\mzora\MechWorld-wt-p01-03
+Branch: research/p01-03-distributions
+Base commit: d4274c14ed0da667a9e67e50138e20363a03457a
+Environment: Python 3.11.9; numpy 2.2.2; scipy 1.16.1; pytest 7.4.3
+
+Red command (2026-09-30):
+C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest tests/unit/test_distributions.py -q --junitxml=evidence/subagents/P01-03/red-a05.xml
+Exit: 1
+Result: 1 failed in 5.79s; UNI=2=4 returned range(2, 5), then generate_pg_network failed its list-only assertion.
+
+Targeted command (2026-10-01):
+C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest tests/unit/test_distributions.py -q --junitxml=evidence/subagents/P01-03/targeted.xml
+Exit: 0
+Result: 26 passed in 5.94s.
+
+Full-suite command (2026-10-01):
+C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest -q --junitxml=evidence/subagents/P01-03/full-suite.xml
+Exit: 0
+Result: 40 passed in 6.00s.
+
+Compile command (2026-10-01):
+C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m py_compile src/assemble_pg_network.py tests/unit/test_distributions.py
+Exit: 0
+
+SHA-256 before commit:
+06f1698af8fff5faddffb5f04d954260d74471a434b7b52ba7fe47c2f476c2c4  src/assemble_pg_network.py
+60b3ec5907df1855397497655370977a7949b94278b05cd2d5a74626d5520073  tests/unit/test_distributions.py
+584f350a23a9a562bcf2e34f3cbd09d33af0b65b6f7b829b830d99c1edc00059  evidence/subagents/P01-03/red-a05.txt
+cc7da1cc24f7071f7adde48da102d291997249a210494701f5d8e0bd514a3c80  evidence/subagents/P01-03/targeted.txt
+d6e34c1bfcfb774bffa3efd582b114146b04c0351b55b69b155141f4622b50b7  evidence/subagents/P01-03/full-suite.txt
+9fd0becfffbfede16e58733a187e7d2273f6cb2f31e880c24d59448df4f697f0  evidence/subagents/P01-03/distribution-contract.txt
+
+No production simulation, private data, external data, or trained model was used.

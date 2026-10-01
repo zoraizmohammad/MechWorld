@@ -1,6 +1,10 @@
 # PG Network Assembly Script
 import numpy as np
+from bisect import bisect_right
+from collections.abc import Sequence
+from dataclasses import dataclass, field
 from math import floor, ceil
+from numbers import Integral
 from random import randrange, random, shuffle
 from collections import defaultdict
 from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule
@@ -17,79 +21,251 @@ rng = np.random.default_rng()
 # Koch, A. L. (2000a). Length distribution of the peptidoglycan chains in the sacculus of
 # escherichia coli. Journal of Theoretical Biology, 204(4), 533–541.
 
-def create_FlorySchulz_distribution(min_DSU : int, max_DSU : int, p : float, entries : int, use_weight_fraction = False):
-    DSUs = range(min_DSU,max_DSU+1);
-    distribution = list();
-    for i,x in enumerate(DSUs):
-        if use_weight_fraction:
-            weight_fraction = (x)*((1-p)**2)*(p**(x-1));
-            entries_for_this_length = floor(weight_fraction*entries);
+@dataclass(frozen=True)
+class DiscreteDistribution(Sequence[int]):
+    """A normalized finite distribution without an expanded sampling list.
+
+    Iteration and indexing expose the distinct support values, not a virtual
+    repeated list. Use :meth:`sample` for probability-weighted draws and
+    :attr:`mean` for the probability-weighted mean.
+    """
+
+    support: tuple[int, ...]
+    probabilities: tuple[float, ...]
+    law: str
+    _cdf: tuple[float, ...] = field(init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        if not self.support:
+            raise ValueError("distribution support must not be empty")
+        if len(self.support) != len(self.probabilities):
+            raise ValueError("support and probabilities must have equal length")
+        if any(
+            isinstance(value, bool) or not isinstance(value, Integral) or value <= 0
+            for value in self.support
+        ):
+            raise ValueError("DSU support values must be positive integers")
+        if any(left >= right for left, right in zip(self.support, self.support[1:])):
+            raise ValueError("DSU support values must be strictly increasing")
+
+        weights = np.asarray(self.probabilities, dtype=float)
+        if not np.all(np.isfinite(weights)) or np.any(weights < 0):
+            raise ValueError("distribution weights must be finite and nonnegative")
+        total = float(np.sum(weights))
+        if not total > 0:
+            raise ValueError("distribution weights must contain positive mass")
+
+        normalized = weights / total
+        cdf = np.cumsum(normalized)
+        cdf[-1] = 1.0
+        object.__setattr__(self, "support", tuple(int(value) for value in self.support))
+        object.__setattr__(self, "probabilities", tuple(float(value) for value in normalized))
+        object.__setattr__(self, "_cdf", tuple(float(value) for value in cdf))
+
+    def __len__(self) -> int:
+        return len(self.support)
+
+    def __getitem__(self, index):
+        return self.support[index]
+
+    @property
+    def mean(self) -> float:
+        return float(np.dot(self.support, self.probabilities))
+
+    @property
+    def variance(self) -> float:
+        centered = np.asarray(self.support, dtype=float) - self.mean
+        return float(np.dot(centered * centered, self.probabilities))
+
+    def raw_moment(self, order: int) -> float:
+        if isinstance(order, bool) or not isinstance(order, Integral) or order < 0:
+            raise ValueError("moment order must be a nonnegative integer")
+        values = np.asarray(self.support, dtype=float) ** int(order)
+        return float(np.dot(values, self.probabilities))
+
+    def sample(self, random_source=None) -> int:
+        """Draw one value using either a supplied RNG or Python's global RNG."""
+        draw = random() if random_source is None else float(random_source.random())
+        if not 0.0 <= draw < 1.0:
+            raise ValueError("random source must return values in [0, 1)")
+        index = bisect_right(self._cdf, draw)
+        return self.support[min(index, len(self.support) - 1)]
+
+
+def _validate_distribution_bounds(min_DSU: int, max_DSU: int) -> tuple[int, int]:
+    for name, value in (("minimum", min_DSU), ("maximum", max_DSU)):
+        if isinstance(value, bool) or not isinstance(value, Integral):
+            raise ValueError(f"distribution {name} must be an integer")
+    min_DSU = int(min_DSU)
+    max_DSU = int(max_DSU)
+    if min_DSU < 1:
+        raise ValueError("distribution minimum must be at least 1 DSU")
+    if max_DSU < min_DSU:
+        raise ValueError("distribution maximum must be at least its minimum")
+    return min_DSU, max_DSU
+
+
+def _validate_legacy_entries(entries) -> None:
+    """Validate the retired expansion-size argument without allocating it."""
+    if isinstance(entries, bool) or not isinstance(entries, (Integral, float)):
+        raise ValueError("legacy entries value must be a positive integer")
+    if not np.isfinite(entries) or entries <= 0 or not float(entries).is_integer():
+        raise ValueError("legacy entries value must be a positive integer")
+
+
+def create_FlorySchulz_distribution(
+    min_DSU: int,
+    max_DSU: int,
+    p: float,
+    entries: int,
+    use_weight_fraction: bool = False,
+) -> DiscreteDistribution:
+    """Create the explicitly truncated FS number- or weight-fraction law.
+
+    The inherited ``FS`` law is the number (molar) fraction
+    ``(1-p) * p**(x-1)``. ``WFS`` is kept separate and uses the weight
+    fraction ``x * (1-p)**2 * p**(x-1)``. Constants common to all retained
+    support points cancel when the finite interval is normalized. ``entries``
+    remains only for call compatibility and never controls memory allocation.
+    """
+    min_DSU, max_DSU = _validate_distribution_bounds(min_DSU, max_DSU)
+    _validate_legacy_entries(entries)
+    if not isinstance(use_weight_fraction, bool):
+        raise ValueError("use_weight_fraction must be boolean")
+    if not np.isfinite(p) or not 0.0 < p < 1.0:
+        raise ValueError("Flory-Schulz p must be finite and strictly between 0 and 1")
+
+    support = np.arange(min_DSU, max_DSU + 1, dtype=int)
+    relative_weights = np.power(float(p), support - min_DSU)
+    if use_weight_fraction:
+        relative_weights = support * relative_weights
+        law = "flory_schulz_weight_fraction"
+    else:
+        law = "flory_schulz_number_fraction"
+    return DiscreteDistribution(
+        tuple(int(value) for value in support),
+        tuple(float(value) for value in relative_weights),
+        law,
+    )
+
+
+def create_uniform_distribution(min_DSU: int, max_DSU: int) -> DiscreteDistribution:
+    min_DSU, max_DSU = _validate_distribution_bounds(min_DSU, max_DSU)
+    support = tuple(range(min_DSU, max_DSU + 1))
+    return DiscreteDistribution(support, (1.0,) * len(support), "discrete_uniform")
+
+
+def create_lognorm_distribution(
+    min_DSU: int,
+    max_DSU: int,
+    LN1: float,
+    LN2: float,
+    LN3: float,
+    entries: int,
+) -> DiscreteDistribution:
+    """Create the inherited integer-grid lognormal PDF law, then normalize it."""
+    min_DSU, max_DSU = _validate_distribution_bounds(min_DSU, max_DSU)
+    _validate_legacy_entries(entries)
+    if not all(np.isfinite(value) for value in (LN1, LN2, LN3)):
+        raise ValueError("lognormal parameters must be finite")
+    if LN1 <= 0:
+        raise ValueError("lognormal shape must be positive")
+    if LN3 <= 0:
+        raise ValueError("lognormal scale must be positive")
+
+    support = np.arange(min_DSU, max_DSU + 1, dtype=int)
+    weights = lognorm.pdf(support, LN1, loc=LN2, scale=LN3)
+    return DiscreteDistribution(
+        tuple(int(value) for value in support),
+        tuple(float(value) for value in weights),
+        "integer_grid_lognormal_pdf",
+    )
+
+
+def process_distribution_string(distrib_str: str, size: int) -> DiscreteDistribution:
+    """Parse ``FS``, ``WFS``, ``UNI``, or ``LN`` ``=``-delimited specs."""
+    if not isinstance(distrib_str, str) or not distrib_str.strip():
+        raise ValueError("distribution specification must be a nonempty string")
+    if isinstance(size, bool) or not isinstance(size, Integral) or size <= 1:
+        raise ValueError("network size must be an integer greater than 1")
+
+    chunks = [chunk.strip() for chunk in distrib_str.split("=")]
+    kind = chunks[0].upper()
+    expected_fields = {"FS": 4, "WFS": 4, "UNI": 3, "LN": 6}
+    if kind not in expected_fields or len(chunks) != expected_fields[kind]:
+        raise ValueError(
+            f"Misconfigured distribution '{distrib_str}'; use "
+            "FS=min=max=p, WFS=min=max=p, UNI=min=max, or "
+            "LN=min=max=shape=loc=scale"
+        )
+
+    try:
+        min_DSU = int(chunks[1])
+        max_DSU = int(chunks[2])
+        if kind == "FS":
+            distribution = create_FlorySchulz_distribution(
+                min_DSU, max_DSU, float(chunks[3]), 1E6
+            )
+        elif kind == "WFS":
+            distribution = create_FlorySchulz_distribution(
+                min_DSU, max_DSU, float(chunks[3]), 1E6, True
+            )
+        elif kind == "UNI":
+            distribution = create_uniform_distribution(min_DSU, max_DSU)
         else:
-            number_fraction = p**(x-1)*(1-p)
-            entries_for_this_length = floor(number_fraction*entries);
+            distribution = create_lognorm_distribution(
+                min_DSU,
+                max_DSU,
+                float(chunks[3]),
+                float(chunks[4]),
+                float(chunks[5]),
+                1E6,
+            )
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"Invalid distribution '{distrib_str}': {exc}") from exc
 
-        distribution += [x] * entries_for_this_length;
-    
-    print(f"DEBUG: Mean of FS (a = {p}): {np.mean(distribution)}")
-
-    return distribution;
-
-def create_uniform_distribution(min_DSU : int, max_DSU : int):
-    distribution = range(min_DSU, max_DSU+1);
-    return distribution;
-
-def create_lognorm_distribution(min : int, max : int, LN1 : float, LN2 : float, LN3 : float, entries : int):
-    xs = np.arange(min,max+1);
-    distribution = [];
-
-    print(LN1, LN2, LN3)
-
-    pdf = lognorm.pdf(xs, LN1, LN2, LN3)
-    print(pdf)
-
-    for i,x in enumerate(xs):
-        entries_for_this_length = floor(pdf[i]*entries);
-        distribution += [x] * entries_for_this_length;
-    
-    print(f"DEBUG: Mean of LOGNORM {np.mean(distribution)}")
-
+    if distribution.support[-1] >= int(size):
+        raise ValueError(
+            f"distribution maximum {distribution.support[-1]} must be below network size {size}"
+        )
     return distribution
 
-def process_distribution_string(distrib_str : str, size : int) -> list[int]:
-    # Option #1: FS={min}={max}={alpha}
-    # i.e. FS=2=100=0.9
 
-    # Option #2: UNI-{min}-{max}
-    # i.e. UNI=20=30
+def _draw_DSU_length(distribution) -> int:
+    if isinstance(distribution, DiscreteDistribution):
+        return distribution.sample()
+    return distribution[randrange(0, len(distribution))]
 
-    chunks : list[str] = distrib_str.split("=")
 
-    if chunks[0] == "FS":
-        assert len(chunks) == 4;
-        return create_FlorySchulz_distribution(int(chunks[1]), int(chunks[2]), float(chunks[3]), 1E6)
-    
-    if chunks[0] == "WFS":
-        assert len(chunks) == 4;
-        return create_FlorySchulz_distribution(int(chunks[1]), int(chunks[2]), float(chunks[3]), 1E6, True)
-
-    elif chunks[0] == "UNI":
-        assert len(chunks) == 3;
-        return create_uniform_distribution(int(chunks[1]), int(chunks[2]));
-
-    elif chunks[0] == "LN":
-        assert len(chunks) == 6;
-        return create_lognorm_distribution(int(chunks[1]), int(chunks[2]), float(chunks[3]), float(chunks[4]), float(chunks[5]), 1E6);
-
+def _validated_distribution_mean(distribution, Ny: int) -> float:
+    if isinstance(distribution, DiscreteDistribution):
+        maximum = distribution.support[-1]
+        mean = distribution.mean
+    elif isinstance(distribution, Sequence) and not isinstance(distribution, (str, bytes)):
+        if len(distribution) == 0:
+            raise ValueError("distribution must not be empty")
+        if any(
+            isinstance(value, bool) or not isinstance(value, Integral) or value <= 0
+            for value in distribution
+        ):
+            raise ValueError("legacy distribution values must be positive integers")
+        maximum = max(distribution)
+        mean = float(np.mean(distribution))
     else:
-        raise ValueError(f"Misconfigured distrib str: {distrib_str}")
+        raise ValueError(
+            "distribution must be a DiscreteDistribution or a finite integer sequence"
+        )
+    if maximum >= Ny:
+        raise ValueError(f"distribution maximum {maximum} must be below network size {Ny}")
+    return mean
 
-def get_sample_of_DSU_lengths_simple(Ny : int, distribution : list[int]) -> list[int]:
+def get_sample_of_DSU_lengths_simple(Ny: int, distribution) -> list[int]:
     # Ny includes the gaps between glycans
     glycan_lengths_DSU = [];
 
     # Draw from the distribution until the total desired length is exceeded
     while (sum(glycan_lengths_DSU) + len(glycan_lengths_DSU)) < Ny:
-        glycan_lengths_DSU.append(distribution[randrange(0,len(distribution))])
+        glycan_lengths_DSU.append(_draw_DSU_length(distribution))
 
     glycan_lengths_DSU.pop(); # Remove the glycan that pushed it over the edge
 
@@ -104,13 +280,13 @@ def get_sample_of_DSU_lengths_simple(Ny : int, distribution : list[int]) -> list
 
     return glycan_lengths_DSU
 
-def get_sample_of_DSU_lengths_no_gaps(Ny : int, distribution : list[int]) -> list[int]:
+def get_sample_of_DSU_lengths_no_gaps(Ny: int, distribution) -> list[int]:
     # Ny excludes the gaps between glycans
     glycan_lengths_DSU = [];
 
     # Draw from the distribution until the total desired length is exceeded
     while (sum(glycan_lengths_DSU)) < Ny:
-        glycan_lengths_DSU.append(distribution[randrange(0,len(distribution))])
+        glycan_lengths_DSU.append(_draw_DSU_length(distribution))
 
     glycan_lengths_DSU.pop(); # Remove the glycan that pushed it over the edge
 
@@ -578,14 +754,14 @@ def generate_pg_network(
         mesh_density : float = 1.0,     # Target density, units of (number of DSU) / (DSU length scale)**2
         anisotropy   : float = 0.75,    # 0.0 => glycans are perfectly hoop-aligned (+y)
                                         # 1.0 => glycans orientation is completely random
-        distribution : list[int] = None,
+        distribution : Sequence[int] | DiscreteDistribution | None = None,
         filepath     : str  = None,          # If set, write file to this filepath. File is lammps-compatible.
         generate_figure_of_steps   : bool     = False, # Plot bonds for debug purposes?
         plot_network_on_these_axes : plt.Axes = None,
         linkage_limit : float = None   # Stop adding crosslinks once this fraction is reached
         ):
     
-    if distribution == None:
+    if distribution is None:
         distribution = create_FlorySchulz_distribution(2,30,0.9,1E8);
     
     # Input checks
@@ -595,8 +771,7 @@ def generate_pg_network(
     assert (type(mesh_density) == float)
     assert (0 <= anisotropy) and (anisotropy <= 1.0)
     assert (type(anisotropy) == float)
-    assert max(distribution) < Ny;
-    assert (type(distribution) == list)
+    mean_of_distribution = _validated_distribution_mean(distribution, Ny)
     assert (type(filepath) == str) or (filepath == None)
     assert (type(generate_figure_of_steps) == bool)
 
@@ -607,7 +782,6 @@ def generate_pg_network(
     glycans : dict[int,GlycanMolecule] = dict();
 
     # Equations derived by Octavio give a starting point estimate for the spacing between glycans for a square patch
-    mean_of_distribution = np.mean(distribution);
     epsilon_x = np.sqrt( (1 + (1/2)*mean_of_distribution)**2 + ((1/mesh_density) - 1)*(1 + mean_of_distribution) ) - (1+(1/2)*mean_of_distribution);
     epsilon_y = epsilon_x/(1+mean_of_distribution);
     Nx = floor((1+epsilon_y)/(1+epsilon_x)*Ny);
@@ -697,7 +871,10 @@ def generate_pg_network(
         return density_fraction, crosslinkage, glycans, atoms, bonds, angles;
 
 # Functions to compare network distribution to theory distribution
-def normalized_length_distribution(distribution : list[int]):
+def normalized_length_distribution(distribution):
+    if isinstance(distribution, DiscreteDistribution):
+        return list(distribution.support), list(distribution.probabilities)
+
     possible_glycan_lengths = list(range(min(distribution),max(distribution)+1));
     norm_distrib = [0]*len(possible_glycan_lengths)
     len_distrib = len(distribution)
@@ -706,7 +883,7 @@ def normalized_length_distribution(distribution : list[int]):
 
     return possible_glycan_lengths, norm_distrib
 
-def actual_length_distribution(glycans : dict[int,GlycanMolecule], distribution : list[int]):
+def actual_length_distribution(glycans: dict[int, GlycanMolecule], distribution):
     # 0, 1, 2, ..., 20 etc
     # We include smaller lengths because they can be generated with the 'filler glycans' 
     # added to meet the density criteria when the drawn glycan length is too large

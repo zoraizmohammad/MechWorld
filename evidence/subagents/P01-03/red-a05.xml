@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="5.788" timestamp="2026-09-30T23:54:31.203121" hostname="MZoraiz_P15"><testcase classname="tests.unit.test_distributions" name="test_uniform_distribution_from_parser_is_accepted_by_generator" time="0.002"><failure message="AssertionError">def test_uniform_distribution_from_parser_is_accepted_by_generator() -&gt; None:
+        distribution = process_distribution_string("UNI=2=4", 10)
+
+&gt;       generated = generate_pg_network(
+            Ny=10,
+            mesh_density=1.0,
+            anisotropy=0.75,
+            distribution=distribution,
+        )
+
+tests\unit\test_distributions.py:16:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+Ny = 10, mesh_density = 1.0, anisotropy = 0.75, distribution = range(2, 5)
+filepath = None, generate_figure_of_steps = False
+plot_network_on_these_axes = None, linkage_limit = None
+
+    def generate_pg_network(
+            Ny           : int   = 100,     # Total number of DSU in the y direction for the network
+            mesh_density : float = 1.0,     # Target density, units of (number of DSU) / (DSU length scale)**2
+            anisotropy   : float = 0.75,    # 0.0 =&gt; glycans are perfectly hoop-aligned (+y)
+                                            # 1.0 =&gt; glycans orientation is completely random
+            distribution : list[int] = None,
+            filepath     : str  = None,          # If set, write file to this filepath. File is lammps-compatible.
+            generate_figure_of_steps   : bool     = False, # Plot bonds for debug purposes?
+            plot_network_on_these_axes : plt.Axes = None,
+            linkage_limit : float = None   # Stop adding crosslinks once this fraction is reached
+            ):
+    
+        if distribution == None:
+            distribution = create_FlorySchulz_distribution(2,30,0.9,1E8);
+    
+        # Input checks
+        assert (Ny &gt;= 10)
+        assert (type(Ny) == int)
+        assert (0 &lt; mesh_density)
+        assert (type(mesh_density) == float)
+        assert (0 &lt;= anisotropy) and (anisotropy &lt;= 1.0)
+        assert (type(anisotropy) == float)
+        assert max(distribution) &lt; Ny;
+&gt;       assert (type(distribution) == list)
+E       AssertionError
+
+src\assemble_pg_network.py:599: AssertionError</failure></testcase></testsuite></testsuites>

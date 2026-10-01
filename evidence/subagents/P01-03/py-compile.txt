@@ -1,0 +1,3 @@
+Command: C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m py_compile src/assemble_pg_network.py tests/unit/test_distributions.py
+Exit: 0
+Result: no diagnostics
