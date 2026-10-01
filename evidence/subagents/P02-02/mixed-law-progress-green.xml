@@ -53,7 +53,7 @@
                 reference_state_id=REFERENCE_ID,
             )
 
-tests\physics\test_damage_law.py:856: 
+tests\physics\test_damage_law.py:856:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 material_events = [DamageTransition(previous_state_id='sha256:f5e129125c9163bc291f6cc95e7736b42f6981cd9b9ca8cc764ef89baed85150', state=D...shold_violation=False, physical_time=None, physical_time_valid=False, schema_version='pgworld.quasistatic_damage.v1'))]
@@ -72,7 +72,7 @@ material_events = [DamageTransition(previous_state_id='sha256:f5e129125c9163bc29
         mechanical_instability: EndpointObservation | None = None,
     ) -&gt; TrajectoryFailureEndpoints:
         """Build distinct endpoint labels and explicit no-event censoring."""
-    
+
         terminal_load_coordinate = _finite_float(
             terminal_load_coordinate, "terminal_load_coordinate"
         )

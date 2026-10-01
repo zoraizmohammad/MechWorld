@@ -28,7 +28,7 @@ tests\physics\test_damage_law.py:178: Failed</failure></testcase><testcase class
         record["assessment_id"] = _record_hash(assessment_body)
 &gt;       forged = DamageAssessment.from_record(record)
 
-tests\physics\test_damage_law.py:412: 
+tests\physics\test_damage_law.py:412:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src\pgworld\physics\damage.py:1123: in from_record
     return cls(**kwargs)  # type: ignore[arg-type]
@@ -200,7 +200,7 @@ tests\physics\test_damage_law.py:682: Failed</failure></testcase><testcase class
             physics_profile_hash=PROFILE_HASH,
             reference_state_id=REFERENCE_ID,
         ).damage_initiation
-    
+
         assert DamageState.from_record(state.as_record()).as_record() == state.as_record()
         assert DamageAssessment.from_record(assessment.as_record()).as_record() == assessment.as_record()
         assert RuptureCandidate.from_record(
@@ -210,7 +210,7 @@ tests\physics\test_damage_law.py:682: Failed</failure></testcase><testcase class
             transition.event.as_record()
         ).as_record() == transition.event.as_record()
         assert EndpointObservation.from_record(endpoint.as_record()).as_record() == endpoint.as_record()
-    
+
         candidate_record = assessment.candidates[0].as_record()
         candidate_record["event_source"] = "prescribed_intervention"
         with pytest.raises(DamageValidationError, match="material_rupture"):
@@ -233,7 +233,7 @@ tests\physics\test_damage_law.py:682: Failed</failure></testcase><testcase class
                 mechanical_instability=replayed,
             )
 
-tests\physics\test_damage_law.py:816: 
+tests\physics\test_damage_law.py:816:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 material_events = []
@@ -251,7 +251,7 @@ material_events = []
         mechanical_instability: EndpointObservation | None = None,
     ) -&gt; TrajectoryFailureEndpoints:
         """Build distinct endpoint labels and explicit no-event censoring."""
-    
+
         tested_load_coordinate = _finite_float(
             tested_load_coordinate, "tested_load_coordinate"
         )
@@ -304,7 +304,7 @@ material_events = []
                 load_coordinate=tested_load_coordinate,
                 load_coordinate_unit=load_coordinate_unit,
             )
-    
+
         supplied = {
             "load_bearing_connectivity_loss": load_bearing_connectivity_loss,
             "load_or_stiffness_degradation": load_or_stiffness_degradation,
@@ -348,7 +348,7 @@ During handling of the above exception, another exception occurred:
             physics_profile_hash=PROFILE_HASH,
             reference_state_id=REFERENCE_ID,
         ).damage_initiation
-    
+
         assert DamageState.from_record(state.as_record()).as_record() == state.as_record()
         assert DamageAssessment.from_record(assessment.as_record()).as_record() == assessment.as_record()
         assert RuptureCandidate.from_record(
@@ -358,7 +358,7 @@ During handling of the above exception, another exception occurred:
             transition.event.as_record()
         ).as_record() == transition.event.as_record()
         assert EndpointObservation.from_record(endpoint.as_record()).as_record() == endpoint.as_record()
-    
+
         candidate_record = assessment.candidates[0].as_record()
         candidate_record["event_source"] = "prescribed_intervention"
         with pytest.raises(DamageValidationError, match="material_rupture"):

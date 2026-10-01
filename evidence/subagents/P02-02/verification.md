@@ -49,7 +49,7 @@ the first green implementation:
 
 | Evidence | Exact red result | Covered defect class | SHA-256 |
 |---|---:|---|---|
-| `review-red.xml` | 45 tests, 9 failures | registered profile binding, cross-law acceptance, forgeable candidate ordering, excluded-event replay/hash, immutable initial flags, standalone event provenance, endpoint duplicates/units, strict trajectory replay | `596f7a7bafe470062576b7c52acf4b07e1b918429a2497a44e2745edee9329fb` |
+| `review-red.xml` | 45 tests, 9 failures | registered profile binding, cross-law acceptance, forgeable candidate ordering, excluded-event replay/hash, immutable initial flags, standalone event provenance, endpoint duplicates/units, strict trajectory replay | `576824ab30b09dcba89329679b96bf9cfba03baa10b6eced816fe7a6648209e1` |
 | `transition-invariants-red.xml` | 54 tests, 4 failures | event-to-post-state bond binding, sha256 event history, invalid-reference/history coexistence, endpoint material-event ID | `933bd5a899dac2596acbf264637558aed354e1c3ce1ddc414ec5734ba1d606df` |
 | `mixed-law-endpoint-red.xml` | 1 test, 1 failure | mixed law/fingerprint/threshold realizations accepted in one endpoint summary | `7e8f69f5968af1c18a7d90de1ce1831309ad3eac3ed1fd96cc9b085a6e172bcf` |
 | `assessment-reason-red.xml` | 1 test, 1 failure | solver-error assessment replay could be relabeled as physical failure | `6a663bf676afdc401d572a2e2e44e08add6bfa7ae859789c9bb82e9537851994` |
@@ -141,4 +141,3 @@ time, three-dimensional stress, experiments, production compute, or release.
 Hidden threshold records are privileged simulator/reference metadata; P03 and
 model feature-selection code must enforce their exclusion from predictor
 inputs. G2 is not accepted by this task alone.
-

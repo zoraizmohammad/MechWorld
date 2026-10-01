@@ -70,4 +70,3 @@ dependent-angle removal, localization, bounded retries/events, energy
 accounting, restart equivalence, and load-step sensitivity before G2 can be
 considered. Biological parameter review remains pending; no physical-time,
 three-dimensional, experimental, production, or public-release claim is made.
-

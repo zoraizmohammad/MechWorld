@@ -18,7 +18,7 @@
         with pytest.raises(DamageValidationError, match="event_id"):
 &gt;           ExcludedEventRecord.from_record(tampered)
 
-tests\physics\test_damage_law.py:504: 
+tests\physics\test_damage_law.py:504:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src\pgworld\physics\damage.py:1740: in from_record
     return cls(**dict(value))  # type: ignore[arg-type]
@@ -111,7 +111,7 @@ tests\physics\test_damage_law.py:503: AssertionError</failure></testcase><testca
             physics_profile_hash=PROFILE_HASH,
             reference_state_id=REFERENCE_ID,
         ).damage_initiation
-    
+
         assert DamageState.from_record(state.as_record()).as_record() == state.as_record()
         assert DamageAssessment.from_record(assessment.as_record()).as_record() == assessment.as_record()
         assert RuptureCandidate.from_record(
@@ -121,7 +121,7 @@ tests\physics\test_damage_law.py:503: AssertionError</failure></testcase><testca
             transition.event.as_record()
         ).as_record() == transition.event.as_record()
         assert EndpointObservation.from_record(endpoint.as_record()).as_record() == endpoint.as_record()
-    
+
         candidate_record = assessment.candidates[0].as_record()
         candidate_record["event_source"] = "prescribed_intervention"
         with pytest.raises(DamageValidationError, match="material_rupture"):
@@ -154,7 +154,7 @@ tests\physics\test_damage_law.py:503: AssertionError</failure></testcase><testca
                 mechanical_instability=replayed,
             )
 
-tests\physics\test_damage_law.py:809: 
+tests\physics\test_damage_law.py:809:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src\pgworld\physics\damage.py:2145: in build_failure_endpoints
     _validate_identity_match(
@@ -205,7 +205,7 @@ During handling of the above exception, another exception occurred:
             physics_profile_hash=PROFILE_HASH,
             reference_state_id=REFERENCE_ID,
         ).damage_initiation
-    
+
         assert DamageState.from_record(state.as_record()).as_record() == state.as_record()
         assert DamageAssessment.from_record(assessment.as_record()).as_record() == assessment.as_record()
         assert RuptureCandidate.from_record(
@@ -215,7 +215,7 @@ During handling of the above exception, another exception occurred:
             transition.event.as_record()
         ).as_record() == transition.event.as_record()
         assert EndpointObservation.from_record(endpoint.as_record()).as_record() == endpoint.as_record()
-    
+
         candidate_record = assessment.candidates[0].as_record()
         candidate_record["event_source"] = "prescribed_intervention"
         with pytest.raises(DamageValidationError, match="material_rupture"):
