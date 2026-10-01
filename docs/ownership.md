@@ -218,3 +218,23 @@ accepted and integrated as `15df7b8`, `06889af`, and `343296e`. Final focused
 verification passed 58 tests, the separate fresh-wheel test passed, and
 integrated `main` passed 271 tests. P02-02 edit ownership is cleared; no agent
 owns root ledgers, shared schemas, solver/cascade code, or gate state.
+
+## Eleventh wave
+
+The assignment uses accepted and pushed main revision
+`0ee619434daa414e76d70aacb914e6393c6652e7`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Rupture/relaxation cascade | `research/p02-03-fracture-cascade`; `C:/Users/mzora/MechWorld-wt-p02-03` | P02-03: transactional supported-control/relax/assess/exact dependent-angle and physical-bond deletion/re-relax/reassess loop with stable opaque topology IDs, persistent edge images, rollback, retained fragments, raw phase observations, budgets, and real serial LAMMPS fixtures | `src/pgworld/simulation/fracture.py`, `src/pgworld/simulation/topology.py`, `src/pgworld/simulation/__init__.py`, `tests/integration/test_fracture_cascade.py`, `tests/unit/test_fracture_topology.py`, `tests/release/test_wheel_install.py`, `docs/decisions/fracture_execution.md`, `evidence/subagents/P02-03/`, `docs/subagents/P02-03-fracture-cascade.md` | No root ledger/README/shared-schema/profile/control/damage-law edits; wheel edit only names/import-smokes the two new modules; no `fix bond/break` during minimization, localization/derived energy accounting, restart/sensitivity claim, G2 decision, production simulation, public release, private data, or changes outside owned paths |
+
+The return requires exact red-first stable-topology and real-solver cascade
+regressions; pre/event/unrelaxed/post accepted phase records; only-dependent-
+angle deletion; stale-candidate rejection/reassessment; irreversible no-repeat
+events; retained disconnected atoms/components; persistent source-derived edge
+images; transactional rollback on mutation/relaxation failure; strict event and
+relaxation budgets; solver closure; package smoke; sole-author Mohammad
+commits; and explicit limitations. A separate read-only reviewer must audit the
+immutable return before integration. P02-04 owns localization and derived
+energy/work accounting; P02-06 owns restart/load-step sensitivity; P03-01 owns
+canonical storage and observed/target/privileged access paths.

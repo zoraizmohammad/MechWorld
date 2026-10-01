@@ -1023,7 +1023,7 @@
       "id": "P02-03",
       "work_package": "WP2",
       "title": "Implement the quasi-static rupture and relaxation cascade",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "simulation",
       "execution_kind": "agent",
       "mandatory": true,
@@ -1032,7 +1032,14 @@
       ],
       "owned_paths": [
         "src/pgworld/simulation/fracture.py",
-        "tests/integration/test_fracture_cascade.py"
+        "src/pgworld/simulation/topology.py",
+        "src/pgworld/simulation/__init__.py",
+        "tests/integration/test_fracture_cascade.py",
+        "tests/unit/test_fracture_topology.py",
+        "tests/release/test_wheel_install.py",
+        "docs/decisions/fracture_execution.md",
+        "docs/subagents/P02-03-fracture-cascade.md",
+        "evidence/subagents/P02-03/"
       ],
       "expected_outputs": [
         "actual topology-changing LAMMPS adapter",
@@ -1049,7 +1056,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": ""
+      "notes": "Assigned from accepted and pushed P02-02 main revision 0ee619434daa414e76d70aacb914e6393c6652e7 to research/p02-03-fracture-cascade in isolated worktree C:/Users/mzora/MechWorld-wt-p02-03. Ownership is expanded from the initial task to a solver-independent external stable-topology registry, package export, unit/integration tests, one exact wheel-member/import compatibility test, an execution decision record, and subagent evidence/report. Root README, handoff, TASKS, ownership ledger, P02-01 controls, P02-02 damage module, physics profiles, shared trajectory schemas, P02-04 localization/accounting, P02-06 restart/sensitivity, and gate decisions remain integrator-owned/read-only. Implement the transactional quasi-static sequence apply supported control, relax, validate accepted equilibrium, assess P02-02 damage, stage rank-zero event, record pre-deletion state, remove every and only dependent angle plus the exact physical bond, audit topology/atom retention, record same-position post-deletion state, re-relax at unchanged coordinate/progress, commit the logical event/state only after successful audit/convergence, and reassess from the new equilibrium until stable or a strict budget is reached. Use external opaque stable node/bond/angle IDs; never use dump row/local bond order as identity, never renumber survivors, retain disconnected components/atoms, and preserve source-derived signed per-edge periodic image offsets rather than recomputing nearest images. A mutation or post-delete relaxation failure must roll back/reconstruct the last accepted state and remain diagnostic-only, never damage initiation, healing, or mechanical instability. Never invoke fix bond/break during minimization and never reuse stale candidates. Record phase-labelled raw energy/tension/convergence snapshots and a transition envelope linking pre-equilibrium, event, topology mutation, and post-equilibrium, but leave derived deletion/work/relaxation accounting/localization to P02-04 and canonical storage/model access paths to P03-01. Fail closed on unsupported pressure-derived cell control, unvalidated general/shear mapping, ambiguous duplicate endpoint/type topology, half-cell image ambiguity, profile/reference/control/topology mixing, nonfinite/nonconverged states, repeated deletion, and exhausted event/relaxation budgets. Begin with exact red regressions, include tiny serial real-LAMMPS fixtures plus injected fake-backend rollback/budget tests, run one solver/test process at a time with at most two threads, commit solely as Mohammad Zoraiz, and do not push. The wheel-test edit may only name/import-smoke the two new public modules while retaining all strict exclusions."
     },
     {
       "id": "P02-04",

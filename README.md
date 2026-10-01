@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independently reviewing, integrating, and verifying P02-02 phenomenological damage/event definitions. P02-03 topology-changing rupture-cascade implementation is next; final biological parameter review remains blocked.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independently reviewing, integrating, verifying, and pushing P02-02, then assigning P02-03 topology-changing rupture/relaxation in an isolated worktree after two parallel read-only preflights. Final biological parameter review remains blocked.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -16,7 +16,7 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independe
 | Inherited mechanics repair | G1 accepted | P01-01 through P01-11 are integrated or explicitly retained as provisional/blocked; the installable wheel and `pgworld doctor` passed fresh-environment real-LAMMPS checks |
 | Physics/units contract | Immutable provisional profiles verified; biological review pending | Four route-specific hashes separate historical execution from the required new virial-only policy and reject tampered persisted snapshots. Coarse-graining, angle mapping, nonlinear-fit recovery, and the final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
-| Rupture, dataset, models, evaluation, explorer | P02-01/P02-02 done; P02-03 next | Controls and the phenomenological damage/event contract are accepted; actual solver topology mutation, dependent-angle removal, cascade evidence, and later gates remain unaccepted |
+| Rupture, dataset, models, evaluation, explorer | P02-01/P02-02 done; P02-03 active | Controls and damage/event semantics are accepted; the actual transactional solver topology/angle mutation and re-relaxation cascade is isolated on `research/p02-03-fracture-cascade`; G2 and later gates remain unaccepted |
 | Experimental validation | P08-01 blocked on access | AFM plus matched morphology is the proposed target, but actual lab protocol, custodian, permissions, acquisition, raw files, calibration, and review remain unconfirmed |
 | Release | Foundation and mechanics gates accepted | G0 and numerical/software mechanics gate G1 are accepted; G2-G11 remain unaccepted and no public hosting, data/model release, or paper submission is authorized |
 
@@ -38,6 +38,7 @@ Latest integration verification: P02-02 passed 271 total tests on integrated `ma
 - P01-11 and G1 are done after two independent review cycles. The package bundles unchanged immutable profile identities, exposes `pgworld doctor`, makes the old elastic task explicitly forensic/fail-closed, compiles all 80 tracked Python files under Python 3.11, and passes a true isolated install against external LAMMPS 20260902.
 - P02-01 is done after independent adversarial review. Forty focused cases enforce absolute/increment replay, coordinate covariance, cyclic path progress, closed-cylinder pressure assumptions, stable-ID intervention locality, and the separation of prescribed interventions from material rupture.
 - P02-02 is done after multiple independent defect rounds. Fifty-eight focused cases enforce registered-profile/reference binding, immutable threshold/event/state replay, stable-ID sample-once disorder, invalid-reference handling, irreversible masks, excluded event origins, cyclic path-progress censoring, and separate failure endpoints. Integrated `main` passed 271/271 tests. P02-03 is now eligible to implement the actual solver/topology cascade; G2 is not yet accepted.
+- P02-03 is active from pushed main `0ee6194` after two parallel read-only preflights. Its isolated contract adds an external opaque-ID topology registry and a transactional real-LAMMPS delete-dependent-angles/delete-bond/re-relax loop with rollback, persistent edge-image identity, retained disconnected fragments, raw phase-labelled mechanics, and fake-backend failure budgets. Localization/derived energy accounting, restart sensitivity, and the canonical trajectory schema remain later owned tasks.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
 - Compatibility follow-up complete: the seven inherited nested-f-string quote failures were repaired without changing plotting semantics, and the tracked-source compilation regression now covers all 80 Python files.
 
