@@ -1,0 +1,60 @@
+{
+  "multiple_filters": {
+    "input": {
+      "x": [
+        1,
+        2,
+        3
+      ],
+      "y": [
+        0,
+        9,
+        0
+      ]
+    },
+    "observed_indices": [
+      0,
+      2
+    ],
+    "expected_indices": [
+      0,
+      2
+    ]
+  },
+  "rectangular_bounds": {
+    "observed": [
+      -5.0,
+      5.0,
+      0.0,
+      -2.0,
+      4.0
+    ],
+    "expected": [
+      -5,
+      5,
+      0,
+      -2,
+      4
+    ]
+  },
+  "orthogonal_bounds": {
+    "observed": [
+      -5.0,
+      5.0,
+      0.0,
+      -2.0,
+      4.0
+    ]
+  },
+  "once_criterion": {
+    "first": true,
+    "second": false,
+    "expected_second": false,
+    "caveat": "LAMMPS import stub; only pure Python scheduling logic executed"
+  },
+  "uniform_distribution": {
+    "returned_type": "range",
+    "generator_exception": "AssertionError"
+  }
+}
+Diagnostic completed. Five cases inspected. No LAMMPS solver was executed.

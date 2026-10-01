@@ -1,0 +1,3 @@
+............                                                             [100%]
+- generated xml file: C:\Users\mzora\MechWorld\evidence\integration\P01-01\full_suite.xml -
+12 passed in 7.90s

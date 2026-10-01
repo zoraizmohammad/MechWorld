@@ -1,0 +1,194 @@
+{
+  "bond_break_check": {
+    "configuration_attempted": true,
+    "configuration_succeeded": true,
+    "invoked_by_dynamics": false,
+    "note": "Availability/configuration only; fix bond/break was not run and this check does not implement or validate quasi-static fracture.",
+    "quasistatic_fracture_validated": false,
+    "rupture_events_observed": null
+  },
+  "bonded_fixture": {
+    "all_energy_checks_passed": true,
+    "angle_count": 1,
+    "atom_count": 3,
+    "bond_count": 2,
+    "coefficient_source": "src/simulation_constants_settings.py",
+    "coefficients_used_unchanged": {
+      "harmonic_angle": [
+        41.8,
+        180.0
+      ],
+      "harmonic_bond": [
+        5570.0,
+        1.03
+      ],
+      "nonlinear_bond": [
+        185.328520541486,
+        1.0,
+        4.034069292365436
+      ]
+    },
+    "energy_checks": {
+      "component_sum": true,
+      "harmonic_angle": true,
+      "harmonic_bond": true,
+      "nonlinear_bond": true
+    },
+    "executed": true,
+    "expected_counts_present": true,
+    "expected_energy": {
+      "harmonic_angle": 11.45970733237597,
+      "harmonic_bond": 160.97299999999987,
+      "nonlinear_bond": 0.45665091424033305
+    },
+    "minimization_performed": false,
+    "note": "The fixture checks runtime evaluation of the inherited style/coefficient tuples; it does not approve their scientific units or parameter provenance.",
+    "observed_energy": {
+      "harmonic_angle": 11.45970733237597,
+      "harmonic_bond": 160.9730000000003,
+      "nonlinear_bond": 0.45665091424033105,
+      "potential_total": 172.8893582466166
+    },
+    "run_steps": 0
+  },
+  "errors": [],
+  "lammps": {
+    "accelerator_config": {
+      "GPU": {
+        "api": [
+          "opencl"
+        ],
+        "precision": [
+          "mixed"
+        ]
+      },
+      "INTEL": {
+        "api": [],
+        "precision": []
+      },
+      "KOKKOS": {
+        "api": [
+          "openmp",
+          "serial"
+        ],
+        "precision": [
+          "double"
+        ]
+      },
+      "OPENMP": {
+        "api": [
+          "openmp"
+        ],
+        "precision": [
+          "double"
+        ]
+      }
+    },
+    "closed": true,
+    "imported": true,
+    "installed_packages": [
+      "AMOEBA",
+      "ASPHERE",
+      "BOCS",
+      "BODY",
+      "BPM",
+      "BROWNIAN",
+      "CG-DNA",
+      "CG-SPICA",
+      "CLASS2",
+      "COLLOID",
+      "COLVARS",
+      "COMPRESS",
+      "CORESHELL",
+      "DIELECTRIC",
+      "DIFFRACTION",
+      "DIPOLE",
+      "DPD-BASIC",
+      "DPD-MESO",
+      "DPD-REACT",
+      "DPD-SMOOTH",
+      "DRUDE",
+      "EFF",
+      "ELECTRODE",
+      "EXTRA-COMMAND",
+      "EXTRA-COMPUTE",
+      "EXTRA-DUMP",
+      "EXTRA-FIX",
+      "EXTRA-MOLECULE",
+      "EXTRA-PAIR",
+      "FEP",
+      "GPU",
+      "GRANSURF",
+      "GRANULAR",
+      "GRAPHICS",
+      "INTERLAYER",
+      "KOKKOS",
+      "KSPACE",
+      "LEPTON",
+      "MACHDYN",
+      "MANIFOLD",
+      "MANYBODY",
+      "MC",
+      "MDI",
+      "MEAM",
+      "MESONT",
+      "MGPT",
+      "MISC",
+      "ML-HDNNP",
+      "ML-IAP",
+      "ML-POD",
+      "ML-SNAP",
+      "ML-UF3",
+      "MOFFF",
+      "MOLECULE",
+      "MOLFILE",
+      "OPENMP",
+      "OPT",
+      "ORIENT",
+      "PERI",
+      "PHONON",
+      "PLUGIN",
+      "PTM",
+      "QEQ",
+      "QTB",
+      "REACTION",
+      "REAXFF",
+      "REPLICA",
+      "RHEO",
+      "RIGID",
+      "SHOCK",
+      "SMTBQ",
+      "SPH",
+      "SPIN",
+      "SRD",
+      "TALLY",
+      "UEF",
+      "VORONOI",
+      "YAFF"
+    ],
+    "instance_created": true,
+    "module_file": "C:\\Users\\mzora\\AppData\\Local\\LAMMPS 64-bit 2Sep2026 with GUI\\Python\\lammps\\__init__.py",
+    "mpi_support": false,
+    "os_build_info": "Windows 11 25H2, Windows ABI 10.0 (26200) on x86_64\nMinGW-w64 64bit 13.0 / GNU C++ 16.1.1 20260501 (Fedora MinGW 16.1.1-1.fc44) with OpenMP 5.2",
+    "version_integer": 20260902
+  },
+  "ok": true,
+  "python": {
+    "executable": "C:\\Users\\mzora\\MechWorld\\.venv\\Scripts\\python.exe",
+    "implementation": "CPython",
+    "version": "3.11.9"
+  },
+  "required_styles": {
+    "angle:harmonic": true,
+    "bond:harmonic": true,
+    "bond:nonlinear": true,
+    "fix:bond/break": true
+  },
+  "schema_version": 1,
+  "scope": {
+    "physical_time_validation": false,
+    "purpose": "bounded LAMMPS runtime and required-style capability probe",
+    "quasistatic_fracture_validation": false,
+    "scientific_parameter_validation": false
+  }
+}

@@ -215,7 +215,7 @@
       "id": "P00-03",
       "work_package": "WP0",
       "title": "Verify target environment and an actual LAMMPS smoke run",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "simulation",
       "execution_kind": "agent",
       "mandatory": true,
@@ -238,11 +238,19 @@
       "planned_verification_commands": [
         "python -m pytest tests/integration/test_lammps_smoke.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_INTEGRATION_2026-09-30; DOCTOR_EXIT_0; TARGETED_2_PASSED_NO_SKIPS; FULL_SUITE_14_PASSED",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [
         "docs/environment.md",
-        "evidence/preflight/environment_summary.txt"
+        "tools/doctor.py",
+        "tests/integration/test_lammps_smoke.py",
+        "docs/subagents/P00-03-environment.md",
+        "evidence/preflight/environment_summary.txt",
+        "evidence/subagents/P00-03/doctor.json",
+        "evidence/integration/P00-03/doctor.json",
+        "evidence/integration/P00-03/verification.md",
+        "evidence/integration/P00-03/targeted.xml",
+        "evidence/integration/P00-03/full_suite.xml"
       ],
       "blocked_by": [],
       "notes": ""
@@ -379,11 +387,20 @@
       "planned_verification_commands": [
         "python -m pytest tests/unit/test_periodic_geometry.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "PARSER_SLICE_EXECUTED_INTEGRATION_2026-09-30; RED_3_FAILED; TARGETED_3_PASSED; FULL_SUITE_12_PASSED; PERIODIC_IDENTITY_WORK_REMAINS",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "src/import_data_from_dumps.py",
+        "tests/unit/test_periodic_geometry.py",
+        "docs/subagents/P01-01-parser.md",
+        "evidence/subagents/P01-01/red-regression-exact.txt",
+        "evidence/integration/P01-01/verification.md",
+        "evidence/integration/P01-01/targeted.xml",
+        "evidence/integration/P01-01/full_suite.xml",
+        "evidence/integration/P01-01/source_audit_after/reproduced_issues.json"
+      ],
       "blocked_by": [],
-      "notes": ""
+      "notes": "A01/A02 orthogonal and restricted-triclinic bounds parser slice is integrated. P01-01 remains IN_PROGRESS: add explicit general-triclinic rejection plus repeated/large-offset wrapping, image-shift, minimum-image, and persistent periodic-identity tests before DONE."
     },
     {
       "id": "P01-02",

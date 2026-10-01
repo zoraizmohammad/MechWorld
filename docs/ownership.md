@@ -14,4 +14,6 @@ All initial assignments use base `c0ec8aa7ed99ecf8cb21f0a9bf8223447743fc39`.
 
 Editing worktrees were verified with `git worktree list --porcelain` before delegation. Native subagents were launched for all three assignments; their branch commits require integrator diff review and rerun before integration.
 
+Integration state: the parser commit was reviewed and integrated as `912c9cc`; its integration rerun passed 3 targeted and 12 total tests. The environment commit was reviewed and integrated as `4faeab1`; its doctor exited 0 and integration rerun passed 2 targeted and 14 total tests. The physics audit remains report-only and active. Generated untracked bytecode in isolated worktrees was neither committed nor treated as user source.
+
 Exact branch, worktree, base revision, commands, runtime limit, and return-report path are recorded when each assignment is launched. The main checkout is the integration worktree. Subagent reports are evidence inputs, not automatic task acceptance.

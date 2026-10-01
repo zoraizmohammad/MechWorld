@@ -29,7 +29,9 @@ The environment is not yet a pinned release environment. Dependency locking rema
 - Build: Windows serial MPI stubs, OpenMP, KOKKOS OpenMP/Serial, OpenCL GPU package; the executable reported no compatible GPU for its GPU package.
 - Required names observed in `lmp -h`: harmonic and nonlinear bond styles, harmonic angle style, and `fix bond/break`.
 
-A Python library instance accepted a bounded two-atom `run 0` smoke sequence and closed normally. This establishes basic instantiation, not inherited PG mechanics correctness, nonlinear/angle coefficient correctness, fracture behavior, MPI behavior, or GPU acceleration. P00-03 remains in progress until the committed doctor and integration test provide repeatable evidence.
+P00-03 now has a repeatable doctor and integration test. In the integration worktree, `tools/doctor.py` exited 0 with LAMMPS version 20260902, all required styles present, and a 3-atom/2-bond/1-angle `run 0` fixture. Harmonic-bond, nonlinear-bond, and harmonic-angle component energies matched the independent formulas at `1e-9` relative/absolute tolerance; the total matched their sum. The solver closed, the targeted test passed 2 tests with no skips, and the full suite passed 14 tests. Evidence is in `evidence/integration/P00-03/`.
+
+`fix bond/break` was configured and immediately removed without dynamics. No rupture occurred or was claimed. This establishes serial runtime/style/fixture capability, not inherited parameter provenance, minimization convergence, PG mechanics correctness, actual fracture, MPI behavior, or GPU acceleration.
 
 ## Missing or unavailable tooling
 
