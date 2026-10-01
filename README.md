@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-09-30 bootstrap, before the first repair integration.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-09-30, three isolated subagent assignments active from base `c0ec8aa`.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -21,10 +21,10 @@ No simulation, training, viewer, or experimental job is currently running.
 
 ## Active work
 
-- P00-03: commit a repeatable environment doctor and real required-style LAMMPS smoke test.
-- P00-05: establish and record isolated subagent worktrees/ownership.
-- P01-01: add the first failing A01/A02 regression, repair orthogonal/restricted-triclinic bounds parsing, and verify compatibility.
-- P01-05 support: perform a read-only physics/units audit without self-approving lab-dependent coefficients.
+- P00-03 on `research/p00-03-environment`: commit a repeatable environment doctor and real required-style LAMMPS smoke test.
+- P00-05: review the three isolated worktree reports/commits and verify that no shared path was edited.
+- P01-01 on `research/p01-01-periodic-bounds`: add the first failing A01/A02 regression, repair orthogonal/restricted-triclinic bounds parsing, and verify compatibility.
+- P01-05 support on `research/p01-05-physics-audit`: perform a source-only physics/units audit without self-approving lab-dependent coefficients.
 
 ## Remaining path
 

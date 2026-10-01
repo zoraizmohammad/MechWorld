@@ -6,7 +6,7 @@
 - **Current session objective:** Reconcile the execution packet with the actual checkout, establish the measured workstation baseline and isolated subagent workflow, then integrate the first reproduced-defect regression repair and continue through eligible dependencies.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
-- **Gate state:** G0-G11 remain not accepted. P00-01, P00-02, and P00-04 have measured evidence ready for integration review. P00-03 and P00-05 are in progress. P00-06 is blocked on human/lab decisions without blocking independent engineering.
+- **Gate state:** G0-G11 remain not accepted. P00-01, P00-02, and P00-04 are done with measured evidence. P00-03, P00-05, and the first P01-01 parser slice are in progress. P00-06 is blocked on human/lab decisions without blocking independent engineering.
 
 ## 📊 Transient State & What Changed
 
@@ -18,6 +18,7 @@
 - Repository-local Git identity is set to Mohammad Zoraiz <zoraizmohammad@gmail.com>; effective author and committer values were checked with `git var`.
 - Available local solver: LAMMPS 2 Sep 2026. A bounded library `run 0` completed and the instance closed. Repeatable project doctor/integration evidence is assigned under P00-03.
 - No simulation, training, viewer, or experimental job is running. Historical Hoffman2 job IDs in `status.md` have not been verified remotely because scheduler clients/access are absent.
+- Three native subagents are active from base `c0ec8aa`: P01-01 parser worktree `research/p01-01-periodic-bounds`; P00-03 environment worktree `research/p00-03-environment`; P01-05 read-only physics-audit worktree `research/p01-05-physics-audit`. Their exact writable paths are in `docs/ownership.md`; none owns the root ledger, README, or shared contracts.
 
 ## ✅ Verification & Hard Evidence
 
@@ -40,8 +41,8 @@
 
 ## ⏭️ Next Concrete Steps
 
-1. [ ] Finish P00-03 with a committed doctor, actual required-style smoke test, and exact log.
-2. [ ] Finish P00-05 by launching and recording isolated geometry/data and environment worktrees plus a read-only physics reviewer.
+1. [ ] Review and integrate the P00-03 doctor, actual required-style smoke test, and exact log.
+2. [ ] Finish P00-05 by reviewing the three isolated subagent reports/commits and verifying path separation.
 3. [ ] P01-01: integrate the first A01/A02 failing regression and minimal parser fix; do not mark broader periodic identity semantics complete without their tests.
 4. [ ] Independently review the subagent diffs and rerun targeted plus inherited tests in the integration worktree before each commit.
 5. [ ] Continue eligible A03/A04/A06 and distribution/RNG repairs while P00-06 and lab inputs remain blocked.

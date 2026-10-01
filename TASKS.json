@@ -356,7 +356,7 @@
       "id": "P01-01",
       "work_package": "WP1",
       "title": "Repair orthogonal/triclinic dump geometry and periodic identities",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "data",
       "execution_kind": "agent",
       "mandatory": true,
