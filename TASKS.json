@@ -750,7 +750,7 @@
       "id": "P01-10",
       "work_package": "WP1",
       "title": "Validate pore, orientation, and connectivity observables",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -774,11 +774,21 @@
       "planned_verification_commands": [
         "python -m pytest tests/physics/test_structural_observables.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "VERIFIED_ON_MAIN",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "docs/subagents/P01-10-observables.md",
+        "evidence/subagents/P01-10/red-regression.txt",
+        "evidence/subagents/P01-10/follow-up-red-pixel-scale.txt",
+        "evidence/subagents/P01-10/verification.md",
+        "evidence/subagents/P01-10/sensitivity.json",
+        "evidence/integration/P01-10/verification.md",
+        "evidence/integration/P01-10/focused.xml",
+        "evidence/integration/P01-10/compatibility.xml",
+        "evidence/integration/P01-10/full.xml"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from accepted main revision 9280b5d on research/p01-10-observables in isolated worktree C:/Users/mzora/MechWorld-wt-p01-10. Scope is red-first validation of pore, 2D orientation, and true chemical-connectivity observables on known structures, including PBC, rendering-resolution, line-width, seam, and visually crossing but unbonded-line sensitivity. No ledger/README/shared-contract edits, physics-parameter approval, production simulation, or claims beyond the validated fixtures."
+      "notes": "Integrated as 916c5a7 after path/author review. Main verification passed 19 focused, 33 compatibility, and 112 total tests; targeted compilation, diff checking, and the declared sensitivity reproducer passed. Chemical components use only explicit bond endpoints, while pore metrics are labeled periodic raster-image observables with resolution/line-width metadata. Crossing pixels do not create chemical bonds. The accepted scope is 2D orthogonal/restricted-triclinic fixtures; raster convergence, molecular pore truth, rigidity, persistent edge images, native 3D mechanics, physics parameters, and experiments remain unclaimed."
     },
     {
       "id": "P01-11",
