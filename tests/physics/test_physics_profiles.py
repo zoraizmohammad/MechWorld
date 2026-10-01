@@ -10,12 +10,14 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPOSITORY_ROOT / "src"))
 
 from pgworld.config.physics_profiles import (  # noqa: E402
+    PhysicsProfile,
     PhysicsProfileError,
     ProfileMixingError,
     available_profile_ids,
     canonical_profile_hash,
     load_physics_profile,
     load_physics_profile_file,
+    validate_expanded_profile_snapshot,
     validate_profile_aggregation,
 )
 
@@ -30,16 +32,16 @@ PROFILE_CONFIG_DIRECTORY = REPOSITORY_ROOT / "configs" / "physics"
 
 EXPECTED_HASHES = {
     "legacy_python_2026_03_12_v1": (
-        "sha256:47a96afb4aca5abc413fd0d75ea68b8a45e470cb4bf2a0a398a32a45d9ed022b"
+        "sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b"
     ),
     "legacy_direct_isotropic_pre_unit_fix_v1": (
-        "sha256:9b4c3963f2123984a0822a67d3bbc3080f0edce943c3846e18bd83dbb7607ac5"
+        "sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0"
     ),
     "legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1": (
-        "sha256:bc2f7532284d1ac35363aa8f01fcfadf6c0368b86abd986a7546d721499bb8c8"
+        "sha256:58b5271932856c040992306c19e393788bd28f829245348951de2e4733fb7f6a"
     ),
     "reviewed_physics_provisional_v0": (
-        "sha256:d9c1e83e911bb5623d65df6238cb6daa6b10fc4445059ee32397596972326d38"
+        "sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5"
     ),
 }
 
@@ -67,6 +69,26 @@ def test_all_route_specific_profiles_load_with_exact_immutable_identity() -> Non
     detached = profiles[0].expanded_snapshot()
     detached["route"] = "mutated_copy"
     assert profiles[0].expanded_snapshot()["route"] == "current_python"
+
+
+def test_registered_identity_cannot_forge_an_unvalidated_expanded_snapshot() -> None:
+    registered = load_physics_profile("legacy_python_2026_03_12_v1")
+    forged = registered.expanded_snapshot()
+    forged["potentials"]["harmonic_bond"]["parameters"]["K_pN_per_nm"] = 1.0
+
+    with pytest.raises(PhysicsProfileError):
+        PhysicsProfile(
+            profile_id=registered.profile_id,
+            canonical_hash=registered.canonical_hash,
+            _snapshot_json=json.dumps(forged, sort_keys=True),
+        )
+
+    validated = validate_expanded_profile_snapshot(registered.expanded_snapshot())
+    assert validated.identity == registered.identity
+
+    forged["canonical_hash"] = canonical_profile_hash(forged)
+    with pytest.raises(PhysicsProfileError, match="route-specific inherited values"):
+        validate_expanded_profile_snapshot(forged)
 
 
 def test_legacy_routes_remain_distinct_and_exact() -> None:
@@ -121,13 +143,23 @@ def test_legacy_routes_remain_distinct_and_exact() -> None:
         "r0_nm": 0.9065,
         "lambda_nm": 4.0878,
     }
-    assert direct_elastic["legacy_output"]["declared_tangent_unit"] == "GPa"
-    assert direct_elastic["legacy_output"]["tangent_conversion_factor"] == pytest.approx(
-        1.01325e-8
-    )
-    assert direct_elastic["legacy_output"]["dimensional_status"] == (
+    assert direct_elastic["historical_execution"]["tangent_output"][
+        "declared_tangent_unit"
+    ] == "GPa"
+    assert direct_elastic["historical_execution"]["tangent_output"][
+        "tangent_conversion_factor"
+    ] == pytest.approx(1.01325e-8)
+    assert direct_elastic["historical_execution"]["tangent_output"][
+        "dimensional_status"
+    ] == (
         "known_invalid_3d_label_without_thickness"
     )
+    assert direct_isotropic["historical_execution"]["tangent_output"] == {
+        "status": "not_applicable",
+        "declared_tangent_unit": None,
+        "tangent_conversion_factor": None,
+        "dimensional_status": "script_does_not_compute_tangent_output",
+    }
 
 
 def test_provisional_profile_is_fail_closed_for_scientific_claims() -> None:
@@ -167,13 +199,17 @@ def test_provisional_profile_is_fail_closed_for_scientific_claims() -> None:
             "status": "proposed_unconfirmed",
         },
     ]
+    assert snapshot["provenance"]["provisional_base_identity"] == {
+        "profile_id": "legacy_python_2026_03_12_v1",
+        "canonical_hash": EXPECTED_HASHES["legacy_python_2026_03_12_v1"],
+    }
 
 
 @pytest.mark.parametrize("profile_id", PROFILE_IDS)
 def test_equations_units_reference_axes_and_claim_prohibitions(profile_id: str) -> None:
     snapshot = load_physics_profile(profile_id).expanded_snapshot()
 
-    assert snapshot["schema_version"] == "pgworld.physics_profile.v1"
+    assert snapshot["schema_version"] == "pgworld.physics_profile.v2"
     assert snapshot["profile_version"]
     assert snapshot["family"]
     assert snapshot["route"]
@@ -199,10 +235,17 @@ def test_equations_units_reference_axes_and_claim_prohibitions(profile_id: str) 
     )
     assert snapshot["reference_state"]["name"] == "fixed_cell_equilibrated"
     assert snapshot["reference_state"]["zero_tension_claim"] is False
-    assert snapshot["tension"]["source"] == "configurational_virial"
-    assert snapshot["tension"]["kinetic_term_included"] is False
-    assert snapshot["tension"]["primary"] == "total"
-    assert snapshot["tension"]["secondary"] == "incremental_from_reference"
+    assert snapshot["required_new_output_policy"]["scope"] == (
+        "required_for_new_runs_and_reanalysis_not_historical_fact"
+    )
+    assert snapshot["required_new_output_policy"]["source"] == (
+        "configurational_virial"
+    )
+    assert snapshot["required_new_output_policy"]["kinetic_term_included"] is False
+    assert snapshot["required_new_output_policy"]["primary"] == "total"
+    assert snapshot["required_new_output_policy"]["secondary"] == (
+        "incremental_from_reference"
+    )
     assert snapshot["axes"] == {
         "x": "axial",
         "y": "hoop",
@@ -217,6 +260,97 @@ def test_equations_units_reference_axes_and_claim_prohibitions(profile_id: str) 
     assert snapshot["rupture_law"]["primary_endpoint"] == "damage_initiation"
     assert snapshot["sources"]
     assert snapshot["provenance"]
+
+
+def test_historical_execution_is_not_rewritten_as_virial_only_policy() -> None:
+    current = load_physics_profile("legacy_python_2026_03_12_v1").expanded_snapshot()
+    isotropic = load_physics_profile(
+        "legacy_direct_isotropic_pre_unit_fix_v1"
+    ).expanded_snapshot()
+    elastic = load_physics_profile(
+        "legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1"
+    ).expanded_snapshot()
+    provisional = load_physics_profile(
+        "reviewed_physics_provisional_v0"
+    ).expanded_snapshot()
+
+    assert current["historical_execution"]["nve_deform_segment"] is True
+    assert "run_isotropic_prestrain_minimize" in " ".join(
+        current["historical_execution"]["entry_points"]
+    )
+    assert "run_isotropic_prestrain_nve" in " ".join(
+        current["historical_execution"]["entry_points"]
+    )
+    assert "default_pressure_includes_kinetic_and_virial_terms" in current[
+        "historical_execution"
+    ]["kinetic_term_semantics"]
+
+    for historical in (
+        isotropic["historical_execution"],
+        elastic["historical_execution"],
+    ):
+        assert historical["pressure_compute"] == "default_LAMMPS_thermo_pressure"
+        assert historical["nve_deform_segment"] is True
+        assert "kinetic_and_virial" in historical["kinetic_term_semantics"]
+
+    assert isotropic["historical_execution"]["tangent_output"]["status"] == (
+        "not_applicable"
+    )
+    assert provisional["historical_execution"]["scope"] == (
+        "not_applicable_new_provisional_profile"
+    )
+    assert provisional["historical_execution"]["entry_points"] == []
+
+
+def test_parameter_unknowns_fit_artifact_sources_and_provenance_are_explicit() -> None:
+    required_urls = {
+        "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/units.rst",
+        "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_harmonic.rst",
+        "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_nonlinear.rst",
+        "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/angle_harmonic.rst",
+        "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/compute_pressure.rst",
+    }
+    current_paths = {
+        "src/simulation_constants_settings.py",
+        "src/units.py",
+        "src/assemble_pg_network.py",
+        "src/run_lammps_isotropic_strain.py",
+        "src/run_lammps_elastic_tensor.py",
+        "src/process_network_ensembles.py",
+    }
+
+    for profile_id in PROFILE_IDS:
+        snapshot = load_physics_profile(profile_id).expanded_snapshot()
+        for potential in snapshot["potentials"].values():
+            assert set(potential["parameter_metadata"]) == set(potential["parameters"])
+            for metadata in potential["parameter_metadata"].values():
+                assert metadata == {
+                    "uncertainty_status": "unknown",
+                    "range_status": "not_reported",
+                    "range": None,
+                }
+        assert snapshot["potentials"]["nonlinear_bond"]["fit_artifact"] == {
+            "artifact_status": "unavailable",
+            "path": None,
+            "sha256_status": "unavailable",
+            "sha256": None,
+        }
+        assert required_urls.issubset(
+            {source["citation_or_path"] for source in snapshot["sources"]}
+        )
+
+    for profile_id in (
+        "legacy_python_2026_03_12_v1",
+        "reviewed_physics_provisional_v0",
+    ):
+        snapshot = load_physics_profile(profile_id).expanded_snapshot()
+        assert current_paths.issubset(set(snapshot["provenance"]["source_routes"]))
+        scoped_paths = {
+            source["citation_or_path"]
+            for source in snapshot["sources"]
+            if source["kind"] == "repository_source"
+        }
+        assert current_paths.issubset(scoped_paths)
 
 
 def test_numerical_derivations_are_explicit_not_biological_certification() -> None:
@@ -246,10 +380,10 @@ def test_silent_mixed_profile_aggregation_fails_closed() -> None:
     provisional = load_physics_profile("reviewed_physics_provisional_v0")
 
     with pytest.raises(ProfileMixingError, match="silent mixed-profile aggregation"):
-        validate_profile_aggregation([current.identity, provisional.identity])
+        validate_profile_aggregation([current, provisional.expanded_snapshot()])
 
     grouping = validate_profile_aggregation(
-        [current.identity, provisional.identity],
+        [current, provisional.expanded_snapshot()],
         comparison_mode="stratified_by_profile",
     )
     assert grouping == {
@@ -258,20 +392,11 @@ def test_silent_mixed_profile_aggregation_fails_closed() -> None:
     }
 
 
-def test_profile_identity_rejects_id_hash_conflicts_and_unknown_profiles() -> None:
+def test_compact_identity_is_not_accepted_as_an_expanded_validated_profile() -> None:
     current = load_physics_profile("legacy_python_2026_03_12_v1")
 
-    with pytest.raises(ProfileMixingError, match="multiple hashes"):
-        validate_profile_aggregation(
-            [
-                current.identity,
-                {
-                    "profile_id": current.profile_id,
-                    "canonical_hash": "sha256:" + "0" * 64,
-                },
-            ],
-            comparison_mode="stratified_by_profile",
-        )
+    with pytest.raises(ProfileMixingError, match="complete expanded snapshots"):
+        validate_profile_aggregation([current.identity])
     with pytest.raises(PhysicsProfileError, match="unknown profile ID"):
         load_physics_profile("not_a_profile")
 

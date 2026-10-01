@@ -1,8 +1,8 @@
 {
-  "schema_version": "pgworld.physics_profile.v1",
+  "schema_version": "pgworld.physics_profile.v2",
   "profile_version": "1.0.0",
   "profile_id": "legacy_python_2026_03_12_v1",
-  "canonical_hash": "sha256:47a96afb4aca5abc413fd0d75ea68b8a45e470cb4bf2a0a398a32a45d9ed022b",
+  "canonical_hash": "sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b",
   "family": "legacy_reproduction",
   "route": "current_python",
   "intended_use": "reproduce the inherited current Python route and run bounded numerical fixtures only",
@@ -41,6 +41,11 @@
       "equation": "E=K*(r-r0)^2",
       "parameter_units": "K:pN/nm,r0:nm",
       "parameters": {"K_pN_per_nm": 5570.0, "r0_nm": 1.03},
+      "parameter_metadata": {
+        "K_pN_per_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "r0_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null}
+      },
+      "fit_artifact": {"artifact_status": "not_applicable", "path": null, "sha256_status": "not_applicable", "sha256": null},
       "status": "inherited_exact_mapping_unresolved"
     },
     "nonlinear_bond": {
@@ -52,6 +57,12 @@
         "r0_nm": 1.0,
         "lambda_nm": 4.034069292365436
       },
+      "parameter_metadata": {
+        "epsilon_pN_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "r0_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "lambda_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null}
+      },
+      "fit_artifact": {"artifact_status": "unavailable", "path": null, "sha256_status": "unavailable", "sha256": null},
       "status": "inherited_exact_fit_unreproduced"
     },
     "harmonic_angle": {
@@ -59,6 +70,11 @@
       "equation": "E=K*(theta-theta0)^2",
       "parameter_units": "K:pN nm/rad^2,theta0:degree_input",
       "parameters": {"K_pN_nm": 41.8, "theta0_degrees": 180.0},
+      "parameter_metadata": {
+        "K_pN_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "theta0_degrees": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null}
+      },
+      "fit_artifact": {"artifact_status": "not_applicable", "path": null, "sha256_status": "not_applicable", "sha256": null},
       "status": "inherited_exact_resolution_mapping_unreviewed"
     }
   },
@@ -72,7 +88,26 @@
     "minimization_diagnostics_required": true,
     "initial_tension_required": true
   },
-  "tension": {
+  "historical_execution": {
+    "scope": "historical_execution_provenance_not_new_output_policy",
+    "entry_points": [
+      "src/run_lammps_isotropic_strain.py::run_isotropic_prestrain_minimize",
+      "src/run_lammps_isotropic_strain.py::run_isotropic_prestrain_nve",
+      "src/run_lammps_elastic_tensor.py::lammps_calculate_elastic_tensor"
+    ],
+    "loading_or_evaluation": "fixed_cell_minimize_route_plus_retained_nve_deform_route_and_elastic_minimize_route",
+    "pressure_compute": "default_LAMMPS_thermo_pressure",
+    "kinetic_term_semantics": "default_pressure_includes_kinetic_and_virial_terms; minimize_run0_states_may_have_zero_velocity_but_the_retained_nve_deform_route_can_carry_kinetic_pressure",
+    "nve_deform_segment": true,
+    "tangent_output": {
+      "status": "present_in_current_elastic_entry_point",
+      "declared_tangent_unit": "MPa*nm",
+      "tangent_conversion_factor": 1.0,
+      "dimensional_status": "dimensionally_2d_but_legacy_label_deprecated"
+    }
+  },
+  "required_new_output_policy": {
+    "scope": "required_for_new_runs_and_reanalysis_not_historical_fact",
     "source": "configurational_virial",
     "kinetic_term_included": false,
     "dimensionality": "2D membrane force_per_length",
@@ -108,11 +143,6 @@
     "angle_curvature_pN_nm_per_rad2": 83.6,
     "status": "mechanical_derivations_not_biological_certification"
   },
-  "legacy_output": {
-    "declared_tangent_unit": "MPa*nm",
-    "tangent_conversion_factor": 1.0,
-    "dimensional_status": "dimensionally_2d_but_legacy_label_deprecated"
-  },
   "review_requests": [
     {
       "person": "Prof. Christoph Schmidt",
@@ -133,10 +163,64 @@
       "claim_scope": "exact inherited current-Python numerical values only"
     },
     {
-      "id": "lammps_harmonic_nonlinear_angle_2sep2026",
+      "id": "source_current_units",
+      "kind": "repository_source",
+      "citation_or_path": "src/units.py",
+      "claim_scope": "inherited scalar unit conversions only"
+    },
+    {
+      "id": "source_current_generator",
+      "kind": "repository_source",
+      "citation_or_path": "src/assemble_pg_network.py",
+      "claim_scope": "current code spacing and mass serialization only"
+    },
+    {
+      "id": "source_current_isotropic_runner",
+      "kind": "repository_source",
+      "citation_or_path": "src/run_lammps_isotropic_strain.py",
+      "claim_scope": "current minimize and retained NVE/deform entry-point semantics only"
+    },
+    {
+      "id": "source_current_elastic_runner",
+      "kind": "repository_source",
+      "citation_or_path": "src/run_lammps_elastic_tensor.py",
+      "claim_scope": "current elastic entry point, default pressure use, conversion and output label only"
+    },
+    {
+      "id": "source_current_ensemble_analysis",
+      "kind": "repository_source",
+      "citation_or_path": "src/process_network_ensembles.py",
+      "claim_scope": "current downstream total-tension and energy-density analysis semantics only"
+    },
+    {
+      "id": "lammps_units_2sep2026",
       "kind": "official_documentation",
-      "citation_or_path": "https://docs.lammps.org/",
-      "claim_scope": "equations and actual units, not biological mapping"
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/units.rst",
+      "claim_scope": "installed-release nano base units only"
+    },
+    {
+      "id": "lammps_harmonic_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_harmonic.rst",
+      "claim_scope": "installed-release harmonic equation and units only"
+    },
+    {
+      "id": "lammps_nonlinear_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_nonlinear.rst",
+      "claim_scope": "installed-release nonlinear equation and epsilon energy unit only"
+    },
+    {
+      "id": "lammps_angle_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/angle_harmonic.rst",
+      "claim_scope": "installed-release harmonic angle equation and input convention only"
+    },
+    {
+      "id": "lammps_pressure_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/compute_pressure.rst",
+      "claim_scope": "installed-release 2D area normalization and kinetic-plus-virial default semantics"
     },
     {
       "id": "nguyen_2015",
@@ -146,9 +230,17 @@
     }
   ],
   "provenance": {
-    "source_routes": ["src/simulation_constants_settings.py", "src/run_lammps_isotropic_strain.py"],
+    "source_routes": [
+      "src/simulation_constants_settings.py",
+      "src/units.py",
+      "src/assemble_pg_network.py",
+      "src/run_lammps_isotropic_strain.py",
+      "src/run_lammps_elastic_tensor.py",
+      "src/process_network_ensembles.py"
+    ],
     "source_revision": "78da30ffd8b374125a34edaacc71ae7650b8f722",
     "decision_record": "docs/decisions/scope.md",
+    "provisional_base_identity": null,
     "notes": "Preserves inherited current-Python values without certifying their molecular interpretation."
   }
 }

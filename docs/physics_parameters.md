@@ -18,9 +18,9 @@ event is a load/event coordinate, not elapsed physical time. All four profiles:
 - set `thickness_nm=null` and `stress_3d_allowed=false`;
 - use the fixed-cell coordinate-minimized state as
   `fixed_cell_equilibrated`, explicitly not a zero-tension state;
-- require total configurational-virial 2D tension as the primary observable and
-  incremental-from-reference tension as the secondary observable, excluding
-  kinetic pressure;
+- require **new runs and reanalysis** to use total configurational-virial 2D
+  tension as the primary observable and incremental-from-reference tension as
+  the secondary observable, excluding kinetic pressure;
 - use computational `x=axial` and `y=hoop`, while leaving every laboratory
   transform dataset-specific and unconfirmed;
 - name first mechanically triggered irreversible physical-bond rupture
@@ -34,10 +34,10 @@ profile turns that display into native three-dimensional mechanics.
 
 | Profile ID | Route and allowed use | Canonical SHA-256 |
 |---|---|---|
-| `legacy_python_2026_03_12_v1` | Exact inherited current-Python coefficients; reproduction and bounded numerical fixtures | `sha256:47a96afb4aca5abc413fd0d75ea68b8a45e470cb4bf2a0a398a32a45d9ed022b` |
-| `legacy_direct_isotropic_pre_unit_fix_v1` | Exact retained `src/IsotropicPrestrain` 1/1000-scale route; forensic reproduction only | `sha256:9b4c3963f2123984a0822a67d3bbc3080f0edce943c3846e18bd83dbb7607ac5` |
-| `legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1` | Exact retained `ELASTIC_2D_ZERO_TEMP` route, including its distinct nonlinear fit and invalid GPa interpretation; forensic reproduction only | `sha256:bc2f7532284d1ac35363aa8f01fcfadf6c0368b86abd986a7546d721499bb8c8` |
-| `reviewed_physics_provisional_v0` | Current-Python values copied only for bounded numerical fixtures and development; pending and not biologically certified | `sha256:d9c1e83e911bb5623d65df6238cb6daa6b10fc4445059ee32397596972326d38` |
+| `legacy_python_2026_03_12_v1` | Exact inherited current-Python coefficients; reproduction and bounded numerical fixtures | `sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b` |
+| `legacy_direct_isotropic_pre_unit_fix_v1` | Exact retained `src/IsotropicPrestrain` 1/1000-scale route; forensic reproduction only | `sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0` |
+| `legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1` | Exact retained `ELASTIC_2D_ZERO_TEMP` route, including its distinct nonlinear fit and invalid GPa interpretation; forensic reproduction only | `sha256:58b5271932856c040992306c19e393788bd28f829245348951de2e4733fb7f6a` |
+| `reviewed_physics_provisional_v0` | Current-Python values copied only for bounded numerical fixtures and development; pending and not biologically certified | `sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5` |
 
 `legacy_python_2026_03_12_v1` uses the date **2026-03-12** because the two
 inherited commits that established the present coefficient/unit family,
@@ -53,6 +53,37 @@ The hash is calculated from canonical UTF-8 JSON with sorted keys and compact
 separators after removing only the self-referential `canonical_hash` field. The
 loader also pins each expected digest in code. Editing a JSON file and merely
 recomputing its embedded digest therefore cannot mutate an existing ID.
+
+These schema-v2 hashes supersede the schema-v1 proposal rejected during
+pre-integration review. No accepted run or dataset used the rejected hashes;
+the identities become frozen at integration acceptance.
+
+The provisional record identifies its base with both the complete
+`legacy_python_2026_03_12_v1` ID and its pinned hash. A profile name is never
+used as a substitute for the base identity.
+
+## Historical execution versus required new output
+
+`historical_execution` is descriptive provenance. It is separate from
+`required_new_output_policy`, which requires an explicit configurational-virial
+pressure compute for future runs and reanalysis.
+
+- The current Python coefficient profile covers the fixed-cell minimize route,
+  the retained NVE/deform route, and the elastic route. All historically use
+  default LAMMPS thermo pressure. Minimized/run-0 states may have zero velocity,
+  but the retained NVE/deform entry point can carry kinetic pressure.
+- Direct `src/IsotropicPrestrain` minimizes, runs NVE/deform, then minimizes
+  again. Default pressure includes kinetic plus virial terms. It computes no
+  tangent output, so its tangent status and units are `not_applicable`.
+- Direct `ELASTIC_2D_ZERO_TEMP` uses NVE/deform segments before minimization and
+  does not explicitly zero velocities before reading default pressure. Its GPa
+  tangent label and `cfac=1.01325e-8` are historical provenance, not valid 3D
+  output without thickness.
+- `reviewed_physics_provisional_v0` has no historical execution; it inherits
+  values from the exact legacy ID/hash.
+
+Thus `kinetic_term_included=false` is a required new-output policy, not a claim
+about every historical output.
 
 ## Exact route-specific values
 
@@ -84,6 +115,12 @@ dimensionally invalid for a two-dimensional virial without a wall thickness;
 it is not accepted for new results. The old direct isotropic kg/J nano-unit
 comments are known to be wrong by a factor of 1000 and are likewise preserved
 as provenance, not adopted as the actual unit convention.
+
+Every numerical parameter has `uncertainty_status=unknown`,
+`range_status=not_reported`, and `range=null`; no interval is invented. Each
+nonlinear potential has `fit_artifact.artifact_status=unavailable` and
+`sha256_status=unavailable`, with null path and SHA-256, because the original
+fit artifact has not been recovered.
 
 ## Numerical derivations, not molecular confirmation
 
@@ -132,23 +169,41 @@ Load a registered profile and place its complete detached snapshot in each run,
 dataset, checkpoint, evaluation, and visualization record:
 
 ```python
-from pgworld.config.physics_profiles import load_physics_profile
+from pgworld.config.physics_profiles import (
+    load_physics_profile,
+    validate_expanded_profile_snapshot,
+)
 
 profile = load_physics_profile("reviewed_physics_provisional_v0")
 run_metadata["physics_profile"] = profile.expanded_snapshot()
+trusted = validate_expanded_profile_snapshot(run_metadata["physics_profile"])
 ```
 
-At minimum, a compact row may store `profile.identity`, which contains both the
-ID and hash, but the run manifest must also retain one expanded snapshot. The
-loader rejects unknown fields, missing fields, malformed scalar types,
-non-finite numbers, a changed ID, an embedded hash mismatch, a digest that does
-not match the registry, or a change to exact route values.
+Compact rows may store `profile.identity` for indexing, but an ID/hash pair is
+not sufficient input to validation or aggregation. The manifest must retain an
+expanded snapshot, and read-back must use
+`validate_expanded_profile_snapshot`. File loading and direct
+`PhysicsProfile` construction both reject unknown/missing fields, malformed
+scalar types, non-finite numbers, changed IDs, embedded-hash mismatch,
+unregistered digests, or changed route values.
 
+Aggregation accepts only validated profile objects or complete expanded
+snapshots that pass read-back; compact identity dictionaries fail closed.
 Silent aggregation of unlike IDs/hashes is an error. A comparison may include
 multiple profiles only when it explicitly requests
 `comparison_mode="stratified_by_profile"`; the outputs then remain grouped by
 profile identity. Stratification permits comparison, not concatenation as a
 homogeneous cohort.
+
+Equation and unit semantics use official installed-version sources for
+[units](https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/units.rst),
+[harmonic bonds](https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_harmonic.rst),
+[nonlinear bonds](https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_nonlinear.rst),
+[harmonic angles](https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/angle_harmonic.rst),
+and [pressure](https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/compute_pressure.rst).
+Repository-source claim scopes separately identify constants, unit helpers,
+generator serialization, isotropic and elastic entry points, and ensemble
+analysis. None of those provenance records certifies biological parameters.
 
 ## Pending P01-05 review
 

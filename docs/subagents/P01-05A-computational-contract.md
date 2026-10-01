@@ -18,6 +18,25 @@
 This return completes only the computational slice. P01-05 final biological
 parameter review remains blocked.
 
+## Pre-integration review correction
+
+The integrator rejected the first return before acceptance. Two defects were
+confirmed and corrected in schema v2:
+
+1. The first schema applied the new configurational-virial policy without a
+   separate record of historical execution. Schema v2 records default thermo
+   pressure and NVE/deform history independently from the mandatory virial-only
+   policy for new outputs. Direct isotropic tangent output is now explicitly
+   `not_applicable`.
+2. The first frozen dataclass could be constructed directly with a registered
+   ID/hash and an arbitrary `_snapshot_json`. A pre-fix regression demonstrated
+   that `K=1` was accepted. Construction now revalidates the complete snapshot,
+   a public persisted-snapshot validator is available, and aggregation accepts
+   only validated objects or complete validated snapshots.
+
+The rejected schema-v1 hashes were not integrated or used by an accepted run.
+All schema-v2 records were repinned before acceptance review.
+
 ## Delivered contract
 
 Four complete versioned JSON records are committed under `configs/physics/`:
@@ -40,15 +59,27 @@ family/route/intended use; equations and actual nano units; spacing/mapping and
 mass status; fixed-cell reference requirements; primary total and secondary
 incremental configurational-virial 2D tension; axes; no-time/no-thickness/no-3D
 flags; rupture-law status; numerical derivations; sources/provenance; review
-state; and proposed-unconfirmed reviewer requests.
+state; and proposed-unconfirmed reviewer requests. Per-parameter uncertainty is
+`unknown`, ranges are `not_reported`/null, and nonlinear fit artifact/path/hash
+status is explicitly unavailable.
 
 The loader is standard-library-only. It returns a frozen object backed by a
 canonical JSON string and supplies a detached expanded snapshot for run/artifact
 metadata. It validates exact fields and types, finite/positive numerics,
 route-specific values, cross-field constraints, embedded and registry-pinned
-hashes, and registered IDs. Silent profile mixing fails. The only multi-profile
+hashes, and registered IDs. Direct construction and persisted read-back use the
+same complete validation. Silent profile mixing fails. The only multi-profile
 mode is an explicitly declared `stratified_by_profile` comparison, which returns
-separate ID/hash strata.
+separate ID/hash strata. Compact ID/hash dictionaries are indexing metadata,
+not sufficient validation input.
+
+Historical default thermo pressure is not relabeled as virial-only. The current
+Python profile distinguishes its minimize, NVE/deform, and elastic entry points;
+both direct retained routes record their NVE/deform segments and the possibility
+of kinetic pressure. The required new-output block separately excludes kinetic
+pressure. Official LAMMPS sources are pinned to `patch_2Sep2026`, and current
+repository sources have narrow claim scopes for constants, units, generator
+serialization, runners, and ensemble analysis.
 
 ## Numerical facts recorded without certification
 
@@ -77,16 +108,23 @@ are in `evidence/subagents/P01-05A/verification.md`.
 
 - Required red: import failed before production implementation with one
   collection error (`pgworld.config` absent).
-- Focused: **11 passed in 0.26s**, exit `0`.
-- Full repository suite: **123 passed in 10.84s**, exit `0`.
+- Initial schema-v1 focused/full evidence is retained but was rejected before
+  integration.
+- Forged-snapshot red: **1 failed in 0.44s**, exit `1`, because the old direct
+  constructor did not raise.
+- Corrected schema-v2 focused: **14 passed in 0.53s**, exit `0`.
+- Corrected full repository suite: **126 passed in 10.43s**, exit `0`.
 - Targeted `py_compile`: exit `0`.
 - Four-file strict JSON parse/round-trip and production load: exit `0`.
 - `git diff --check`: exit `0`.
 - Ownership proof: no path outside the assignment.
 
-The tests cover exact hashes/snapshots, tamper and repinning rejection, distinct
-routes, provisional fail-closed fields, units/equations, no-time/no-3D claims,
-mixed-profile handling, and all requested numerical derivations.
+The tests cover exact hashes/snapshots, constructor/read-back tamper and
+repinning rejection, historical versus new-output pressure semantics, distinct
+routes, unavailable parameter uncertainty/fit evidence, pinned official source
+URLs, provisional base identity, fail-closed fields, units/equations,
+no-time/no-3D claims, mixed-profile handling, and all requested numerical
+derivations.
 
 ## Limitations and next action
 

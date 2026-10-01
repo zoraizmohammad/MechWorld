@@ -17,7 +17,7 @@ import re
 from typing import Any, Mapping, Sequence
 
 
-SCHEMA_VERSION = "pgworld.physics_profile.v1"
+SCHEMA_VERSION = "pgworld.physics_profile.v2"
 _HASH_PATTERN = re.compile(r"sha256:[0-9a-f]{64}\Z")
 _CONFIG_DIRECTORY = Path(__file__).resolve().parents[3] / "configs" / "physics"
 
@@ -37,16 +37,16 @@ _PROFILE_FILES = {
 # to make a changed profile load under an existing immutable ID.
 _PROFILE_HASHES = {
     "legacy_python_2026_03_12_v1": (
-        "sha256:47a96afb4aca5abc413fd0d75ea68b8a45e470cb4bf2a0a398a32a45d9ed022b"
+        "sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b"
     ),
     "legacy_direct_isotropic_pre_unit_fix_v1": (
-        "sha256:9b4c3963f2123984a0822a67d3bbc3080f0edce943c3846e18bd83dbb7607ac5"
+        "sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0"
     ),
     "legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1": (
-        "sha256:bc2f7532284d1ac35363aa8f01fcfadf6c0368b86abd986a7546d721499bb8c8"
+        "sha256:58b5271932856c040992306c19e393788bd28f829245348951de2e4733fb7f6a"
     ),
     "reviewed_physics_provisional_v0": (
-        "sha256:d9c1e83e911bb5623d65df6238cb6daa6b10fc4445059ee32397596972326d38"
+        "sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5"
     ),
 }
 
@@ -69,12 +69,12 @@ _TOP_LEVEL_FIELDS = {
     "units",
     "potentials",
     "reference_state",
-    "tension",
+    "historical_execution",
+    "required_new_output_policy",
     "axes",
     "dimensional_scope",
     "rupture_law",
     "derived_numerical_facts",
-    "legacy_output",
     "review_requests",
     "sources",
     "provenance",
@@ -110,7 +110,17 @@ _NESTED_FIELDS = {
         "minimization_diagnostics_required",
         "initial_tension_required",
     },
-    "tension": {
+    "historical_execution": {
+        "scope",
+        "entry_points",
+        "loading_or_evaluation",
+        "pressure_compute",
+        "kinetic_term_semantics",
+        "nve_deform_segment",
+        "tangent_output",
+    },
+    "required_new_output_policy": {
+        "scope",
         "source",
         "kinetic_term_included",
         "dimensionality",
@@ -142,27 +152,52 @@ _NESTED_FIELDS = {
         "angle_curvature_pN_nm_per_rad2",
         "status",
     },
-    "legacy_output": {
-        "declared_tangent_unit",
-        "tangent_conversion_factor",
-        "dimensional_status",
-    },
     "provenance": {
         "source_routes",
         "source_revision",
         "decision_record",
+        "provisional_base_identity",
         "notes",
     },
 }
 
-_POTENTIAL_FIELDS = {"style", "equation", "parameter_units", "parameters", "status"}
+_HISTORICAL_TANGENT_FIELDS = {
+    "status",
+    "declared_tangent_unit",
+    "tangent_conversion_factor",
+    "dimensional_status",
+}
+
+_POTENTIAL_FIELDS = {
+    "style",
+    "equation",
+    "parameter_units",
+    "parameters",
+    "parameter_metadata",
+    "fit_artifact",
+    "status",
+}
 _POTENTIAL_PARAMETER_FIELDS = {
     "harmonic_bond": {"K_pN_per_nm", "r0_nm"},
     "nonlinear_bond": {"epsilon_pN_nm", "r0_nm", "lambda_nm"},
     "harmonic_angle": {"K_pN_nm", "theta0_degrees"},
 }
+_PARAMETER_METADATA_FIELDS = {"uncertainty_status", "range_status", "range"}
+_FIT_ARTIFACT_FIELDS = {
+    "artifact_status",
+    "path",
+    "sha256_status",
+    "sha256",
+}
 _SOURCE_FIELDS = {"id", "kind", "citation_or_path", "claim_scope"}
 _REVIEW_REQUEST_FIELDS = {"person", "role", "status"}
+_REQUIRED_LAMMPS_SOURCE_URLS = {
+    "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/units.rst",
+    "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_harmonic.rst",
+    "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_nonlinear.rst",
+    "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/angle_harmonic.rst",
+    "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/compute_pressure.rst",
+}
 
 _ROUTE_NUMERICS = {
     "legacy_python_2026_03_12_v1": {
@@ -207,6 +242,27 @@ class PhysicsProfile:
     profile_id: str
     canonical_hash: str
     _snapshot_json: str
+
+    def __post_init__(self) -> None:
+        """Reject direct construction unless the complete snapshot validates."""
+
+        try:
+            data = json.loads(
+                self._snapshot_json, parse_constant=_reject_nonfinite_constant
+            )
+        except PhysicsProfileError:
+            raise
+        except (TypeError, json.JSONDecodeError) as error:
+            raise PhysicsProfileError(
+                f"cannot construct PhysicsProfile from snapshot: {error}"
+            ) from error
+        data = _require_mapping(data, "profile")
+        normalized = _validate_snapshot_data(
+            data,
+            expected_profile_id=self.profile_id,
+            expected_canonical_hash=self.canonical_hash,
+        )
+        object.__setattr__(self, "_snapshot_json", normalized)
 
     @property
     def identity(self) -> dict[str, str]:
@@ -389,7 +445,7 @@ def _validate_profile(data: Mapping[str, Any], expected_profile_id: str | None) 
         "pN_nm_to_J": 1e-21,
     }
     if units != required_units:
-        raise PhysicsProfileError("profile.units does not match the v1 2D nano contract")
+        raise PhysicsProfileError("profile.units does not match the v2 2D nano contract")
 
     potentials = _require_mapping(data["potentials"], "profile.potentials")
     _require_exact_fields(potentials, set(_POTENTIAL_PARAMETER_FIELDS), "profile.potentials")
@@ -426,6 +482,50 @@ def _validate_profile(data: Mapping[str, Any], expected_profile_id: str | None) 
                 f"profile.potentials.{name}.parameters.{parameter_name}",
                 positive=True,
             )
+        metadata = _require_mapping(
+            potential["parameter_metadata"],
+            f"profile.potentials.{name}.parameter_metadata",
+        )
+        _require_exact_fields(
+            metadata, parameter_fields, f"profile.potentials.{name}.parameter_metadata"
+        )
+        for parameter_name, parameter_metadata in metadata.items():
+            parameter_metadata = _require_mapping(
+                parameter_metadata,
+                f"profile.potentials.{name}.parameter_metadata.{parameter_name}",
+            )
+            _require_exact_fields(
+                parameter_metadata,
+                _PARAMETER_METADATA_FIELDS,
+                f"profile.potentials.{name}.parameter_metadata.{parameter_name}",
+            )
+            if parameter_metadata != {
+                "uncertainty_status": "unknown",
+                "range_status": "not_reported",
+                "range": None,
+            }:
+                raise PhysicsProfileError(
+                    f"profile.potentials.{name}.parameter_metadata.{parameter_name} "
+                    "must preserve unknown/not-reported uncertainty"
+                )
+        fit_artifact = _require_mapping(
+            potential["fit_artifact"], f"profile.potentials.{name}.fit_artifact"
+        )
+        _require_exact_fields(
+            fit_artifact,
+            _FIT_ARTIFACT_FIELDS,
+            f"profile.potentials.{name}.fit_artifact",
+        )
+        expected_fit_status = "unavailable" if name == "nonlinear_bond" else "not_applicable"
+        if fit_artifact != {
+            "artifact_status": expected_fit_status,
+            "path": None,
+            "sha256_status": expected_fit_status,
+            "sha256": None,
+        }:
+            raise PhysicsProfileError(
+                f"profile.potentials.{name}.fit_artifact must be explicit and unavailable"
+            )
 
     for field in (
         "zero_tension_claim",
@@ -438,12 +538,57 @@ def _validate_profile(data: Mapping[str, Any], expected_profile_id: str | None) 
         _require_boolean(data["reference_state"][field], f"profile.reference_state.{field}")
     for field in ("name", "cell_policy"):
         _require_string(data["reference_state"][field], f"profile.reference_state.{field}")
+    historical = data["historical_execution"]
+    if not isinstance(historical["entry_points"], list):
+        raise PhysicsProfileError("profile.historical_execution.entry_points must be an array")
+    for index, entry_point in enumerate(historical["entry_points"]):
+        _require_string(
+            entry_point, f"profile.historical_execution.entry_points[{index}]"
+        )
+    for field in (
+        "scope",
+        "loading_or_evaluation",
+        "pressure_compute",
+        "kinetic_term_semantics",
+    ):
+        _require_string(historical[field], f"profile.historical_execution.{field}")
     _require_boolean(
-        data["tension"]["kinetic_term_included"],
-        "profile.tension.kinetic_term_included",
+        historical["nve_deform_segment"],
+        "profile.historical_execution.nve_deform_segment",
     )
-    for field in set(_NESTED_FIELDS["tension"]) - {"kinetic_term_included"}:
-        _require_string(data["tension"][field], f"profile.tension.{field}")
+    tangent = _require_mapping(
+        historical["tangent_output"],
+        "profile.historical_execution.tangent_output",
+    )
+    _require_exact_fields(
+        tangent,
+        _HISTORICAL_TANGENT_FIELDS,
+        "profile.historical_execution.tangent_output",
+    )
+    _require_string(tangent["status"], "profile.historical_execution.tangent_output.status")
+    for field in ("declared_tangent_unit", "dimensional_status"):
+        if tangent[field] is not None:
+            _require_string(
+                tangent[field], f"profile.historical_execution.tangent_output.{field}"
+            )
+    _require_number(
+        tangent["tangent_conversion_factor"],
+        "profile.historical_execution.tangent_output.tangent_conversion_factor",
+        allow_none=True,
+        positive=True,
+    )
+
+    output_policy = data["required_new_output_policy"]
+    _require_boolean(
+        output_policy["kinetic_term_included"],
+        "profile.required_new_output_policy.kinetic_term_included",
+    )
+    for field in set(_NESTED_FIELDS["required_new_output_policy"]) - {
+        "kinetic_term_included"
+    }:
+        _require_string(
+            output_policy[field], f"profile.required_new_output_policy.{field}"
+        )
     for field in _NESTED_FIELDS["axes"]:
         _require_string(data["axes"][field], f"profile.axes.{field}")
     _require_string(
@@ -486,20 +631,6 @@ def _validate_profile(data: Mapping[str, Any], expected_profile_id: str | None) 
         data["derived_numerical_facts"]["status"],
         "profile.derived_numerical_facts.status",
     )
-    _require_string(
-        data["legacy_output"]["declared_tangent_unit"],
-        "profile.legacy_output.declared_tangent_unit",
-    )
-    _require_number(
-        data["legacy_output"]["tangent_conversion_factor"],
-        "profile.legacy_output.tangent_conversion_factor",
-        positive=True,
-    )
-    _require_string(
-        data["legacy_output"]["dimensional_status"],
-        "profile.legacy_output.dimensional_status",
-    )
-
     review_requests = data["review_requests"]
     if not isinstance(review_requests, list):
         raise PhysicsProfileError("profile.review_requests must be an array")
@@ -519,6 +650,13 @@ def _validate_profile(data: Mapping[str, Any], expected_profile_id: str | None) 
         _require_exact_fields(source, _SOURCE_FIELDS, f"profile.sources[{index}]")
         for field in _SOURCE_FIELDS:
             _require_string(source[field], f"profile.sources[{index}].{field}")
+    source_locations = {source["citation_or_path"] for source in sources}
+    missing_lammps_sources = _REQUIRED_LAMMPS_SOURCE_URLS - source_locations
+    if missing_lammps_sources:
+        raise PhysicsProfileError(
+            "profile.sources lacks installed-version LAMMPS documentation: "
+            + ", ".join(sorted(missing_lammps_sources))
+        )
 
     provenance = data["provenance"]
     if not isinstance(provenance["source_routes"], list) or not provenance["source_routes"]:
@@ -527,6 +665,41 @@ def _validate_profile(data: Mapping[str, Any], expected_profile_id: str | None) 
         _require_string(route, f"profile.provenance.source_routes[{index}]")
     for field in ("source_revision", "decision_record", "notes"):
         _require_string(provenance[field], f"profile.provenance.{field}")
+    base_identity = provenance["provisional_base_identity"]
+    if base_identity is not None:
+        base_identity = _require_mapping(
+            base_identity, "profile.provenance.provisional_base_identity"
+        )
+        _require_exact_fields(
+            base_identity,
+            {"profile_id", "canonical_hash"},
+            "profile.provenance.provisional_base_identity",
+        )
+        _require_string(
+            base_identity["profile_id"],
+            "profile.provenance.provisional_base_identity.profile_id",
+        )
+        _require_string(
+            base_identity["canonical_hash"],
+            "profile.provenance.provisional_base_identity.canonical_hash",
+        )
+
+    if data["profile_id"] in {
+        "legacy_python_2026_03_12_v1",
+        "reviewed_physics_provisional_v0",
+    }:
+        required_current_sources = {
+            "src/simulation_constants_settings.py",
+            "src/units.py",
+            "src/assemble_pg_network.py",
+            "src/run_lammps_isotropic_strain.py",
+            "src/run_lammps_elastic_tensor.py",
+            "src/process_network_ensembles.py",
+        }
+        if not required_current_sources.issubset(set(provenance["source_routes"])):
+            raise PhysicsProfileError(
+                "current-route provenance must list every coefficient/unit/entrypoint source"
+            )
 
     _validate_fixed_contract(data)
     _validate_route_numerics(data)
@@ -558,7 +731,8 @@ def _validate_fixed_contract(data: Mapping[str, Any]) -> None:
         "initial_tension_required": True,
     }:
         raise PhysicsProfileError("reference_state does not match the fixed-cell contract")
-    if data["tension"] != {
+    if data["required_new_output_policy"] != {
+        "scope": "required_for_new_runs_and_reanalysis_not_historical_fact",
         "source": "configurational_virial",
         "kinetic_term_included": False,
         "dimensionality": "2D membrane force_per_length",
@@ -566,7 +740,9 @@ def _validate_fixed_contract(data: Mapping[str, Any]) -> None:
         "primary": "total",
         "secondary": "incremental_from_reference",
     }:
-        raise PhysicsProfileError("tension does not match the v1 2D contract")
+        raise PhysicsProfileError(
+            "required_new_output_policy does not match the v2 2D contract"
+        )
     if data["axes"] != {
         "x": "axial",
         "y": "hoop",
@@ -586,6 +762,89 @@ def _validate_fixed_contract(data: Mapping[str, Any]) -> None:
     }:
         raise PhysicsProfileError("rupture_law does not match the provisional contract")
 
+    expected_historical = {
+        "legacy_python_2026_03_12_v1": {
+            "scope": "historical_execution_provenance_not_new_output_policy",
+            "entry_points": [
+                "src/run_lammps_isotropic_strain.py::run_isotropic_prestrain_minimize",
+                "src/run_lammps_isotropic_strain.py::run_isotropic_prestrain_nve",
+                "src/run_lammps_elastic_tensor.py::lammps_calculate_elastic_tensor",
+            ],
+            "loading_or_evaluation": (
+                "fixed_cell_minimize_route_plus_retained_nve_deform_route_and_"
+                "elastic_minimize_route"
+            ),
+            "pressure_compute": "default_LAMMPS_thermo_pressure",
+            "kinetic_term_semantics": (
+                "default_pressure_includes_kinetic_and_virial_terms; minimize_run0_"
+                "states_may_have_zero_velocity_but_the_retained_nve_deform_route_can_"
+                "carry_kinetic_pressure"
+            ),
+            "nve_deform_segment": True,
+            "tangent_output": {
+                "status": "present_in_current_elastic_entry_point",
+                "declared_tangent_unit": "MPa*nm",
+                "tangent_conversion_factor": 1.0,
+                "dimensional_status": "dimensionally_2d_but_legacy_label_deprecated",
+            },
+        },
+        "legacy_direct_isotropic_pre_unit_fix_v1": {
+            "scope": "historical_execution_provenance_not_new_output_policy",
+            "entry_points": ["src/IsotropicPrestrain"],
+            "loading_or_evaluation": "initial_minimize_then_nve_deform_then_minimize",
+            "pressure_compute": "default_LAMMPS_thermo_pressure",
+            "kinetic_term_semantics": (
+                "default_pressure_includes_kinetic_and_virial_terms; the_nve_deform_"
+                "segment_can_carry_kinetic_pressure"
+            ),
+            "nve_deform_segment": True,
+            "tangent_output": {
+                "status": "not_applicable",
+                "declared_tangent_unit": None,
+                "tangent_conversion_factor": None,
+                "dimensional_status": "script_does_not_compute_tangent_output",
+            },
+        },
+        "legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1": {
+            "scope": "historical_execution_provenance_not_new_output_policy",
+            "entry_points": [
+                "ELASTIC_2D_ZERO_TEMP/PG_2D_main.elastic",
+                "ELASTIC_2D_ZERO_TEMP/PG_2D_displace_deform.mod",
+            ],
+            "loading_or_evaluation": "central_deformations_using_nve_deform_then_minimize",
+            "pressure_compute": "default_LAMMPS_thermo_pressure",
+            "kinetic_term_semantics": (
+                "default_pressure_includes_kinetic_and_virial_terms; velocities_from_"
+                "nve_deform_are_not_explicitly_zeroed_before_post_deformation_pressure"
+            ),
+            "nve_deform_segment": True,
+            "tangent_output": {
+                "status": "present",
+                "declared_tangent_unit": "GPa",
+                "tangent_conversion_factor": 1.01325e-8,
+                "dimensional_status": "known_invalid_3d_label_without_thickness",
+            },
+        },
+        "reviewed_physics_provisional_v0": {
+            "scope": "not_applicable_new_provisional_profile",
+            "entry_points": [],
+            "loading_or_evaluation": "not_executed_as_a_historical_route",
+            "pressure_compute": "not_applicable",
+            "kinetic_term_semantics": "not_applicable",
+            "nve_deform_segment": False,
+            "tangent_output": {
+                "status": "not_applicable",
+                "declared_tangent_unit": None,
+                "tangent_conversion_factor": None,
+                "dimensional_status": "new_profile_has_no_historical_output",
+            },
+        },
+    }
+    if data["historical_execution"] != expected_historical[data["profile_id"]]:
+        raise PhysicsProfileError(
+            f"historical execution semantics changed for {data['profile_id']}"
+        )
+
     if data["profile_id"] == "reviewed_physics_provisional_v0":
         if data["review_status"] != "pending" or data["mass"]["status"] != "placeholder":
             raise PhysicsProfileError("the provisional reviewed profile must remain pending")
@@ -603,6 +862,17 @@ def _validate_fixed_contract(data: Mapping[str, Any]) -> None:
         ]
         if data["review_requests"] != expected_requests:
             raise PhysicsProfileError("provisional reviewer requests must remain unconfirmed")
+        if data["provenance"]["provisional_base_identity"] != {
+            "profile_id": "legacy_python_2026_03_12_v1",
+            "canonical_hash": _PROFILE_HASHES["legacy_python_2026_03_12_v1"],
+        }:
+            raise PhysicsProfileError(
+                "provisional base identity must include the exact legacy ID and hash"
+            )
+    elif data["provenance"]["provisional_base_identity"] is not None:
+        raise PhysicsProfileError(
+            "legacy profiles must not declare a provisional base identity"
+        )
 
 
 def _validate_route_numerics(data: Mapping[str, Any]) -> None:
@@ -644,6 +914,65 @@ def _validate_route_numerics(data: Mapping[str, Any]) -> None:
         raise PhysicsProfileError("derived numerical facts are inconsistent with parameters")
 
 
+def _validate_snapshot_data(
+    data: Mapping[str, Any],
+    *,
+    expected_profile_id: str | None = None,
+    expected_canonical_hash: str | None = None,
+) -> str:
+    declared_hash = data.get("canonical_hash")
+    if not isinstance(declared_hash, str) or not _HASH_PATTERN.fullmatch(declared_hash):
+        raise PhysicsProfileError("canonical_hash must be sha256:<64 lowercase hex digits>")
+    computed_hash = canonical_profile_hash(data)
+    if declared_hash != computed_hash:
+        raise PhysicsProfileError(
+            f"canonical hash mismatch: declared {declared_hash}, computed {computed_hash}"
+        )
+    if expected_canonical_hash is not None and declared_hash != expected_canonical_hash:
+        raise PhysicsProfileError(
+            "PhysicsProfile canonical_hash does not match its expanded snapshot"
+        )
+
+    _validate_profile(data, expected_profile_id)
+    profile_id = data["profile_id"]
+    pinned_hash = _PROFILE_HASHES[profile_id]
+    if declared_hash != pinned_hash:
+        raise PhysicsProfileError(
+            f"registered hash mismatch for {profile_id}: expected {pinned_hash}, "
+            f"found {declared_hash}"
+        )
+    return json.dumps(
+        data,
+        allow_nan=False,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+
+
+def validate_expanded_profile_snapshot(snapshot: Mapping[str, Any]) -> PhysicsProfile:
+    """Validate a persisted expanded snapshot and return a trusted profile."""
+
+    try:
+        normalized_input = json.loads(
+            json.dumps(
+                snapshot,
+                allow_nan=False,
+                ensure_ascii=False,
+                separators=(",", ":"),
+                sort_keys=True,
+            ),
+            parse_constant=_reject_nonfinite_constant,
+        )
+    except (TypeError, ValueError, json.JSONDecodeError) as error:
+        raise PhysicsProfileError(
+            f"expanded physics profile snapshot is not strict JSON: {error}"
+        ) from error
+    data = _require_mapping(normalized_input, "profile")
+    snapshot_json = _validate_snapshot_data(data)
+    return PhysicsProfile(data["profile_id"], data["canonical_hash"], snapshot_json)
+
+
 def load_physics_profile_file(
     path: str | Path, *, expected_profile_id: str | None = None
 ) -> PhysicsProfile:
@@ -661,31 +990,10 @@ def load_physics_profile_file(
         raise PhysicsProfileError(f"cannot read physics profile {profile_path}: {error}") from error
     data = _require_mapping(data, "profile")
 
-    declared_hash = data.get("canonical_hash")
-    if not isinstance(declared_hash, str) or not _HASH_PATTERN.fullmatch(declared_hash):
-        raise PhysicsProfileError("canonical_hash must be sha256:<64 lowercase hex digits>")
-    computed_hash = canonical_profile_hash(data)
-    if declared_hash != computed_hash:
-        raise PhysicsProfileError(
-            f"canonical hash mismatch: declared {declared_hash}, computed {computed_hash}"
-        )
-
-    _validate_profile(data, expected_profile_id)
-    profile_id = data["profile_id"]
-    pinned_hash = _PROFILE_HASHES[profile_id]
-    if declared_hash != pinned_hash:
-        raise PhysicsProfileError(
-            f"registered hash mismatch for {profile_id}: expected {pinned_hash}, found {declared_hash}"
-        )
-
-    snapshot_json = json.dumps(
-        data,
-        allow_nan=False,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
+    snapshot_json = _validate_snapshot_data(
+        data, expected_profile_id=expected_profile_id
     )
-    return PhysicsProfile(profile_id, declared_hash, snapshot_json)
+    return PhysicsProfile(data["profile_id"], data["canonical_hash"], snapshot_json)
 
 
 def load_physics_profile(profile_id: str) -> PhysicsProfile:
@@ -699,25 +1007,33 @@ def load_physics_profile(profile_id: str) -> PhysicsProfile:
 
 
 def validate_profile_aggregation(
-    identities: Sequence[Mapping[str, str]],
+    profiles_or_snapshots: Sequence[PhysicsProfile | Mapping[str, Any]],
     *,
     comparison_mode: str | None = None,
 ) -> dict[str, str]:
     """Reject silent mixing; allow only a declared profile-stratified comparison."""
 
-    if not identities:
-        raise ProfileMixingError("at least one profile identity is required")
+    if not profiles_or_snapshots:
+        raise ProfileMixingError("at least one validated profile is required")
     grouped: dict[str, set[str]] = {}
-    for index, identity in enumerate(identities):
-        identity = _require_mapping(identity, f"identities[{index}]")
-        _require_exact_fields(
-            identity, {"profile_id", "canonical_hash"}, f"identities[{index}]"
-        )
-        profile_id = _require_string(identity["profile_id"], f"identities[{index}].profile_id")
-        profile_hash = _require_string(
-            identity["canonical_hash"], f"identities[{index}].canonical_hash"
-        )
-        grouped.setdefault(profile_id, set()).add(profile_hash)
+    for index, candidate in enumerate(profiles_or_snapshots):
+        try:
+            if isinstance(candidate, PhysicsProfile):
+                validated = validate_expanded_profile_snapshot(
+                    candidate.expanded_snapshot()
+                )
+            elif isinstance(candidate, Mapping):
+                validated = validate_expanded_profile_snapshot(candidate)
+            else:
+                raise PhysicsProfileError(
+                    f"aggregation input {index} is neither a PhysicsProfile nor a snapshot"
+                )
+        except PhysicsProfileError as error:
+            raise ProfileMixingError(
+                "aggregation requires validated PhysicsProfile objects or complete "
+                f"expanded snapshots; input {index} failed: {error}"
+            ) from error
+        grouped.setdefault(validated.profile_id, set()).add(validated.canonical_hash)
 
     conflicts = sorted(profile_id for profile_id, hashes in grouped.items() if len(hashes) > 1)
     if conflicts:

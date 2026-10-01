@@ -1,8 +1,8 @@
 {
-  "schema_version": "pgworld.physics_profile.v1",
+  "schema_version": "pgworld.physics_profile.v2",
   "profile_version": "1.0.0",
   "profile_id": "legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1",
-  "canonical_hash": "sha256:bc2f7532284d1ac35363aa8f01fcfadf6c0368b86abd986a7546d721499bb8c8",
+  "canonical_hash": "sha256:58b5271932856c040992306c19e393788bd28f829245348951de2e4733fb7f6a",
   "family": "legacy_reproduction",
   "route": "direct_ELASTIC_2D_ZERO_TEMP_pre_unit_fix",
   "intended_use": "forensic reproduction of the retained direct elastic input only",
@@ -41,6 +41,11 @@
       "equation": "E=K*(r-r0)^2",
       "parameter_units": "K:pN/nm,r0:nm",
       "parameters": {"K_pN_per_nm": 5.57, "r0_nm": 1.03},
+      "parameter_metadata": {
+        "K_pN_per_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "r0_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null}
+      },
+      "fit_artifact": {"artifact_status": "not_applicable", "path": null, "sha256_status": "not_applicable", "sha256": null},
       "status": "inherited_exact_pre_unit_fix_reproduction_only"
     },
     "nonlinear_bond": {
@@ -52,6 +57,12 @@
         "r0_nm": 0.9065,
         "lambda_nm": 4.0878
       },
+      "parameter_metadata": {
+        "epsilon_pN_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "r0_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "lambda_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null}
+      },
+      "fit_artifact": {"artifact_status": "unavailable", "path": null, "sha256_status": "unavailable", "sha256": null},
       "status": "inherited_distinct_fit_exact_pre_unit_fix_reproduction_only"
     },
     "harmonic_angle": {
@@ -59,6 +70,11 @@
       "equation": "E=K*(theta-theta0)^2",
       "parameter_units": "K:pN nm/rad^2,theta0:degree_input",
       "parameters": {"K_pN_nm": 0.0418, "theta0_degrees": 180.0},
+      "parameter_metadata": {
+        "K_pN_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "theta0_degrees": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null}
+      },
+      "fit_artifact": {"artifact_status": "not_applicable", "path": null, "sha256_status": "not_applicable", "sha256": null},
       "status": "inherited_exact_resolution_mapping_unreviewed"
     }
   },
@@ -72,7 +88,25 @@
     "minimization_diagnostics_required": true,
     "initial_tension_required": true
   },
-  "tension": {
+  "historical_execution": {
+    "scope": "historical_execution_provenance_not_new_output_policy",
+    "entry_points": [
+      "ELASTIC_2D_ZERO_TEMP/PG_2D_main.elastic",
+      "ELASTIC_2D_ZERO_TEMP/PG_2D_displace_deform.mod"
+    ],
+    "loading_or_evaluation": "central_deformations_using_nve_deform_then_minimize",
+    "pressure_compute": "default_LAMMPS_thermo_pressure",
+    "kinetic_term_semantics": "default_pressure_includes_kinetic_and_virial_terms; velocities_from_nve_deform_are_not_explicitly_zeroed_before_post_deformation_pressure",
+    "nve_deform_segment": true,
+    "tangent_output": {
+      "status": "present",
+      "declared_tangent_unit": "GPa",
+      "tangent_conversion_factor": 1.01325e-8,
+      "dimensional_status": "known_invalid_3d_label_without_thickness"
+    }
+  },
+  "required_new_output_policy": {
+    "scope": "required_for_new_runs_and_reanalysis_not_historical_fact",
     "source": "configurational_virial",
     "kinetic_term_included": false,
     "dimensionality": "2D membrane force_per_length",
@@ -108,11 +142,6 @@
     "angle_curvature_pN_nm_per_rad2": 0.0836,
     "status": "mechanical_derivations_not_biological_certification"
   },
-  "legacy_output": {
-    "declared_tangent_unit": "GPa",
-    "tangent_conversion_factor": 1.01325e-8,
-    "dimensional_status": "known_invalid_3d_label_without_thickness"
-  },
   "review_requests": [
     {
       "person": "Prof. Christoph Schmidt",
@@ -141,14 +170,39 @@
     {
       "id": "lammps_pressure_2sep2026",
       "kind": "official_documentation",
-      "citation_or_path": "https://docs.lammps.org/compute_pressure.html",
-      "claim_scope": "2D area normalization establishes force-per-length dimensions"
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/compute_pressure.rst",
+      "claim_scope": "installed-release default pressure includes kinetic and virial terms and uses area in 2D"
+    },
+    {
+      "id": "lammps_units_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/units.rst",
+      "claim_scope": "installed-release nano base units only"
+    },
+    {
+      "id": "lammps_harmonic_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_harmonic.rst",
+      "claim_scope": "installed-release harmonic equation and units only"
+    },
+    {
+      "id": "lammps_nonlinear_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_nonlinear.rst",
+      "claim_scope": "installed-release nonlinear equation and epsilon energy unit only"
+    },
+    {
+      "id": "lammps_angle_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/angle_harmonic.rst",
+      "claim_scope": "installed-release harmonic angle equation and input convention only"
     }
   ],
   "provenance": {
     "source_routes": ["ELASTIC_2D_ZERO_TEMP/PG_2D_potential.mod", "ELASTIC_2D_ZERO_TEMP/PG_2D_init.mod"],
     "source_revision": "78da30ffd8b374125a34edaacc71ae7650b8f722",
     "decision_record": "docs/decisions/scope.md",
+    "provisional_base_identity": null,
     "notes": "Preserves the distinct 1/1000-scale elastic route and invalid inherited GPa interpretation for provenance only."
   }
 }

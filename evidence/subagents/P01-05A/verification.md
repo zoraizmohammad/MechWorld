@@ -14,6 +14,10 @@ Resource boundary: serial pytest and Python commands only; no simulation,
 training, network access, or private data. No command approached the ten-minute
 smoke ceiling. The test runner did not use parallel workers.
 
+The schema-v1 results below are retained as historical evidence, but the
+integrator rejected that proposal before acceptance. The authoritative
+schema-v2 correction evidence follows the historical section.
+
 ## Red-first evidence
 
 Command:
@@ -29,7 +33,7 @@ This occurred after adding only the acceptance test and before adding the
 profile module or JSON files. Exact console and JUnit evidence:
 `red.txt`, `red.xml`.
 
-## Green verification
+## Initial schema-v1 verification (rejected before integration)
 
 Focused command:
 
@@ -73,7 +77,7 @@ reviewed_physics_provisional_v0 sha256:d9c1e83e911bb5623d65df6238cb6daa6b10fc444
 `git diff --check` exited `0`. A path proof built from both tracked diffs and
 `git ls-files --others --exclude-standard` reported `OUTSIDE_OWNERSHIP=NONE`.
 
-## Acceptance coverage
+## Initial schema-v1 coverage (superseded)
 
 The focused tests verify:
 
@@ -94,7 +98,7 @@ The focused tests verify:
 - rejection of silent mixed-profile aggregation with an explicit
   `stratified_by_profile` comparison exception.
 
-## SHA-256 file evidence
+## Initial schema-v1 SHA-256 evidence (superseded)
 
 ```text
 af3d21cbf7efb2931a8734f2e01dcf72556e30010c7eb6aa25077334fa3687b1  src/pgworld/config/physics_profiles.py
@@ -110,6 +114,97 @@ f653b9b630f2006427cda9fa762fdfdbb17f23bd2ddf7af0ef8603be3e93dfc5  evidence/subag
 a243a6c45a181d6f8d8627ca10d8514875e41eb299045373c870e302d8775dec  evidence/subagents/P01-05A/targeted.xml
 5b8ef08b63a079bf44a24a58e878a3fb9b58924909865c9c5cd43398602d02ce  evidence/subagents/P01-05A/full.txt
 262e712011b49232ce749c34a544348c3ea1b8109cb47d559f0a971d7f5b91ca  evidence/subagents/P01-05A/full.xml
+```
+
+## Schema-v2 review correction
+
+The integration review found that schema v1 conflated historical pressure
+semantics with a new virial-only output policy and allowed direct construction
+of a profile around an unvalidated snapshot. Schema v2 corrects both findings,
+adds explicit unknown uncertainty/range metadata, makes the missing nonlinear
+fit artifact/hash status explicit, pins official documentation to installed
+LAMMPS `patch_2Sep2026`, expands narrow current-route source provenance, and
+records the provisional base as an exact ID/hash pair.
+
+Forged-snapshot red command, run before the constructor fix:
+
+```powershell
+C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B -m pytest tests/physics/test_physics_profiles.py::test_registered_identity_cannot_forge_an_unvalidated_expanded_snapshot -q --junitxml=evidence/subagents/P01-05A/forged-red.xml
+```
+
+Result: exit `1`; **1 failed in 0.44s**; wrapper elapsed `3.183s`. The exact
+failure was `Failed: DID NOT RAISE PhysicsProfileError` after constructing a
+registered ID/hash with `K_pN_per_nm=1.0`. Exact console evidence is retained in
+`forged-red.txt`; the generated JUnit file was omitted because it contained
+tool-generated trailing whitespace that failed the repository diff check.
+
+Corrected focused command:
+
+```powershell
+C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B -m pytest tests/physics/test_physics_profiles.py -q --junitxml=evidence/subagents/P01-05A/review-targeted.xml
+```
+
+Result: exit `0`; **14 passed in 0.53s**; wrapper elapsed `1.545s`. Evidence:
+`review-targeted.txt` and `review-targeted.xml`.
+
+Corrected full-suite command:
+
+```powershell
+C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B -m pytest -q --junitxml=evidence/subagents/P01-05A/review-full.xml
+```
+
+Result: exit `0`; **126 passed in 10.43s**; wrapper elapsed `12.230s`.
+Evidence: `review-full.txt` and `review-full.xml`.
+
+Corrected targeted compilation exited `0` in `0.254s`:
+
+```powershell
+C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B -m py_compile src/pgworld/config/physics_profiles.py tests/physics/test_physics_profiles.py
+```
+
+Strict standard-library JSON parse/round-trip, registered file loading, and
+public expanded-snapshot read-back exited `0` for all four records:
+
+```text
+legacy_python_2026_03_12_v1 sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b roundtrip_readback=PASS
+legacy_direct_isotropic_pre_unit_fix_v1 sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0 roundtrip_readback=PASS
+legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1 sha256:58b5271932856c040992306c19e393788bd28f829245348951de2e4733fb7f6a roundtrip_readback=PASS
+reviewed_physics_provisional_v0 sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5 roundtrip_readback=PASS
+```
+
+Corrected focused coverage additionally proves:
+
+- current Python minimize, retained NVE/deform, and elastic entry points are
+  distinguished from the required-new-output policy;
+- direct isotropic and direct elastic default thermo pressure can include the
+  kinetic term, and direct isotropic tangent output is `not_applicable`;
+- direct construction, persisted read-back, and aggregation reject the forged
+  K=1 snapshot; compact ID/hash dictionaries are not treated as validation;
+- each parameter range/uncertainty is unknown/not reported without an invented
+  interval, while nonlinear artifact and SHA-256 status are unavailable;
+- all five official LAMMPS sources are pinned to `patch_2Sep2026`; and
+- current/provisional provenance gives narrow scopes to constants, units,
+  generator serialization, runners, and ensemble analysis.
+
+The final working diff passed `git diff --check` with exit `0`; the combined
+tracked/untracked path proof reported `OUTSIDE_OWNERSHIP=NONE`, and the bytecode
+cache check reported `CACHES_REMAIN=NONE`.
+
+Final corrected file hashes before the evidence/report-only finishing edits:
+
+```text
+72035587b624d804e25e510ed697ae864aeb230adba5953f67cba63ca42b0ebd  src/pgworld/config/physics_profiles.py
+3734ebca7d31baeb2ade4fd2a85c487ea715e873b6b84d81d3f129f593d9b809  tests/physics/test_physics_profiles.py
+1cd09783201c7174c282d6e17770115d3aac491211a7191e69e7d14bed25d4b7  docs/physics_parameters.md
+4c650827d129741aec727f74302c91caa356fafe95792717069d7a25ec5566c1  configs/physics/legacy_python_2026_03_12_v1.json
+35dd130efafd24ab853e33aa3ed6589489a7429592b3c3734c9dbe45e93fe46e  configs/physics/legacy_direct_isotropic_pre_unit_fix_v1.json
+a0c2e1825265c9e032625e90899f702dad7e6db48093a6ab20595360782c9e44  configs/physics/legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1.json
+1d4c98aa05bc6187e2c7c48ef5724ebaf2bb5f86e6c55ebaab054303beb96057  configs/physics/reviewed_physics_provisional_v0.json
+89dbcc6d0834340759a1a5e69b5e3a3959457225da73ea1902ebd149f41c769d  evidence/subagents/P01-05A/forged-red.txt
+90462f8e0fce0259c2225a54907da8f1703eb8dbff730cedd5a4eeff78ed2eda  evidence/subagents/P01-05A/review-targeted.txt
+aa43596939c3156b77f526aec26e97c729ed1a589ab991bfd42f6b5044f97645  evidence/subagents/P01-05A/review-targeted.xml
+2adc294ff4c03622f57bb268d10d29156f09adafc12364e6cf2cb635993b9477  evidence/subagents/P01-05A/review-full.txt
+f5bc287d071f5955bca273256323e173d21551b40b92694a39e8f69385703076  evidence/subagents/P01-05A/review-full.xml
 ```
 
 ## Limitations
