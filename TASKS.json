@@ -676,7 +676,7 @@
       "id": "P01-07",
       "work_package": "WP1",
       "title": "Validate tangent stiffness, finite-strain conventions, and coupling",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -703,7 +703,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": ""
+      "notes": "Assigned from accepted main 0edcf671c51e828164506ed8590f1282a18f5ce2 to research/p01-07-elastic-tangent in isolated worktree C:/Users/mzora/MechWorld-wt-p01-07. Ownership is limited to src/run_lammps_elastic_tensor.py, src/process_elastic_tensor.py, tests/physics/test_elastic_tangent.py, evidence/subagents/P01-07/, and docs/subagents/P01-07-elastic-tangent.md. The task must begin with exact red regressions and validate analytical smooth fixed-topology tangents over several perturbation sizes, explicit finite-strain/stress/shear conventions, central versus separately labeled one-sided derivatives, unsymmetrized raw matrices, normal-shear coupling, and provenance-rich raw exports. It may use the P01-06 oracle and immutable profiles read-only, may run only bounded serial fixtures, and cannot certify biological parameters, rupture tangents, production readiness, or G1."
     },
     {
       "id": "P01-08",

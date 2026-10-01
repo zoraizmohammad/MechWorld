@@ -6,7 +6,7 @@
 - **Current session objective:** Reconcile the execution packet with the actual checkout, establish the measured workstation baseline and isolated subagent workflow, then integrate the first reproduced-defect regression repair and continue through eligible dependencies.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
-- **Gate state:** G0 is accepted; G1-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-05A, P01-06, P01-08 through P01-10, and P10-01 are done. P01-07 is the next eligible task. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
+- **Gate state:** G0 is accepted; G1-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-05A, P01-06, P01-08 through P01-10, and P10-01 are done. P01-07 is active in an isolated worktree. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
 
 ## 📊 Transient State & What Changed
 
@@ -27,6 +27,7 @@
 - Mohammad's 2026-10-01 decision fixes a simulation-first quasi-static scope, fixed-cell equilibrated reference, total configurational 2D tension primary plus incremental tension, damage initiation as the primary phenomenological event endpoint, bounded local compute, and no 3D/time claims without separate validation. It authorizes a provisional computational contract but not final biological parameters, lab access, production compute, public release, or manuscript submission.
 - P01-05A was assigned from accepted main `78da30f` to `research/p01-05a-computational-contract` at `C:/Users/mzora/MechWorld-wt-p01-05a`, with ownership limited to the parameter contract/profiles, profile loader/tests, and its own evidence/report paths. Its four returned implementation/correction commits are integrated as `3e734f3`, `7bc36e6`, `08b8a11`, and `c41c58a`.
 - P01-06 returned three sole-author commits, integrated as `05ef3fc`, `56eec8b`, and `709933f`. Its isolated ownership is cleared after path review, two substantive correction rounds, independent reviewer acceptance, and main-worktree reruns.
+- P01-07 is assigned from accepted main `0edcf67` to `research/p01-07-elastic-tangent` at `C:/Users/mzora/MechWorld-wt-p01-07`. Ownership is limited to `src/run_lammps_elastic_tensor.py`, `src/process_elastic_tensor.py`, `tests/physics/test_elastic_tangent.py`, `evidence/subagents/P01-07/`, and `docs/subagents/P01-07-elastic-tangent.md`; root ledgers, profiles, and P01-06 oracle modules are read-only.
 
 ## ✅ Verification & Hard Evidence
 
@@ -67,7 +68,7 @@
 1. [x] Accept P01-05A after independent adversarial review: distinct immutable legacy routes, a fail-closed `reviewed_physics_provisional_v0`, persisted-snapshot validation, and bidirectional source provenance are integrated.
 2. [ ] Carry the P01-09 positional cross-cohort pairing limitation into the trajectory manifest so later comparisons use persistent replicate IDs rather than filename order.
 3. [x] Review and integrate P01-06 analytical/LAMMPS energy-force-virial checks after adversarial corrections.
-4. [ ] Assign and complete P01-07 tangent/coupling validation, then P01-11 packaging/G1 review.
+4. [ ] Review and integrate the active P01-07 tangent/coupling validation, then complete P01-11 packaging/G1 review.
 5. [ ] Migrate inherited simulation entry points to P01-08 paths in a later owned task and add true restart-resume/suffix-equivalence coverage before claiming restartability.
 6. [ ] Continue eligible independent engineering while P00-06/P01-05 and lab inputs remain blocked.
 7. [ ] Preserve P03-01 ownership of canonical persistent per-edge image offsets and stable edge identity; the P01-01 inferred minimum image is not a trajectory identity substitute.

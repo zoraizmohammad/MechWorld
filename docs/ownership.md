@@ -111,3 +111,17 @@ main-tree verification passed 26 focused, 56 compatibility, and 153 total
 tests, targeted compilation, a 10,000-case minimum-image comparison, and the
 real-LAMMPS report assertions. All LAMMPS 20260902 instances closed. Ownership
 is cleared; P01-07 is eligible.
+
+## Seventh wave
+
+The assignment uses accepted main revision
+`0edcf671c51e828164506ed8590f1282a18f5ce2`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Elastic tangent/physics | `research/p01-07-elastic-tangent`; `C:/Users/mzora/MechWorld-wt-p01-07` | P01-07: exact red-first validation of smooth fixed-topology tangents, perturbation-size convergence, explicit strain/stress/shear conventions, unsymmetrized normal-shear coupling, and distinctly labeled one-sided irreversible diagnostics | `src/run_lammps_elastic_tensor.py`, `src/process_elastic_tensor.py`, `tests/physics/test_elastic_tangent.py`, `evidence/subagents/P01-07/`, `docs/subagents/P01-07-elastic-tangent.md` | No ledger/README/profile/P01-06-oracle edits; no parameter retuning, rupture implementation, production simulation, biological certification, or changes outside owned paths |
+
+The return requires exact red and green commands, perturbation-convergence and
+raw-export evidence, sole-author Mohammad commits, explicit units/conventions,
+path-boundary proof, and limitations. The integrator must independently review
+and rerun the branch before acceptance.

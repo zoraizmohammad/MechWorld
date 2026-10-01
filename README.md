@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting the independently reviewed P01-06 energy/force/virial oracle. P01-07 tangent/coupling validation is the next eligible task. Final biological parameter review remains blocked.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting the independently reviewed P01-06 energy/force/virial oracle and assigning P01-07 tangent/coupling validation in an isolated worktree. Final biological parameter review remains blocked.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -13,7 +13,7 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting
 | Historical defects | Reproduced, then regression-repaired | The original A01-A05 failures remain archived under `evidence/source_audit_live/`; the current pure-Python diagnostic observes all five repaired, without invoking LAMMPS |
 | LAMMPS environment | Verified for bounded serial smoke work | P00-03 doctor exited 0 on a real bonded fixture; required styles and analytical component energies passed; actual rupture/MPI/GPU/production use remain unvalidated |
 | Run isolation | Local adapter verified | P01-08 lifecycle/concurrency tests pass and a real serial LAMMPS `run 0` completed through its immutable run directory; inherited runners and restart equivalence are not yet migrated/validated |
-| Inherited mechanics repair | Energy/force/virial oracle accepted | P01-01 through P01-04, P01-05A, P01-06, and P01-08 through P01-10 are integrated; P01-07 tangent validation and P01-11 packaging/G1 remain |
+| Inherited mechanics repair | Tangent/coupling validation active | P01-01 through P01-04, P01-05A, P01-06, and P01-08 through P01-10 are integrated; P01-07 is isolated and active, followed by P01-11 packaging/G1 |
 | Physics/units contract | Immutable provisional profiles verified; biological review pending | Four route-specific hashes separate historical execution from the required new virial-only policy and reject tampered persisted snapshots. Coarse-graining, angle mapping, nonlinear-fit recovery, and the final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
 | Rupture, dataset, models, evaluation, explorer | Not started | Dependency-gated behind verified mechanics and actual topology-changing trajectories |
@@ -34,7 +34,8 @@ Latest integration verification: P01-06 passed 26 focused, 56 compatibility, and
 - P00-06 is done as a governance decision: main claims are quasi-static; the primary endpoint is phenomenological damage initiation; compute remains bounded/local; public release and manuscript submission still require separate approval.
 - P01-05A is done after two independent correction reviews: distinct legacy routes and `reviewed_physics_provisional_v0` are immutable, persisted snapshots are revalidated, mixed aggregation fails closed, and every historical entry point is source-linked. P01-05 remains blocked for actual Prof. Schmidt/Octavio review and final biological parameter certification.
 - P01-06 is done after adversarial correction and independent main verification: analytical, finite-difference, and real-LAMMPS fixtures cover harmonic/nonlinear bonds, noncollinear angles, configurational virials, periodic geometry, native 2D signs/normalization, and fixed-reference total/incremental tension without claiming biological certification.
-- Tasks left before G1: complete P01-07 tangent/coupling validation, then P01-11 clean packaging and gate review. G1 may establish numerical consistency under provisional profiles, not biological calibration.
+- P01-07 is active on `research/p01-07-elastic-tangent`: it must replace the inherited one-sided/symmetrized-only elastic output with verified perturbation convergence, explicit strain/stress conventions, complete unsymmetrized diagnostics, normal-shear coupling retention, and separately labeled one-sided irreversible tangents.
+- Tasks left before G1: accept P01-07, then complete P01-11 clean packaging and gate review. G1 may establish numerical consistency under provisional profiles, not biological calibration.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
 - Compatibility follow-up: seven inherited plotting/result scripts fail Python 3.11 compilation because of nested f-string quote syntax; targeted repaired files compile, and the broader issue is queued before P01-11.
 
