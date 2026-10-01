@@ -112,7 +112,10 @@ independence within floating-point cancellation.
 - Periodic geometry: wrapped atoms at `(4.6, 0.0)` and `(-4.5, 0.3)` in a
   `10 x 8 nm` box reconstruct the accepted local displacement `(0.9, 0.3)` and
   image offset `(1, 0)`; analytical energy/ID-ordered forces/virial agree with
-  LAMMPS. Persistent edge-image identity remains P03-01 scope.
+  LAMMPS for both harmonic and nonlinear bonds. Solver fixtures reject a zero
+  minimum-image length before constructing LAMMPS, and nonlinear domain checks
+  use this local periodic length rather than raw wrapped separation. Persistent
+  edge-image identity remains P03-01 scope.
 - 2D normalization: changing z width from `1` to `7 nm` changes no
   configurational pressure component. Adding nonzero velocity leaves the
   virial-only pressure unchanged while increasing default `P_xx` by
@@ -142,9 +145,9 @@ The exact commands, exit statuses, wall times, file hashes, JUnit artifacts,
 and red-first record are in `evidence/subagents/P01-06/verification.md`.
 The final bounded results are:
 
-- focused: **23 passed**;
-- physics-profile and periodic-geometry compatibility: **53 passed**;
-- full repository suite: **150 passed**;
+- focused: **26 passed**;
+- physics-profile and periodic-geometry compatibility: **56 passed**;
+- full repository suite: **153 passed**;
 - targeted source/test compilation: passed; and
 - diff/path/identity checks passed, with no cache artifact tracked or staged.
 

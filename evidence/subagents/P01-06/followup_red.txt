@@ -1,0 +1,30 @@
+Command: C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest tests/physics/test_energy_force_virial.py -q
+CWD: C:\Users\mzora\MechWorld-wt-p01-06
+Exit status: 1
+
+..........FF......F.......                                               [100%]
+================================== FAILURES ===================================
+_ test_lammps_bond_fixture_rejects_zero_minimum_image_before_solver[harmonic] _
+
+E       Failed: DID NOT RAISE <class 'ValueError'>
+
+_ test_lammps_bond_fixture_rejects_zero_minimum_image_before_solver[nonlinear] _
+
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'positive minimum-image length'
+E        Input: 'nonlinear LAMMPS fixture requires a positive bond strictly inside |r-r0| < lambda'
+
+____ test_periodic_nonlinear_domain_uses_minimum_image_not_raw_separation _____
+
+E       ValueError: nonlinear LAMMPS fixture requires a positive bond strictly inside |r-r0| < lambda
+
+=========================== short test summary info ===========================
+FAILED tests/physics/test_energy_force_virial.py::test_lammps_bond_fixture_rejects_zero_minimum_image_before_solver[harmonic]
+FAILED tests/physics/test_energy_force_virial.py::test_lammps_bond_fixture_rejects_zero_minimum_image_before_solver[nonlinear]
+FAILED tests/physics/test_energy_force_virial.py::test_periodic_nonlinear_domain_uses_minimum_image_not_raw_separation
+3 failed, 23 passed in 2.24s
+
+Interpretation: the harmonic adapter did not fail closed on zero length, the
+nonlinear adapter rejected zero length only after solver construction with a
+generic domain message, and its raw wrapped-coordinate distance falsely
+rejected a valid periodic bond. These regressions precede the follow-up fix.

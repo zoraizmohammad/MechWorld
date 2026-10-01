@@ -53,6 +53,20 @@ def _positive_pair(value: tuple[float, float], name: str) -> tuple[float, float]
     return converted[0], converted[1]
 
 
+def _orthogonal_minimum_image_displacement(
+    first_nm: FloatArray,
+    second_nm: FloatArray,
+    box_lengths_nm: tuple[float, float],
+) -> FloatArray:
+    """Return the local first-to-second vector for an orthogonal periodic box."""
+
+    box = np.asarray(box_lengths_nm, dtype=float)
+    displacement = np.asarray(second_nm, dtype=float) - np.asarray(
+        first_nm, dtype=float
+    )
+    return displacement - box * np.floor(displacement / box + 0.5)
+
+
 def _tensor_from_lammps_vector(values: list[float]) -> FloatArray:
     # LAMMPS order is xx, yy, zz, xy, xz, yz.  Only native x/y components
     # belong in this 2D result.
@@ -210,6 +224,34 @@ def _run_fixture(
     ):
         raise ValueError("all fixture atoms must lie strictly inside the 2D box")
 
+    is_angle = interaction == "harmonic_angle"
+    is_series = interaction == "two_harmonic_bonds"
+    if not is_angle:
+        bond_pairs = ((0, 1), (1, 2)) if is_series else ((0, 1),)
+        minimum_image_lengths: list[float] = []
+        for first_index, second_index in bond_pairs:
+            displacement = _orthogonal_minimum_image_displacement(
+                positions_nm[first_index],
+                positions_nm[second_index],
+                (length_x, length_y),
+            )
+            distance = float(np.linalg.norm(displacement))
+            if not math.isfinite(distance) or distance <= 1.0e-14:
+                raise ValueError(
+                    "LAMMPS bond fixture requires a finite positive "
+                    "minimum-image length"
+                )
+            minimum_image_lengths.append(distance)
+        if interaction == "nonlinear_bond":
+            parameters = snapshot["potentials"]["nonlinear_bond"]["parameters"]
+            delta = minimum_image_lengths[0] - float(parameters["r0_nm"])
+            lambd = float(parameters["lambda_nm"])
+            if abs(delta) >= lambd:
+                raise ValueError(
+                    "nonlinear LAMMPS fixture minimum-image length must be "
+                    "strictly inside |r-r0| < lambda"
+                )
+
     velocities: FloatArray | None = None
     if velocities_nm_per_ns is not None:
         velocities = np.asarray(velocities_nm_per_ns, dtype=float)
@@ -248,8 +290,6 @@ def _run_fixture(
                 f"expected LAMMPS {LAMMPS_REQUIRED_VERSION}, found {solver_version}"
             )
 
-        is_angle = interaction == "harmonic_angle"
-        is_series = interaction == "two_harmonic_bonds"
         atom_style = "angle" if is_angle else "bond"
         solver.command("units nano")
         solver.command("dimension 2")
@@ -312,14 +352,6 @@ def _run_fixture(
                 )
             else:
                 parameters = snapshot["potentials"]["nonlinear_bond"]["parameters"]
-                distance = float(np.linalg.norm(positions_nm[1] - positions_nm[0]))
-                delta = distance - float(parameters["r0_nm"])
-                lambd = float(parameters["lambda_nm"])
-                if distance <= 0.0 or abs(delta) >= lambd:
-                    raise ValueError(
-                        "nonlinear LAMMPS fixture requires a positive bond strictly "
-                        "inside |r-r0| < lambda"
-                    )
                 solver.command("bond_style nonlinear")
                 solver.command(
                     "bond_coeff 1 "

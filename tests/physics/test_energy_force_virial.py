@@ -213,6 +213,19 @@ def test_nonlinear_valid_domain_and_all_invalid_inputs_are_rejected() -> None:
         oracle.harmonic_bond(np.zeros((2, 2)))
 
 
+@pytest.mark.parametrize("style", ["harmonic", "nonlinear"])
+def test_lammps_bond_fixture_rejects_zero_minimum_image_before_solver(
+    style: str,
+) -> None:
+    with pytest.raises(ValueError, match="positive minimum-image length"):
+        run_lammps_bond_fixture(
+            PROFILE,
+            style=style,
+            positions_nm=np.zeros((2, 2)),
+            box_lengths_nm=(10.0, 8.0),
+        )
+
+
 def test_noncollinear_angle_matches_cartesian_fd_lammps_and_balances() -> None:
     oracle = _oracle()
     positions = np.array([[-1.1, 0.2], [0.1, -0.1], [0.75, 1.05]])
@@ -358,6 +371,34 @@ def test_periodic_crossing_uses_accepted_minimum_image_and_matches_lammps() -> N
     )
     assert lammps.energy_pN_nm == pytest.approx(
         analytical.energy_pN_nm, rel=1e-12, abs=1e-10
+    )
+    assert np.allclose(
+        lammps.forces_pN, analytical.forces_pN, rtol=2e-12, atol=2e-9
+    )
+    assert np.allclose(
+        lammps.configurational_virial_pN_nm,
+        analytical.virial_pN_nm,
+        rtol=2e-12,
+        atol=2e-9,
+    )
+
+
+def test_periodic_nonlinear_domain_uses_minimum_image_not_raw_separation() -> None:
+    wrapped = np.array([[4.6, 0.0], [-4.5, 0.3]])
+    first = Atom(1, 1, 1, wrapped[0, 0], wrapped[0, 1], 0.0)
+    second = Atom(2, 1, 1, wrapped[1, 0], wrapped[1, 1], 0.0)
+    displacement, _image_offset = minimum_image_displacement_2d(
+        first, second, (-5.0, 5.0, 0.0, -4.0, 4.0)
+    )
+    analytical = _oracle().nonlinear_bond(np.vstack((np.zeros(2), displacement)))
+    lammps = run_lammps_bond_fixture(
+        PROFILE,
+        style="nonlinear",
+        positions_nm=wrapped,
+        box_lengths_nm=(10.0, 8.0),
+    )
+    assert lammps.energy_pN_nm == pytest.approx(
+        analytical.energy_pN_nm, rel=2e-12, abs=2e-10
     )
     assert np.allclose(
         lammps.forces_pN, analytical.forces_pN, rtol=2e-12, atol=2e-9

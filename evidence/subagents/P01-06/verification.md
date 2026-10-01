@@ -36,7 +36,7 @@ missing production implementation.
 & 'C:\Users\mzora\MechWorld\.venv\Scripts\python.exe' -m pytest tests/physics/test_energy_force_virial.py -q --junitxml=evidence/subagents/P01-06/focused.xml
 ```
 
-Exit `0`: **23 passed in 2.33s**; measured outer wall time `3.124s`.
+Exit `0`: **26 passed in 1.87s**; measured outer wall time `2.569s`.
 The suite directly instantiated LAMMPS 20260902; no solver-dependent test was
 skipped.
 
@@ -46,7 +46,7 @@ skipped.
 & 'C:\Users\mzora\MechWorld\.venv\Scripts\python.exe' -m pytest tests/physics/test_energy_force_virial.py tests/physics/test_physics_profiles.py tests/unit/test_periodic_geometry.py -q --junitxml=evidence/subagents/P01-06/compatibility.xml
 ```
 
-Exit `0`: **53 passed in 2.41s**; measured outer wall time `3.558s`.
+Exit `0`: **56 passed in 2.07s**; measured outer wall time `2.812s`.
 This checks the new oracle together with immutable profile validation and the
 accepted periodic-geometry contract without adding a competing image convention.
 
@@ -56,7 +56,7 @@ accepted periodic-geometry contract without adding a competing image convention.
 & 'C:\Users\mzora\MechWorld\.venv\Scripts\python.exe' -m pytest -q --junitxml=evidence/subagents/P01-06/full.xml
 ```
 
-Exit `0`: **150 passed in 5.61s**; measured outer wall time `6.719s`.
+Exit `0`: **153 passed in 3.96s**; measured outer wall time `4.885s`.
 
 ## Compilation
 
@@ -64,7 +64,7 @@ Exit `0`: **150 passed in 5.61s**; measured outer wall time `6.719s`.
 & 'C:\Users\mzora\MechWorld\.venv\Scripts\python.exe' -m py_compile src/pgworld/physics/__init__.py src/pgworld/physics/energy_force_virial.py src/pgworld/physics/lammps_oracle.py tests/physics/test_energy_force_virial.py
 ```
 
-Exit `0`; measured wall time `0.126s`.
+Exit `0`; measured wall time `0.127s`.
 
 ## Real-LAMMPS comparison reproducer
 
@@ -93,6 +93,13 @@ metadata driver exited `0` in `0.370s`: the moving fixture used the profile's
 increment of `7.119312169123759e-06 pN/nm`, versus the reconstructable
 `2*m/A = 7.119312169647791e-06 pN/nm`. It explicitly records no physical-time
 claim.
+
+A final periodic-nonlinear driver exited `0` in `1.697s`. The raw wrapped
+separation exceeded the nonlinear pole, while the accepted minimum-image vector
+was `(0.9000000000000004, 0.3) nm` with offset `(1, 0)`. LAMMPS matched the
+local analytical oracle with zero energy difference, force difference
+`2.220446049250313e-16 pN`, and virial difference
+`1.1102230246251565e-16 pN nm`.
 
 ## Tolerances
 
@@ -128,6 +135,22 @@ mathematical/sign/domain/unit/provenance blocker. Their fresh read-only check
 observed **23 focused tests passed in 2.39s**, `py_compile` passed, and
 `git diff --check` passed.
 
+## Final fail-closed follow-up
+
+Integrator review found that the public harmonic LAMMPS fixture did not reject
+zero length before solver construction and that nonlinear validation used raw
+wrapped separation. The new regression returned **3 failed, 23 passed in
+2.24s** before the fix; exact summary is in `followup_red.txt`. The final helper
+computes an orthogonal minimum-image vector before solver construction, rejects
+zero length for harmonic and nonlinear fixtures, and uses the same distance for
+the nonlinear open-domain guard.
+
+The independent reviewer returned **ACCEPT** on the follow-up: **26 focused
+tests passed in 1.94s**, diff-check had only line-ending warnings, and an
+independent 10,000-case orthogonal-box comparison against the accepted periodic
+helper found maximum length mismatch `0`. The reviewer noted that half-box tie
+sign is immaterial because this private validation helper consumes only length.
+
 ## Source/config hashes
 
 Hashes are SHA-256 after the final verification rerun:
@@ -135,8 +158,8 @@ Hashes are SHA-256 after the final verification rerun:
 ```text
 3bf12a2070d80262f3c050a5bc3eac8f9809412bd1050a73a03631a7ec9074c8  src/pgworld/physics/__init__.py
 cf4633882d7b208fe718c0560158992500a5fdf57477b2523e974631eabb2ce4  src/pgworld/physics/energy_force_virial.py
-a58c8d3905b919ee5a2cd6d87ca8f983c8e07744377883aa2b34046540c02b35  src/pgworld/physics/lammps_oracle.py
-d3ad8076e665185ec4d43d7a9af7f719555fe222bcbe46c27828a7c00f457b8d  tests/physics/test_energy_force_virial.py
+1eae46778a32128259a2534e34fda17ee6a9f79a18622df97bc38a73774f7426  src/pgworld/physics/lammps_oracle.py
+4e8bbe2b309656c534132c0fc9207da7f6d72015ff0faf326613441648cdd755  tests/physics/test_energy_force_virial.py
 bd366c6157cbcd273ff08afe6ae30d6756417a8ad340ffb22a6f452747256d54  configs/physics/reviewed_physics_provisional_v0.json
 ```
 
