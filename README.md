@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-09-30 after integrating the parser and LAMMPS-environment subagent commits.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-09-30 after integrating the parser and LAMMPS-environment evidence and assigning the bounded distribution repair.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -25,7 +25,7 @@ Latest integration verification: the LAMMPS target passed 2 tests with no skips 
 
 - P00-05: review the remaining read-only physics-audit report and close the initial isolated-delegation workflow.
 - P01-01: add general-triclinic rejection and repeated/large-offset image-shift and persistent-identity coverage; the parser slice alone does not complete the task.
-- P01-03: reproduce A05 and implement a bounded, explicitly defined distribution sampler.
+- P01-03 on `research/p01-03-distributions`: reproduce A05 first, then implement and statistically test a bounded, explicitly defined distribution sampler without changing the inherited number-law meaning.
 - P01-05 support on `research/p01-05-physics-audit`: perform a source-only physics/units audit without self-approving lab-dependent coefficients.
 - Compatibility follow-up: seven inherited plotting/result scripts fail Python 3.11 compilation because of nested f-string quote syntax; targeted repaired files compile, and the broader issue is queued before P01-11.
 

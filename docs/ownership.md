@@ -17,3 +17,11 @@ Editing worktrees were verified with `git worktree list --porcelain` before dele
 Integration state: the parser commit was reviewed and integrated as `912c9cc`; its integration rerun passed 3 targeted and 12 total tests. The environment commit was reviewed and integrated as `4faeab1`; its doctor exited 0 and integration rerun passed 2 targeted and 14 total tests. The physics audit remains report-only and active. Generated untracked bytecode in isolated worktrees was neither committed nor treated as user source.
 
 Exact branch, worktree, base revision, commands, runtime limit, and return-report path are recorded when each assignment is launched. The main checkout is the integration worktree. Subagent reports are evidence inputs, not automatic task acceptance.
+
+## Second wave
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Distribution/data | `research/p01-03-distributions`; `C:/Users/mzora/MechWorld-wt-p01-03` | P01-03: first capture A05 in an exact red regression, then replace expanded legacy arrays with a bounded discrete sampler while preserving and documenting number- versus weight-fraction semantics | `src/assemble_pg_network.py`, `tests/unit/test_distributions.py`, `evidence/subagents/P01-03/`, `docs/subagents/P01-03-distributions.md` | No ledger, README, shared-contract, or unrelated source edits; no task-completion or scientific-validation claim |
+
+This assignment uses base `d4274c14ed0da667a9e67e50138e20363a03457a`. It may run only bounded unit/smoke work locally and must return exact red/green commands, statistical tolerances, changed-random-stream implications, and a sole-author commit for integrator review.

@@ -18,7 +18,7 @@
 - Repository-local Git identity is set to Mohammad Zoraiz <zoraizmohammad@gmail.com>; effective author and committer values were checked with `git var`.
 - Available local solver: LAMMPS 2 Sep 2026. A bounded library `run 0` completed and the instance closed. Repeatable project doctor/integration evidence is assigned under P00-03.
 - No simulation, training, viewer, or experimental job is running. Historical Hoffman2 job IDs in `status.md` have not been verified remotely because scheduler clients/access are absent.
-- Three native subagents were launched from base `c0ec8aa`. The P01-01 parser and P00-03 environment commits were path-reviewed, independently rerun, and integrated as `912c9cc` and `4faeab1`. The P01-05 read-only physics-audit worktree remains active. Exact ownership is in `docs/ownership.md`; none owns the root ledger, README, or shared contracts.
+- Three native subagents were launched from base `c0ec8aa`. The P01-01 parser and P00-03 environment commits were path-reviewed, independently rerun, and integrated as `912c9cc` and `4faeab1`. The P01-05 read-only physics-audit worktree remains active. A second-wave P01-03 distribution assignment was launched from `d4274c1` in its own worktree. Exact ownership is in `docs/ownership.md`; none owns the root ledger, README, or shared contracts.
 - P01-02 repaired the reproduced A03/A04/A06 control-flow defects: analysis filters now accumulate, one-shot output criteria mutate the caller-owned schedule, and the ensemble wrapper passes the current minimizer API by explicit keywords while preserving requested initial/final dumps and remap selection.
 
 ## ✅ Verification & Hard Evidence
@@ -48,7 +48,7 @@
 
 1. [ ] Finish P00-05 by reviewing the remaining read-only physics audit and verifying all three ownership boundaries.
 2. [ ] Continue P01-01 with general-triclinic rejection and repeated/large-offset periodic image/identity tests; do not mark the task complete before those pass.
-3. [ ] P01-03: capture the A05 uniform-distribution failure, replace expanded distributions with a bounded sampler, and document number-versus-weight fractions.
+3. [ ] Review P01-03 from `research/p01-03-distributions`: capture the A05 uniform-distribution failure, replace expanded distributions with a bounded sampler, and document number-versus-weight fractions.
 4. [ ] Independently review the subagent diffs and rerun targeted plus inherited tests in the integration worktree before each commit.
 5. [ ] Continue the eligible distribution/RNG repairs after recording their own failing regressions while P00-06 and lab inputs remain blocked.
 6. [ ] Repair and test the seven inherited Python 3.11 figure-script syntax failures before P01-11 clean-install acceptance.

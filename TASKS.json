@@ -449,7 +449,7 @@
       "id": "P01-03",
       "work_package": "WP1",
       "title": "Replace expanded distributions with documented discrete samplers",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "data",
       "execution_kind": "agent",
       "mandatory": true,
@@ -475,7 +475,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": "Do not silently substitute the weight-fraction law for the inherited number-fraction law."
+      "notes": "Do not silently substitute the weight-fraction law for the inherited number-fraction law. Isolated implementation assigned on research/p01-03-distributions at d4274c1 with source, focused tests, subagent evidence, and return report as the only writable paths."
     },
     {
       "id": "P01-04",
