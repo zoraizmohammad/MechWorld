@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after integrating bounded distributions and isolated local run management; periodic-identity and current related-work review remain active.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting the periodic-identity repair; current related-work review remains active and P01-04/P01-09 are the next eligible engineering tasks.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -13,7 +13,7 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after integrati
 | Historical defects | Reproduced, then regression-repaired | The original A01-A05 failures remain archived under `evidence/source_audit_live/`; the current pure-Python diagnostic observes all five repaired, without invoking LAMMPS |
 | LAMMPS environment | Verified for bounded serial smoke work | P00-03 doctor exited 0 on a real bonded fixture; required styles and analytical component energies passed; actual rupture/MPI/GPU/production use remain unvalidated |
 | Run isolation | Local adapter verified | P01-08 lifecycle/concurrency tests pass and a real serial LAMMPS `run 0` completed through its immutable run directory; inherited runners and restart equivalence are not yet migrated/validated |
-| Inherited mechanics repair | In progress | P01-02 A03/A04/A06, the A01/A02 parser slice, and P01-03 A05 bounded distributions are integrated; broader periodic image/identity work remains |
+| Inherited mechanics repair | In progress | P01-01 through P01-03 and P01-08 are integrated; canonical edge schema, reproducible generation, dimensional analysis repair, and human-reviewed physics mapping remain |
 | Physics/units contract | Audit complete; human review blocked | Current 2D tension conversion is sound; A16 has a definite factor-1000 energy-density defect; A12 coarse-grain stiffness/angle mapping, reference state, physical time, and any 3D thickness remain unapproved |
 | Rupture, dataset, models, evaluation, explorer | Not started | Dependency-gated behind verified mechanics and actual topology-changing trajectories |
 | Experimental validation | Blocked on human/data inputs | Actual lab protocol, acquisition, raw files, calibration, and review cannot be fabricated or replaced by synthetic data |
@@ -21,12 +21,13 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after integrati
 
 No simulation, training, viewer, or experimental job is currently running.
 
-Latest integration verification: P01-08 passed 10 targeted tests and the complete suite passed 50 tests; a real serial LAMMPS 2 Sep 2026 one-atom `run 0` completed through the new manager and closed successfully. P01-03 separately passed 26 targeted tests, and its historical diagnostic observes A01-A05 repaired. Exact evidence is under `evidence/integration/`.
+Latest integration verification: P01-01 passed 15 focused periodic-geometry tests and the complete merged suite passed 62 tests; its 1,000-case restricted-triclinic minimum-image oracle also passed. P01-08 separately completed a real serial LAMMPS 2 Sep 2026 one-atom `run 0` through the new manager and closed successfully. Exact evidence is under `evidence/integration/`.
 
 ## Active work
 
-- P01-01 on `research/p01-01-periodic-identities`: add general-triclinic rejection and repeated/large-offset image-shift and persistent-identity coverage; the parser slice alone does not complete the task.
-- P01-04 is newly eligible after P01-03: add namespaced RNG streams, achieved-network metrics, and high-precision serialization after the active P01-01 ownership of `src/lammps_PG_objects.py` clears.
+- P01-01 is done: its parser and periodic-identity slices now cover tilted bounds, unsupported-form rejection, arbitrary wrapping/image shifts, exact 2D minimum images, and persistent atom identity. Persistent per-edge image identity remains explicitly assigned to P03-01.
+- P01-04 is eligible: add namespaced RNG streams, achieved-network metrics, and high-precision serialization.
+- P01-09 is eligible: make grouped analysis idempotent and non-destructive, preserve independent-network interpolation, and repair the verified factor-1000 energy-density label/conversion defect without changing unapproved material parameters.
 - P10-01 on `research/p10-01-related-work`: verify the current primary-source overlap matrix and bibliography; prior fracture GNNs already rule out any broad “first learned fracture simulator” claim.
 - P01-05 is blocked for Mohammad/lab review: choose the coarse-grain mapping and parameter profile, reference/observable conventions, physical-time scope, and any thickness; do not apply a blind factor-of-two coefficient edit.
 - Compatibility follow-up: seven inherited plotting/result scripts fail Python 3.11 compilation because of nested f-string quote syntax; targeted repaired files compile, and the broader issue is queued before P01-11.
@@ -44,4 +45,4 @@ cd C:\Users\mzora\MechWorld
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Current verified result after the integrated control-flow, parser, environment, distribution, and run-isolation tests: 50 passed. The untouched bootstrap result was 5 passed after dependency repair. Neither result is by itself a mechanics, model, experiment, or release gate.
+Current verified result after the integrated control-flow, parser/periodic-identity, environment, distribution, and run-isolation tests: 62 passed. The untouched bootstrap result was 5 passed after dependency repair. Neither result is by itself a mechanics, model, experiment, or release gate.

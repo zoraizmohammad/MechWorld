@@ -375,7 +375,7 @@
       "id": "P01-01",
       "work_package": "WP1",
       "title": "Repair orthogonal/triclinic dump geometry and periodic identities",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "data",
       "execution_kind": "agent",
       "mandatory": true,
@@ -398,7 +398,7 @@
       "planned_verification_commands": [
         "python -m pytest tests/unit/test_periodic_geometry.py -q"
       ],
-      "verification_commands_status": "PARSER_SLICE_EXECUTED_INTEGRATION_2026-09-30; RED_3_FAILED; TARGETED_3_PASSED; FULL_SUITE_12_PASSED; PERIODIC_IDENTITY_WORK_REMAINS",
+      "verification_commands_status": "EXECUTED_INTEGRATION_2026-10-01; INITIAL_RED_9_FAILED_3_PASSED; REVIEW_RED_ORIENTATION_1_FAILED; REVIEW_RED_XZ_YZ_REJECTION_1_FAILED; TARGETED_15_PASSED_6.18S; FULL_SUITE_62_PASSED_9.35S; PY_COMPILE_PASS; ORACLE_1000_PASS",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [
         "src/import_data_from_dumps.py",
@@ -408,10 +408,18 @@
         "evidence/integration/P01-01/verification.md",
         "evidence/integration/P01-01/targeted.xml",
         "evidence/integration/P01-01/full_suite.xml",
-        "evidence/integration/P01-01/source_audit_after/reproduced_issues.json"
+        "evidence/integration/P01-01/source_audit_after/reproduced_issues.json",
+        "docs/subagents/P01-01-identities.md",
+        "evidence/subagents/P01-01-identities/red-regression-exact.txt",
+        "evidence/subagents/P01-01-identities/red-orientation-integration-exact.txt",
+        "evidence/subagents/P01-01-identities/red-out-of-plane-rejection-exact.txt",
+        "evidence/subagents/P01-01-identities/verification.md",
+        "evidence/integration/P01-01-identities/verification.md",
+        "evidence/integration/P01-01-identities/targeted.xml",
+        "evidence/integration/P01-01-identities/full_suite.xml"
       ],
       "blocked_by": [],
-      "notes": "A01/A02 orthogonal and restricted-triclinic bounds parser slice is integrated. The remaining explicit general-triclinic rejection plus repeated/large-offset wrapping, image-shift, minimum-image, and persistent periodic-identity slice is assigned on research/p01-01-periodic-identities at 833273e; keep P01-01 IN_PROGRESS until integration verification passes."
+      "notes": "Completed in two reviewed slices. Orthogonal/restricted-triclinic bound parsing, explicit unsupported general/3D tilt rejection, arbitrary signed wrapping, image-shift accumulation, exact 2D skew-cell minimum image, glycan-orientation integration, column/row-order-independent integer atom IDs, and duplicate-ID rejection are verified. Canonical persistent per-edge image offsets and stable edge schema remain explicitly owned by P03-01; scaled/unwrapped and general 3D coordinates remain unsupported."
     },
     {
       "id": "P01-02",
