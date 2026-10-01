@@ -1,0 +1,23 @@
+Command: C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest tests/physics/test_energy_force_virial.py -q
+CWD: C:\Users\mzora\MechWorld-wt-p01-06
+Exit status: 1
+
+=================================== ERRORS ====================================
+_________ ERROR collecting tests/physics/test_energy_force_virial.py __________
+ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p01-06\tests\physics\test_energy_force_virial.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\physics\test_energy_force_virial.py:23: in <module>
+    from pgworld.physics.energy_force_virial import (
+E   ModuleNotFoundError: No module named 'pgworld.physics'
+=========================== short test summary info ===========================
+ERROR tests/physics/test_energy_force_virial.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.53s
+
+Interpretation: the acceptance interface and regressions existed before the
+production physics-oracle package. The earlier path-only collection failure was
+corrected before this preserved red run so this record isolates the missing
+implementation rather than test bootstrapping.

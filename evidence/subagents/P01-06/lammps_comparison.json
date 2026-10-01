@@ -1,0 +1,233 @@
+{
+  "all_solver_instances_closed": true,
+  "comparisons": [
+    {
+      "energy_abs_error_pN_nm": 0.0,
+      "force_max_abs_error_pN": 0.0,
+      "name": "harmonic_r=0.83",
+      "solver_closed": true,
+      "solver_version": 20260902,
+      "virial_max_abs_error_pN_nm": 0.0
+    },
+    {
+      "energy_abs_error_pN_nm": 0.0,
+      "force_max_abs_error_pN": 0.0,
+      "name": "harmonic_r=1.03",
+      "solver_closed": true,
+      "solver_version": 20260902,
+      "virial_max_abs_error_pN_nm": 0.0
+    },
+    {
+      "energy_abs_error_pN_nm": 0.0,
+      "force_max_abs_error_pN": 0.0,
+      "name": "harmonic_r=1.23",
+      "solver_closed": true,
+      "solver_version": 20260902,
+      "virial_max_abs_error_pN_nm": 4.547473508864641e-13
+    },
+    {
+      "energy_abs_error_pN_nm": 0.0,
+      "force_max_abs_error_pN": 8.881784197001252e-16,
+      "name": "nonlinear_fraction=-0.04",
+      "solver_closed": true,
+      "solver_version": 20260902,
+      "virial_max_abs_error_pN_nm": 8.881784197001252e-16
+    },
+    {
+      "energy_abs_error_pN_nm": 0.0,
+      "force_max_abs_error_pN": 0.0,
+      "name": "nonlinear_fraction=0.0",
+      "solver_closed": true,
+      "solver_version": 20260902,
+      "virial_max_abs_error_pN_nm": 0.0
+    },
+    {
+      "energy_abs_error_pN_nm": 0.0,
+      "force_max_abs_error_pN": 1.7763568394002505e-15,
+      "name": "nonlinear_fraction=0.12",
+      "solver_closed": true,
+      "solver_version": 20260902,
+      "virial_max_abs_error_pN_nm": 0.0
+    },
+    {
+      "energy_abs_error_pN_nm": 0.0,
+      "force_max_abs_error_pN": 4.547473508864641e-13,
+      "name": "nonlinear_fraction=0.9",
+      "solver_closed": true,
+      "solver_version": 20260902,
+      "virial_max_abs_error_pN_nm": 1.8189894035458565e-12
+    },
+    {
+      "energy_abs_error_pN_nm": 0.0,
+      "force_max_abs_error_pN": 1.4210854715202004e-14,
+      "name": "harmonic_angle_noncollinear",
+      "solver_closed": true,
+      "solver_version": 20260902,
+      "virial_max_abs_error_pN_nm": 1.4210854715202004e-14
+    }
+  ],
+  "kinetic_pressure_xx_increment_pN_per_nm": 7.119312169123759e-06,
+  "lammps_version": 20260902,
+  "max_energy_abs_error_pN_nm": 0.0,
+  "max_force_abs_error_pN": 4.547473508864641e-13,
+  "max_virial_abs_error_pN_nm": 1.8189894035458565e-12,
+  "moving_fixture_metadata": {
+    "area_nm2": 120.0,
+    "box_lengths_nm": [
+      12.0,
+      10.0
+    ],
+    "expected_increment_2m_over_area_pN_per_nm": 7.119312169647791e-06,
+    "fixture_mass_ag": 0.0004271587301788674,
+    "fixture_mass_source": "physics_profile",
+    "physical_time_claim": false,
+    "positions_nm": [
+      [
+        -0.59,
+        0.0
+      ],
+      [
+        0.59,
+        0.0
+      ]
+    ],
+    "profile_mass_ag": 0.0004271587301788674,
+    "solver_closed": true,
+    "velocities_nm_per_ns": [
+      [
+        1.0,
+        0.0
+      ],
+      [
+        1.0,
+        0.0
+      ]
+    ]
+  },
+  "periodic_crossing_case": {
+    "energy_abs_error_pN_nm": 0.0,
+    "force_max_abs_error_pN": 1.1368683772161603e-13,
+    "image_offset": [
+      1,
+      0
+    ],
+    "minimum_image_displacement_nm": [
+      0.9000000000000004,
+      0.3
+    ],
+    "solver_closed": true,
+    "virial_max_abs_error_pN_nm": 5.684341886080802e-14,
+    "wrapped_positions_nm": [
+      [
+        4.6,
+        0.0
+      ],
+      [
+        -4.5,
+        0.3
+      ]
+    ]
+  },
+  "profile_hash": "sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5",
+  "profile_id": "reviewed_physics_provisional_v0",
+  "schema_version": 1,
+  "scope": "numerical implementation consistency; not biological certification",
+  "registered_profile_cases": [
+    {
+      "canonical_hash": "sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b",
+      "energy_abs_error_pN_nm": 0.0,
+      "energy_pN_nm": 1.8720052579948079,
+      "epsilon_pN_nm": 185.328520541486,
+      "force_max_abs_error_pN": 1.7763568394002505e-15,
+      "lambda_nm": 4.034069292365436,
+      "profile_id": "legacy_python_2026_03_12_v1",
+      "r0_nm": 1.0,
+      "sample_distance_nm": 1.4034069292365436,
+      "solver_closed": true,
+      "virial_max_abs_error_pN_nm": 1.7763568394002505e-15
+    },
+    {
+      "canonical_hash": "sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0",
+      "energy_abs_error_pN_nm": 0.0,
+      "energy_pN_nm": 0.0018744182048666467,
+      "epsilon_pN_nm": 0.185567402281798,
+      "force_max_abs_error_pN": 0.0,
+      "lambda_nm": 4.035190236993014,
+      "profile_id": "legacy_direct_isotropic_pre_unit_fix_v1",
+      "r0_nm": 1.0,
+      "sample_distance_nm": 1.4035190236993014,
+      "solver_closed": true,
+      "virial_max_abs_error_pN_nm": 0.0
+    },
+    {
+      "canonical_hash": "sha256:b005c666d187538d60bbe6f924959473d6823e2287089e11621a1fc0dbc43771",
+      "energy_abs_error_pN_nm": 0.0,
+      "energy_pN_nm": 0.0017262626262626267,
+      "epsilon_pN_nm": 0.1709,
+      "force_max_abs_error_pN": 0.0,
+      "lambda_nm": 4.0878,
+      "profile_id": "legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1",
+      "r0_nm": 0.9065,
+      "sample_distance_nm": 1.31528,
+      "solver_closed": true,
+      "virial_max_abs_error_pN_nm": 0.0
+    },
+    {
+      "canonical_hash": "sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5",
+      "energy_abs_error_pN_nm": 0.0,
+      "energy_pN_nm": 1.8720052579948079,
+      "epsilon_pN_nm": 185.328520541486,
+      "force_max_abs_error_pN": 1.7763568394002505e-15,
+      "lambda_nm": 4.034069292365436,
+      "profile_id": "reviewed_physics_provisional_v0",
+      "r0_nm": 1.0,
+      "sample_distance_nm": 1.4034069292365436,
+      "solver_closed": true,
+      "virial_max_abs_error_pN_nm": 1.7763568394002505e-15
+    }
+  ],
+  "registered_profile_fixture_metadata": [
+    {
+      "fixture_mass_ag": 0.0004271587301788674,
+      "fixture_mass_source": "physics_profile",
+      "profile_id": "legacy_python_2026_03_12_v1",
+      "recorded_positions_match": true,
+      "recorded_zero_velocities": true,
+      "velocities_present": false
+    },
+    {
+      "fixture_mass_ag": 1.0,
+      "fixture_mass_source": "explicit_synthetic_override",
+      "profile_id": "legacy_direct_isotropic_pre_unit_fix_v1",
+      "recorded_positions_match": true,
+      "recorded_zero_velocities": true,
+      "velocities_present": false
+    },
+    {
+      "fixture_mass_ag": 1.0,
+      "fixture_mass_source": "explicit_synthetic_override",
+      "profile_id": "legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1",
+      "recorded_positions_match": true,
+      "recorded_zero_velocities": true,
+      "velocities_present": false
+    },
+    {
+      "fixture_mass_ag": 0.0004271587301788674,
+      "fixture_mass_source": "physics_profile",
+      "profile_id": "reviewed_physics_provisional_v0",
+      "recorded_positions_match": true,
+      "recorded_zero_velocities": true,
+      "velocities_present": false
+    }
+  ],
+  "two_edge_series": {
+    "effective_tangent_pN_per_nm": 5570.0,
+    "energy_abs_error_pN_nm": 0.0,
+    "force_max_abs_error_pN": 0.0,
+    "middle_force_abs_pN": 0.0,
+    "rest_length_nm": 2.06,
+    "solver_closed": true,
+    "virial_max_abs_error_pN_nm": 5.684341886080802e-14
+  },
+  "z_width_pressure_max_abs_difference_pN_per_nm": 0.0
+}
