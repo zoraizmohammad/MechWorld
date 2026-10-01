@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "recorded_utc": "2026-10-01T03:42:31.9585311Z",
+  "task_id": "P00-03",
+  "base_commit": "c0ec8aa7ed99ecf8cb21f0a9bf8223447743fc39",
+  "branch": "research/p00-03-environment",
+  "cwd": "C:/Users/mzora/MechWorld-wt-p00-03",
+  "interpreter": "C:/Users/mzora/MechWorld/.venv/Scripts/python.exe",
+  "commands": [
+    {
+      "command": "C:/Users/mzora/MechWorld/.venv/Scripts/python.exe tools/doctor.py --output evidence/subagents/P00-03/doctor.json",
+      "exit_status": 0,
+      "result": "ok=true; LAMMPS 20260902 instantiated; bonded fixture and required-style checks passed; solver closed",
+      "artifact": "evidence/subagents/P00-03/doctor.json"
+    },
+    {
+      "command": "C:/Users/mzora/MechWorld/.venv/Scripts/python.exe -m pytest tests/integration/test_lammps_smoke.py -q --junitxml=evidence/subagents/P00-03/pytest.xml",
+      "exit_status": 0,
+      "result": "2 passed in 1.65s (JUnit suite time 1.604s); no skips",
+      "artifact": "evidence/subagents/P00-03/pytest.xml"
+    },
+    {
+      "command": "C:/Users/mzora/MechWorld/.venv/Scripts/python.exe -m pytest -q --junitxml=evidence/subagents/P00-03/pytest_full.xml",
+      "exit_status": 0,
+      "result": "7 passed in 9.44s (JUnit suite time 9.469s); no skips",
+      "artifact": "evidence/subagents/P00-03/pytest_full.xml"
+    },
+    {
+      "command": "C:/Users/mzora/MechWorld/.venv/Scripts/python.exe -m py_compile tools/doctor.py tests/integration/test_lammps_smoke.py",
+      "exit_status": 0,
+      "result": "both Python files compiled"
+    }
+  ],
+  "failed_approaches": [
+    {
+      "command": "C:/Users/mzora/MechWorld/.venv/Scripts/python.exe -S tools/doctor.py --output evidence/subagents/P00-03/doctor_missing_dependency.json; require doctor exit 1",
+      "wrapper_exit_status": 99,
+      "observed_result": "doctor still exited 0 because this Windows installation remained importable with -S",
+      "cause": "-S did not remove the separately registered local LAMMPS Python path",
+      "lesson": "do not use -S as a portable missing-dependency simulation; the committed negative-path test shadows lammps through a temporary PYTHONPATH module instead",
+      "artifact_retained": false
+    }
+  ],
+  "sha256": {
+    "tools/doctor.py": "b99ca462e0b967adab55b14545cb2b0849f54a2c9439cd28b176954148a10848",
+    "tests/integration/test_lammps_smoke.py": "8f771739ea669fc00563db83813cd393e8c15a7529bde45f5315ff739b8b977c",
+    "src/simulation_constants_settings.py": "d61bfcea59b4bcc2dac40dacd20d86471f252eaf4c236aab83dd1fb8f751089a",
+    "src/units.py": "d92ecdeda0615b8c372ef69769adbf00b040c2bfc33f9704c3b0e157b1128b6d",
+    "evidence/subagents/P00-03/doctor.json": "5a36e36b847c969b1e3558ac1717231efd10433e21b26c28312cc2659ddc8e19",
+    "evidence/subagents/P00-03/pytest.xml": "94fae2ef3df44c80123ad64385e0eb3687c6e0532d0a73665e9f4b3522ce5a74",
+    "evidence/subagents/P00-03/pytest_full.xml": "cef4538e15a77331638a85182ebff1692b83054dc3555939aa18990b7edd33c2"
+  },
+  "limitations": [
+    "The fixture executes run 0 only and establishes no physical-time behavior.",
+    "fix bond/break is configured and immediately removed without any dynamics; no rupture or quasi-static event loop is validated.",
+    "Inherited coefficient tuples are exercised unchanged, but their units, provenance, and scientific suitability are not approved.",
+    "MPI, GPU acceleration, production-scale behavior, minimization, and PG-network correctness are outside this smoke check."
+  ]
+}
