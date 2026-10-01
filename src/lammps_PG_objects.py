@@ -2,11 +2,25 @@ import numpy as np;
 import numpy.typing as npt;
 from typing import Union; # P3.9 on Hoffman2
 from dataclasses import dataclass;
-from random import random;
+import random as python_random;
 from utils_helpers import get_angle_between_vectors;
 from math import floor, ceil
 
 from simulation_constants_settings import *
+
+DATAFILE_SIGNIFICANT_DIGITS = 17
+
+
+def format_datafile_float(value, significant_digits=DATAFILE_SIGNIFICANT_DIGITS):
+    """Format a finite scalar for a round-trippable LAMMPS text data file."""
+    if isinstance(significant_digits, bool) or not isinstance(significant_digits, int):
+        raise ValueError("significant_digits must be an integer")
+    if significant_digits < 1 or significant_digits > 17:
+        raise ValueError("significant_digits must be between 1 and 17")
+    value = float(value)
+    if not np.isfinite(value):
+        raise ValueError("LAMMPS data-file values must be finite")
+    return format(value, f".{significant_digits}g")
 
 # LAAMPS ENERGY (& TENSION) FUNCTIONS
 def peptide_energy_lammps(bond_distance) -> Union[float,None]:
@@ -135,8 +149,10 @@ class Atom:
         self.v_glycan = None;
         self.v_stem = None;
     
-    def run_bernoulli_trial(self, p : float):
-        self.is_inclined_to_peptide = (random() < p);
+    def run_bernoulli_trial(self, p : float, random_source=None):
+        """Draw material eligibility from an injected stream when supplied."""
+        source = python_random if random_source is None else random_source
+        self.is_inclined_to_peptide = (source.random() < p);
     
     def set_stem_vector(self, glycan_angle : float):
         self.v_glycan = np.array([-np.sin(glycan_angle), np.cos(glycan_angle)]);
@@ -158,8 +174,20 @@ class Atom:
         self.y += dy;
         self.z += dz;
 
-    def to_datafile(self, f):
-        f.write(f"{self.id} {self.mol_id} {self.atom_type} {self.x:.2f} {self.y:.2f} {self.z:.2f}\n")
+    def to_datafile(self, f, significant_digits=DATAFILE_SIGNIFICANT_DIGITS):
+        """Write one atom and return absolute coordinate round-trip errors."""
+        coordinates = (self.x, self.y, self.z)
+        tokens = tuple(
+            format_datafile_float(value, significant_digits) for value in coordinates
+        )
+        f.write(
+            f"{self.id} {self.mol_id} {self.atom_type} "
+            f"{' '.join(tokens)}\n"
+        )
+        return tuple(
+            abs(float(token) - float(value))
+            for token, value in zip(tokens, coordinates)
+        )
 
     def is_eligible(self) -> bool:
         if self.is_inclined_to_peptide and not self.has_peptide:

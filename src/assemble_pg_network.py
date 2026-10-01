@@ -3,11 +3,20 @@ import numpy as np
 from bisect import bisect_right
 from collections.abc import Sequence
 from dataclasses import dataclass, field
-from math import floor, ceil
+import hashlib
+import json
+from math import floor, ceil, sqrt
 from numbers import Integral
-from random import randrange, random, shuffle
+import random as python_random
 from collections import defaultdict
-from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule
+from lammps_PG_objects import (
+    DATAFILE_SIGNIFICANT_DIGITS,
+    Atom,
+    Bond,
+    Angle,
+    GlycanMolecule,
+    format_datafile_float,
+)
 from simulation_constants_settings import *
 from lammps_PG_objects import peptide_energy_lammps, shortest_path_is_periodic_x, shortest_path_is_periodic_y
 import matplotlib.pyplot as plt
@@ -15,7 +24,99 @@ import matplotlib.colors as mpl_colors
 from scipy.stats import gamma, lognorm
 from operator import methodcaller
 
-rng = np.random.default_rng()
+RNG_STREAM_NAMES = (
+    "geometry",
+    "material_disorder",
+    "events",
+    "model_training",
+)
+_RNG_DERIVATION_DOMAIN = b"pgworld-pg-rng-v1\0"
+
+
+@dataclass(frozen=True)
+class RNGSeeds:
+    """Explicit seeds for independent present and future stochastic systems.
+
+    Only ``geometry`` is consumed by the current network generator. Material
+    disorder, event, and model-training seeds are exposed for downstream
+    components without pretending those components exist in this module.
+    """
+
+    geometry: int
+    material_disorder: int
+    events: int
+    model_training: int
+
+    def __post_init__(self) -> None:
+        for name in RNG_STREAM_NAMES:
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, Integral) or value < 0:
+                raise ValueError(f"{name} seed must be a nonnegative integer")
+            object.__setattr__(self, name, int(value))
+
+    @classmethod
+    def from_master(cls, master_seed: int) -> "RNGSeeds":
+        if (
+            isinstance(master_seed, bool)
+            or not isinstance(master_seed, Integral)
+            or master_seed < 0
+        ):
+            raise ValueError("master seed must be a nonnegative integer")
+        encoded_master = str(int(master_seed)).encode("ascii")
+        derived = {}
+        for name in RNG_STREAM_NAMES:
+            digest = hashlib.sha256(
+                _RNG_DERIVATION_DOMAIN
+                + encoded_master
+                + b"\0"
+                + name.encode("ascii")
+            ).digest()
+            derived[name] = int.from_bytes(digest[:8], "big")
+        return cls(**derived)
+
+    def as_dict(self) -> dict[str, int]:
+        return {name: int(getattr(self, name)) for name in RNG_STREAM_NAMES}
+
+    def stream(self, name: str, backend: str = "python"):
+        if backend != "python":
+            raise ValueError(f"unsupported RNG backend '{backend}'; expected 'python'")
+        if name not in RNG_STREAM_NAMES:
+            raise ValueError(
+                f"unknown RNG stream '{name}'; expected one of {RNG_STREAM_NAMES}"
+            )
+        return python_random.Random(getattr(self, name))
+
+
+@dataclass(frozen=True)
+class NetworkGenerationMetrics:
+    """Measurements computed from the realized graph, never target aliases."""
+
+    simbox_lx: float
+    simbox_ly: float
+    atom_count: int
+    bond_count: int
+    angle_count: int
+    glycan_count: int
+    glycan_bond_count: int
+    peptide_bond_count: int
+    achieved_mesh_density: float
+    achieved_crosslink_fraction: float
+    connected_component_count: int
+    largest_component_fraction: float
+    glycan_lengths_dsu: tuple[int, ...]
+    glycan_orientations_degrees: tuple[float, ...]
+    orientation_observation_count: int
+    graph_sha256: str
+    rng_backend: str
+    rng_seeds: RNGSeeds | None
+
+
+@dataclass(frozen=True)
+class DatafileExportMetrics:
+    coordinate_count: int
+    significant_digits: int
+    max_abs_coordinate_error: float
+    rms_coordinate_error: float
 
 # Random Distribution Array
 # Koch, A. L. (2000a). Length distribution of the peptidoglycan chains in the sacculus of
@@ -85,7 +186,8 @@ class DiscreteDistribution(Sequence[int]):
 
     def sample(self, random_source=None) -> int:
         """Draw one value using either a supplied RNG or Python's global RNG."""
-        draw = random() if random_source is None else float(random_source.random())
+        source = python_random if random_source is None else random_source
+        draw = float(source.random())
         if not 0.0 <= draw < 1.0:
             raise ValueError("random source must return values in [0, 1)")
         index = bisect_right(self._cdf, draw)
@@ -231,10 +333,11 @@ def process_distribution_string(distrib_str: str, size: int) -> DiscreteDistribu
     return distribution
 
 
-def _draw_DSU_length(distribution) -> int:
+def _draw_DSU_length(distribution, random_source=None) -> int:
+    source = python_random if random_source is None else random_source
     if isinstance(distribution, DiscreteDistribution):
-        return distribution.sample()
-    return distribution[randrange(0, len(distribution))]
+        return distribution.sample(source)
+    return distribution[source.randrange(0, len(distribution))]
 
 
 def _validated_distribution_mean(distribution, Ny: int) -> float:
@@ -259,13 +362,16 @@ def _validated_distribution_mean(distribution, Ny: int) -> float:
         raise ValueError(f"distribution maximum {maximum} must be below network size {Ny}")
     return mean
 
-def get_sample_of_DSU_lengths_simple(Ny: int, distribution) -> list[int]:
+def get_sample_of_DSU_lengths_simple(
+    Ny: int, distribution, random_source=None
+) -> list[int]:
+    source = python_random if random_source is None else random_source
     # Ny includes the gaps between glycans
     glycan_lengths_DSU = [];
 
     # Draw from the distribution until the total desired length is exceeded
     while (sum(glycan_lengths_DSU) + len(glycan_lengths_DSU)) < Ny:
-        glycan_lengths_DSU.append(_draw_DSU_length(distribution))
+        glycan_lengths_DSU.append(_draw_DSU_length(distribution, source))
 
     glycan_lengths_DSU.pop(); # Remove the glycan that pushed it over the edge
 
@@ -276,17 +382,20 @@ def get_sample_of_DSU_lengths_simple(Ny: int, distribution) -> list[int]:
     else:
         glycan_lengths_DSU.append(DSU_deficit);
 
-    shuffle(glycan_lengths_DSU)
+    source.shuffle(glycan_lengths_DSU)
 
     return glycan_lengths_DSU
 
-def get_sample_of_DSU_lengths_no_gaps(Ny: int, distribution) -> list[int]:
+def get_sample_of_DSU_lengths_no_gaps(
+    Ny: int, distribution, random_source=None
+) -> list[int]:
+    source = python_random if random_source is None else random_source
     # Ny excludes the gaps between glycans
     glycan_lengths_DSU = [];
 
     # Draw from the distribution until the total desired length is exceeded
     while (sum(glycan_lengths_DSU)) < Ny:
-        glycan_lengths_DSU.append(_draw_DSU_length(distribution))
+        glycan_lengths_DSU.append(_draw_DSU_length(distribution, source))
 
     glycan_lengths_DSU.pop(); # Remove the glycan that pushed it over the edge
 
@@ -297,11 +406,22 @@ def get_sample_of_DSU_lengths_no_gaps(Ny: int, distribution) -> list[int]:
     else:
         glycan_lengths_DSU.append(DSU_deficit);
 
-    shuffle(glycan_lengths_DSU)
+    source.shuffle(glycan_lengths_DSU)
 
     return glycan_lengths_DSU
 
-def add_simple_glycan(atoms : dict[int,Atom], bonds : dict[int,Bond], angles : dict[int,Angle], glycans : dict[int,GlycanMolecule], cm_x, cm_y, numDSUs : int, orientation_override = None):
+def add_simple_glycan(
+    atoms : dict[int,Atom],
+    bonds : dict[int,Bond],
+    angles : dict[int,Angle],
+    glycans : dict[int,GlycanMolecule],
+    cm_x,
+    cm_y,
+    numDSUs : int,
+    orientation_override = None,
+    random_source=None,
+):
+    source = python_random if random_source is None else random_source
     if (numDSUs == 0):
         print("Warning: numDSU len of 0 was passed!")
         return;
@@ -314,7 +434,7 @@ def add_simple_glycan(atoms : dict[int,Atom], bonds : dict[int,Bond], angles : d
     if orientation_override:
         orientation_randomizer = orientation_override;
     else:
-        orientation_randomizer = randrange(1,4);
+        orientation_randomizer = source.randrange(1,4);
 
     # Add atoms, bonds, angles
     for i in range(0,numDSUs):
@@ -561,7 +681,18 @@ def put_the_atoms_into_a_spatial_hash_smh(atoms, cell_size, simbox_lx, simbox_ly
     
     return grid, ids_of_eligible_atoms
 
-def form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly, override_radius = None, override_energy = None, linkage_limit = None):
+def form_peptide_bonds(
+    atoms,
+    bonds,
+    glycans,
+    simbox_lx,
+    simbox_ly,
+    override_radius = None,
+    override_energy = None,
+    linkage_limit = None,
+    random_source=None,
+):
+    source = python_random if random_source is None else random_source
     
     if override_radius:
         peptide_bond_search_radius = override_radius;
@@ -575,7 +706,7 @@ def form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly, override_rad
         return; # NOOP
 
     # Randomize the order of the eligible atoms so bonds don't form based on an arbitrary priority.
-    shuffle(ids_of_eligible_atoms);
+    source.shuffle(ids_of_eligible_atoms);
 
     # This symmetric matrix records how thoroughly bonded each molecule pair is
     molecule_bonding_matrix = defaultdict(int);
@@ -601,8 +732,18 @@ def form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly, override_rad
             histo[i] = floor(pairwise_list.count(i) / 2) # sym matrix => divide by 2
         print(f"Number of glycan pairs with _ connecting bonds: {histo}") # How many pairs have X crosslinks connecting them?
 
-def write_to_laamps_datafile(filename, atoms, bonds, angles, simbox_lx, simbox_ly):
-    with open(filename, "w") as f:
+def write_to_laamps_datafile(
+    filename,
+    atoms,
+    bonds,
+    angles,
+    simbox_lx,
+    simbox_ly,
+    significant_digits=DATAFILE_SIGNIFICANT_DIGITS,
+) -> DatafileExportMetrics:
+    """Write LAMMPS data and measure exact text-coordinate round-trip error."""
+    coordinate_errors = []
+    with open(filename, "w", encoding="utf-8", newline="\n") as f:
         f.write("LAMMPS Data File. PG System.")
         f.write("\n")
         f.write(f"{len(atoms)} atoms\n")
@@ -613,19 +754,28 @@ def write_to_laamps_datafile(filename, atoms, bonds, angles, simbox_lx, simbox_l
         f.write(f"1 angle types\n")
         f.write(f"3 extra bond per atom\n")
         f.write(f"2 extra angle per atom\n")
-        f.write(f"{-simbox_lx/2} {simbox_lx/2} xlo xhi\n")
-        f.write(f"{-simbox_ly/2} {simbox_ly/2} ylo yhi\n")
+        f.write(
+            f"{format_datafile_float(-simbox_lx/2, significant_digits)} "
+            f"{format_datafile_float(simbox_lx/2, significant_digits)} xlo xhi\n"
+        )
+        f.write(
+            f"{format_datafile_float(-simbox_ly/2, significant_digits)} "
+            f"{format_datafile_float(simbox_ly/2, significant_digits)} ylo yhi\n"
+        )
         f.write(f"-0.5 0.5 zlo zhi\n") # Recommended for 2D, https://docs.lammps.org/Howto_2d.html
         f.write(f"0 0 0 xy xz yz\n") # Restricted Triclinic Tilts, inc it makes this a triclinic instead of ortho box
         f.write("\n")
 
         f.write(f"Masses\n\n")
-        f.write(f"1 {DSU_MASS_ATTOGRAM}\n")
-        f.write(f"2 {DSU_MASS_ATTOGRAM}\n")
+        serialized_mass = format_datafile_float(
+            DSU_MASS_ATTOGRAM, significant_digits
+        )
+        f.write(f"1 {serialized_mass}\n")
+        f.write(f"2 {serialized_mass}\n")
 
         f.write(f"\nAtoms\n\n")
         for a in atoms.values():
-            a.to_datafile(f)
+            coordinate_errors.extend(a.to_datafile(f, significant_digits))
 
         f.write(f"\nBonds\n\n")
         for b in bonds.values():
@@ -634,6 +784,22 @@ def write_to_laamps_datafile(filename, atoms, bonds, angles, simbox_lx, simbox_l
         f.write(f"\nAngles\n\n")
         for c in angles.values():
             c.to_datafile(f)
+
+    if coordinate_errors:
+        max_error = max(coordinate_errors)
+        rms_error = sqrt(
+            sum(error * error for error in coordinate_errors)
+            / len(coordinate_errors)
+        )
+    else:
+        max_error = 0.0
+        rms_error = 0.0
+    return DatafileExportMetrics(
+        coordinate_count=len(coordinate_errors),
+        significant_digits=significant_digits,
+        max_abs_coordinate_error=max_error,
+        rms_coordinate_error=rms_error,
+    )
 
 def compute_crosslink_ratio(atoms : dict[int,Atom], bonds : dict[int,Bond], simbox_lx, simbox_ly):
     # Count number of cross-links formed
@@ -664,18 +830,183 @@ def compute_crosslink_ratio(atoms : dict[int,Atom], bonds : dict[int,Bond], simb
     crosslink_ratio = (2*peptide_crosslink_counter) / number_of_atoms;
     return rho_mesh, crosslink_ratio;
 
-def populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx : int, Ny : int, epsilon_x : float, epsilon_y : float, distribution : list[int]):
+
+def _connectivity_metrics(atoms, bonds) -> tuple[int, float]:
+    if not atoms:
+        return 0, 0.0
+    adjacency = {atom_id: set() for atom_id in atoms}
+    for bond in bonds.values():
+        adjacency[bond.atom_id_1].add(bond.atom_id_2)
+        adjacency[bond.atom_id_2].add(bond.atom_id_1)
+
+    unseen = set(atoms)
+    component_sizes = []
+    while unseen:
+        start = min(unseen)
+        stack = [start]
+        unseen.remove(start)
+        size = 0
+        while stack:
+            atom_id = stack.pop()
+            size += 1
+            for neighbor_id in adjacency[atom_id]:
+                if neighbor_id in unseen:
+                    unseen.remove(neighbor_id)
+                    stack.append(neighbor_id)
+        component_sizes.append(size)
+    return len(component_sizes), max(component_sizes) / len(atoms)
+
+
+def _graph_fingerprint(atoms, bonds, angles, simbox_lx, simbox_ly) -> str:
+    def encode_float(value):
+        return format_datafile_float(value, DATAFILE_SIGNIFICANT_DIGITS)
+
+    payload = {
+        "cell_nm": [encode_float(simbox_lx), encode_float(simbox_ly)],
+        "atoms": [
+            [
+                atom.id,
+                atom.mol_id,
+                atom.atom_type,
+                encode_float(atom.x),
+                encode_float(atom.y),
+                encode_float(atom.z),
+                [int(value) for value in atom.image_shift],
+                bool(atom.is_inclined_to_peptide),
+                bool(atom.has_peptide),
+            ]
+            for atom in sorted(atoms.values(), key=lambda item: item.id)
+        ],
+        "bonds": [
+            [bond.id, bond.bond_type, bond.atom_id_1, bond.atom_id_2]
+            for bond in sorted(bonds.values(), key=lambda item: item.id)
+        ],
+        "angles": [
+            [
+                angle.id,
+                angle.angle_type,
+                angle.atom_id_1,
+                angle.atom_id_2,
+                angle.atom_id_3,
+            ]
+            for angle in sorted(angles.values(), key=lambda item: item.id)
+        ],
+    }
+    canonical = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+    ).encode("ascii")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def measure_achieved_network(
+    glycans,
+    atoms,
+    bonds,
+    angles,
+    simbox_lx,
+    simbox_ly,
+    rng_backend="python",
+    rng_seeds=None,
+) -> NetworkGenerationMetrics:
+    """Measure realized geometry/topology after all generation operations."""
+    achieved_density, achieved_crosslinks = compute_crosslink_ratio(
+        atoms, bonds, simbox_lx, simbox_ly
+    )
+    glycan_bond_count = sum(
+        bond.bond_type == BOND_TYPE_GLYCAN for bond in bonds.values()
+    )
+    peptide_bond_count = sum(
+        bond.bond_type == BOND_TYPE_PEPTIDE for bond in bonds.values()
+    )
+    component_count, largest_component_fraction = _connectivity_metrics(atoms, bonds)
+    lengths = tuple(
+        sorted(len(glycan.atom_ids) for glycan in glycans.values())
+    )
+
+    cell_bounds = (
+        -simbox_lx / 2,
+        simbox_lx / 2,
+        0.0,
+        -simbox_ly / 2,
+        simbox_ly / 2,
+    )
+    orientations = []
+    for glycan in sorted(glycans.values(), key=lambda item: item.id):
+        if len(glycan.atom_ids) < 2:
+            continue
+        vector = glycan.get_orientation_vector(atoms, cell_bounds)
+        norm = float(np.linalg.norm(vector))
+        if norm == 0.0:
+            continue
+        angle = float(
+            np.rad2deg(np.arccos(np.clip(vector[1] / norm, -1.0, 1.0)))
+        )
+        if angle > 90:
+            angle -= 180
+        if vector[0] > 0:
+            angle *= -1
+        orientations.append(angle)
+
+    return NetworkGenerationMetrics(
+        simbox_lx=float(simbox_lx),
+        simbox_ly=float(simbox_ly),
+        atom_count=len(atoms),
+        bond_count=len(bonds),
+        angle_count=len(angles),
+        glycan_count=len(glycans),
+        glycan_bond_count=int(glycan_bond_count),
+        peptide_bond_count=int(peptide_bond_count),
+        achieved_mesh_density=float(achieved_density),
+        achieved_crosslink_fraction=float(achieved_crosslinks),
+        connected_component_count=component_count,
+        largest_component_fraction=float(largest_component_fraction),
+        glycan_lengths_dsu=lengths,
+        glycan_orientations_degrees=tuple(orientations),
+        orientation_observation_count=len(orientations),
+        graph_sha256=_graph_fingerprint(
+            atoms, bonds, angles, simbox_lx, simbox_ly
+        ),
+        rng_backend=rng_backend,
+        rng_seeds=rng_seeds,
+    )
+
+def populate_glycans_on_a_not_so_unitary_grid(
+    atoms,
+    bonds,
+    angles,
+    glycans,
+    Nx : int,
+    Ny : int,
+    epsilon_x : float,
+    epsilon_y : float,
+    distribution : list[int],
+    random_source=None,
+):
+    source = python_random if random_source is None else random_source
     for column_idx in range(0,Nx):
-        glycan_lengths_for_this_column = get_sample_of_DSU_lengths_no_gaps(Ny, distribution);
+        glycan_lengths_for_this_column = get_sample_of_DSU_lengths_no_gaps(
+            Ny, distribution, source
+        );
         vertical_gap_between_glycans = (Ny*DSU*(1+epsilon_y) - sum(glycan_lengths_for_this_column)*DSU) \
             / len(glycan_lengths_for_this_column);
 
         cm_x = (DSU/2 + column_idx*DSU)         *(1+epsilon_x);
-        cm_y = (vertical_gap_between_glycans/2 + rng.uniform(0,Ny*DSU/2))*(1+epsilon_y);
+        cm_y = (
+            vertical_gap_between_glycans/2 + source.uniform(0,Ny*DSU/2)
+        )*(1+epsilon_y);
 
         for length_of_glycan_DSU in glycan_lengths_for_this_column:
             cm_y += DSU*(length_of_glycan_DSU/2);
-            add_simple_glycan(atoms, bonds, angles, glycans, cm_x, cm_y, length_of_glycan_DSU)
+            add_simple_glycan(
+                atoms,
+                bonds,
+                angles,
+                glycans,
+                cm_x,
+                cm_y,
+                length_of_glycan_DSU,
+                random_source=source,
+            )
             cm_y += DSU*(length_of_glycan_DSU/2) + vertical_gap_between_glycans;
 
 #### DEBUG INSPECTION FUNCTIONS
@@ -758,8 +1089,28 @@ def generate_pg_network(
         filepath     : str  = None,          # If set, write file to this filepath. File is lammps-compatible.
         generate_figure_of_steps   : bool     = False, # Plot bonds for debug purposes?
         plot_network_on_these_axes : plt.Axes = None,
-        linkage_limit : float = None   # Stop adding crosslinks once this fraction is reached
+        linkage_limit : float = None,  # Stop adding crosslinks once this fraction is reached
+        seed : int = None,
+        rng_seeds : RNGSeeds = None,
+        rng_backend : str = "python",
+        return_metrics : bool = False,
         ):
+    if rng_backend != "python":
+        raise ValueError(
+            f"unsupported RNG backend '{rng_backend}'; expected 'python'"
+        )
+    if seed is not None and rng_seeds is not None:
+        raise ValueError("provide either seed or rng_seeds, not both")
+    if rng_seeds is not None and not isinstance(rng_seeds, RNGSeeds):
+        raise ValueError("rng_seeds must be an RNGSeeds instance")
+    if not isinstance(return_metrics, bool):
+        raise ValueError("return_metrics must be boolean")
+    effective_seeds = RNGSeeds.from_master(seed) if seed is not None else rng_seeds
+    geometry_random = (
+        effective_seeds.stream("geometry", rng_backend)
+        if effective_seeds is not None
+        else python_random
+    )
     
     if distribution is None:
         distribution = create_FlorySchulz_distribution(2,30,0.9,1E8);
@@ -792,7 +1143,18 @@ def generate_pg_network(
 
     # Place non-rotated glycans with equal horizontal spacing.
     # Vertical spacing is equal per-column, and on-average equal from column to column.
-    populate_glycans_on_a_not_so_unitary_grid(atoms, bonds, angles, glycans, Nx, Ny, epsilon_x, epsilon_y, distribution);
+    populate_glycans_on_a_not_so_unitary_grid(
+        atoms,
+        bonds,
+        angles,
+        glycans,
+        Nx,
+        Ny,
+        epsilon_x,
+        epsilon_y,
+        distribution,
+        random_source=geometry_random,
+    );
 
     if generate_figure_of_steps:
         fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, gridspec_kw={'height_ratios': [1.5, 1, 1]})
@@ -801,8 +1163,8 @@ def generate_pg_network(
 
     # Jangle the glycans
     for g in glycans.values():
-        dx = 0.8*(random()-1);
-        dy = 0.8*(random()-1);
+        dx = 0.8*(geometry_random.random()-1);
+        dy = 0.8*(geometry_random.random()-1);
         g.displace_by_const(atoms, dx, dy)
 
     #if visuals:
@@ -810,7 +1172,7 @@ def generate_pg_network(
 
     # Rotate the glycans randomly about their center of mass
     for g in glycans.values():
-        alpha = (2*random()-1) * anisotropy * (np.pi)/2;
+        alpha = (2*geometry_random.random()-1) * anisotropy * (np.pi)/2;
         g.rotate_wrt_cm(atoms, alpha)
 
     # Atoms and glycans will be outside the box b/c of rotation and
@@ -823,7 +1185,15 @@ def generate_pg_network(
         visualize_bonds(atoms, bonds, glycans, 0, simbox_lx, 0, simbox_ly, ax2, draw_stems=False);
 
     # Form peptide crosslinks based on distance and angle criteria
-    form_peptide_bonds(atoms, bonds, glycans, simbox_lx, simbox_ly, linkage_limit=linkage_limit);
+    form_peptide_bonds(
+        atoms,
+        bonds,
+        glycans,
+        simbox_lx,
+        simbox_ly,
+        linkage_limit=linkage_limit,
+        random_source=geometry_random,
+    );
 
     # Count Cross-Linking
     density_fraction, crosslinkage = compute_crosslink_ratio(atoms, bonds, simbox_lx, simbox_ly);
@@ -861,13 +1231,40 @@ def generate_pg_network(
     # Transform coordinates of atoms so patch is centered on 0,0 in lammps
     for a in atoms.values():
         a.translate(-simbox_lx/2, -simbox_ly/2, 0);
+
+    generation_metrics = None
+    if return_metrics:
+        generation_metrics = measure_achieved_network(
+            glycans,
+            atoms,
+            bonds,
+            angles,
+            simbox_lx,
+            simbox_ly,
+            rng_backend=rng_backend,
+            rng_seeds=effective_seeds,
+        )
     
     if not filepath == None:
         # Write everything to LAMMPS datafile
         filepath_w_lnk = filepath.replace(".network",f"_link{round(float(crosslinkage),3)}.network")
-        write_to_laamps_datafile(filepath_w_lnk, atoms, bonds, angles, simbox_lx, simbox_ly);
+        export_metrics = write_to_laamps_datafile(
+            filepath_w_lnk, atoms, bonds, angles, simbox_lx, simbox_ly
+        );
+        if return_metrics:
+            return filepath_w_lnk, generation_metrics, export_metrics
         return filepath_w_lnk
     else:
+        if return_metrics:
+            return (
+                density_fraction,
+                crosslinkage,
+                glycans,
+                atoms,
+                bonds,
+                angles,
+                generation_metrics,
+            );
         return density_fraction, crosslinkage, glycans, atoms, bonds, angles;
 
 # Functions to compare network distribution to theory distribution
@@ -941,7 +1338,10 @@ def generate_Koch2000_simplified_distribution(K_Hoop = 15, K_Axial = 4, n_orient
 
 from itertools import accumulate
 
-def monte_carlo_K_cleavage_distribution(K : int, n_samples : int):
+def monte_carlo_K_cleavage_distribution(
+    K : int, n_samples : int, random_source=None
+):
+    source = python_random if random_source is None else random_source
     assert type(K) == int;
     assert type(n_samples) == int;
 
@@ -953,11 +1353,11 @@ def monte_carlo_K_cleavage_distribution(K : int, n_samples : int):
     while num_chains < n_samples:
         # Add K monomers to random chain
         for i in range(K):
-            gi = randrange(0,num_chains);
+            gi = source.randrange(0,num_chains);
             chains[gi] = min(chains[gi]+1,100); # Maximum length
 
         # Randomly choose one of the monomers
-        DSU_i = randrange(0,np.sum(chains))
+        DSU_i = source.randrange(0,np.sum(chains))
         
         # Cleave that monomer's chain into two chains, if it is big enough to not make monomers.
         index_of_last_DSU_in_each_glycan = np.cumsum(chains)
@@ -967,7 +1367,7 @@ def monte_carlo_K_cleavage_distribution(K : int, n_samples : int):
 
         pre_cleave_length = chains[glycan_i];
         if (pre_cleave_length >= 4):
-            chains[glycan_i] = randrange(2,pre_cleave_length-1);
+            chains[glycan_i] = source.randrange(2,pre_cleave_length-1);
             chains[num_chains] = pre_cleave_length - chains[glycan_i];
             num_chains += 1;
 

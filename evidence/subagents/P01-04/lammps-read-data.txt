@@ -1,0 +1,14 @@
+Command (cwd C:\Users\mzora\MechWorld-wt-p01-04):
+C:\Users\mzora\MechWorld\.venv\Scripts\python.exe evidence/subagents/P01-04/lammps_read_data_probe.py
+
+Exit status: 0
+
+Number of glycan pairs with _ connecting bonds: {1: 17, 2: 2}
+lammps_version=20260902
+graph_sha256=c345367c3ceb3bf282679f55549c00d220780dd82dcb91ac1d2c148ba1c7814c
+written=fixture_link0.389.network
+atoms_expected=108 atoms_loaded=108
+coordinate_count=324
+max_abs_coordinate_error=0
+rms_coordinate_error=0
+solver_closed=true

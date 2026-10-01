@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="9" skipped="0" tests="9" time="7.226" timestamp="2026-10-01T00:26:31.416941" hostname="MZoraiz_P15"><testcase classname="tests.unit.test_generator_reproducibility" name="test_seed_namespace_derivation_is_stable_and_complete" time="0.003"><failure message="AttributeError: module 'assemble_pg_network' has no attribute 'RNGSeeds'">def test_seed_namespace_derivation_is_stable_and_complete() -&gt; None:
+&gt;       seeds = pg_network.RNGSeeds.from_master(20261001)
+E       AttributeError: module 'assemble_pg_network' has no attribute 'RNGSeeds'
+
+tests\unit\test_generator_reproducibility.py:37: AttributeError</failure></testcase><testcase classname="tests.unit.test_generator_reproducibility" name="test_namespaced_streams_are_independent_and_repeatable" time="0.003"><failure message="AttributeError: module 'assemble_pg_network' has no attribute 'RNGSeeds'">def test_namespaced_streams_are_independent_and_repeatable() -&gt; None:
+&gt;       seeds = pg_network.RNGSeeds.from_master(41)
+E       AttributeError: module 'assemble_pg_network' has no attribute 'RNGSeeds'
+
+tests\unit\test_generator_reproducibility.py:55: AttributeError</failure></testcase><testcase classname="tests.unit.test_generator_reproducibility" name="test_same_config_seed_and_backend_produce_identical_realized_graph" time="0.003"><failure message="TypeError: generate_pg_network() got an unexpected keyword argument 'seed'">def test_same_config_seed_and_backend_produce_identical_realized_graph() -&gt; None:
+&gt;       first = _small_generation()
+
+tests\unit\test_generator_reproducibility.py:68:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+overrides = {}
+arguments = {'Ny': 12, 'anisotropy': 0.6, 'distribution': DiscreteDistribution(support=(2, 3, 4, 5), probabilities=(0.25, 0.25, 0.25, 0.25), law='discrete_uniform'), 'mesh_density': 0.7, ...}
+
+    def _small_generation(**overrides):
+        arguments = {
+            "Ny": 12,
+            "mesh_density": 0.7,
+            "anisotropy": 0.6,
+            "distribution": pg_network.process_distribution_string("UNI=2=5", 12),
+            "seed": 20261001,
+            "return_metrics": True,
+        }
+        arguments.update(overrides)
+&gt;       return pg_network.generate_pg_network(**arguments)
+E       TypeError: generate_pg_network() got an unexpected keyword argument 'seed'
+
+tests\unit\test_generator_reproducibility.py:28: TypeError</failure></testcase><testcase classname="tests.unit.test_generator_reproducibility" name="test_non_geometry_seeds_do_not_change_generated_graph" time="0.003"><failure message="AttributeError: module 'assemble_pg_network' has no attribute 'RNGSeeds'">def test_non_geometry_seeds_do_not_change_generated_graph() -&gt; None:
+&gt;       original = pg_network.RNGSeeds(geometry=11, material_disorder=22, events=33, model_training=44)
+E       AttributeError: module 'assemble_pg_network' has no attribute 'RNGSeeds'
+
+tests\unit\test_generator_reproducibility.py:78: AttributeError</failure></testcase><testcase classname="tests.unit.test_generator_reproducibility" name="test_geometry_seed_changes_generated_graph" time="0.002"><failure message="AttributeError: module 'assemble_pg_network' has no attribute 'RNGSeeds'">def test_geometry_seed_changes_generated_graph() -&gt; None:
+&gt;       first = pg_network.RNGSeeds(geometry=11, material_disorder=22, events=33, model_training=44)
+E       AttributeError: module 'assemble_pg_network' has no attribute 'RNGSeeds'
+
+tests\unit\test_generator_reproducibility.py:88: AttributeError</failure></testcase><testcase classname="tests.unit.test_generator_reproducibility" name="test_seeded_generation_does_not_consume_global_python_rng" time="0.003"><failure message="TypeError: generate_pg_network() got an unexpected keyword argument 'seed'">def test_seeded_generation_does_not_consume_global_python_rng() -&gt; None:
+        random.seed(97531)
+        state_before = random.getstate()
+
+&gt;       _small_generation()
+
+tests\unit\test_generator_reproducibility.py:101:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+overrides = {}
+arguments = {'Ny': 12, 'anisotropy': 0.6, 'distribution': DiscreteDistribution(support=(2, 3, 4, 5), probabilities=(0.25, 0.25, 0.25, 0.25), law='discrete_uniform'), 'mesh_density': 0.7, ...}
+
+    def _small_generation(**overrides):
+        arguments = {
+            "Ny": 12,
+            "mesh_density": 0.7,
+            "anisotropy": 0.6,
+            "distribution": pg_network.process_distribution_string("UNI=2=5", 12),
+            "seed": 20261001,
+            "return_metrics": True,
+        }
+        arguments.update(overrides)
+&gt;       return pg_network.generate_pg_network(**arguments)
+E       TypeError: generate_pg_network() got an unexpected keyword argument 'seed'
+
+tests\unit\test_generator_reproducibility.py:28: TypeError</failure></testcase><testcase classname="tests.unit.test_generator_reproducibility" name="test_metrics_describe_realized_network_not_requested_values" time="0.003"><failure message="TypeError: generate_pg_network() got an unexpected keyword argument 'seed'">def test_metrics_describe_realized_network_not_requested_values() -&gt; None:
+&gt;       generated = _small_generation()
+
+tests\unit\test_generator_reproducibility.py:107:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+overrides = {}
+arguments = {'Ny': 12, 'anisotropy': 0.6, 'distribution': DiscreteDistribution(support=(2, 3, 4, 5), probabilities=(0.25, 0.25, 0.25, 0.25), law='discrete_uniform'), 'mesh_density': 0.7, ...}
+
+    def _small_generation(**overrides):
+        arguments = {
+            "Ny": 12,
+            "mesh_density": 0.7,
+            "anisotropy": 0.6,
+            "distribution": pg_network.process_distribution_string("UNI=2=5", 12),
+            "seed": 20261001,
+            "return_metrics": True,
+        }
+        arguments.update(overrides)
+&gt;       return pg_network.generate_pg_network(**arguments)
+E       TypeError: generate_pg_network() got an unexpected keyword argument 'seed'
+
+tests\unit\test_generator_reproducibility.py:28: TypeError</failure></testcase><testcase classname="tests.unit.test_generator_reproducibility" name="test_datafile_export_measures_high_precision_coordinate_roundtrip" time="0.098"><failure message="AttributeError: 'NoneType' object has no attribute 'coordinate_count'">tmp_path = WindowsPath('C:/Users/mzora/AppData/Local/Temp/pytest-of-mzora/pytest-112/test_datafile_export_measures_0')
+
+    def test_datafile_export_measures_high_precision_coordinate_roundtrip(tmp_path) -&gt; None:
+        atom = Atom(
+            id=1,
+            mol_id=1,
+            atom_type=1,
+            x=1.2345678901234567,
+            y=-4.567890123456789e-9,
+            z=-0.12345678901234566,
+        )
+        destination = tmp_path / "precise.network"
+
+        export_metrics = pg_network.write_to_laamps_datafile(
+            destination,
+            {atom.id: atom},
+            {},
+            {},
+            simbox_lx=9.876543210987654,
+            simbox_ly=8.765432109876543,
+        )
+        atom_line = next(
+            line
+            for line in destination.read_text(encoding="utf-8").splitlines()
+            if line.startswith("1 1 1 ")
+        )
+        roundtripped = tuple(float(token) for token in atom_line.split()[3:6])
+        measured_errors = tuple(
+            abs(actual - expected)
+            for actual, expected in zip(roundtripped, (atom.x, atom.y, atom.z))
+        )
+
+&gt;       assert export_metrics.coordinate_count == 3
+E       AttributeError: 'NoneType' object has no attribute 'coordinate_count'
+
+tests\unit\test_generator_reproducibility.py:165: AttributeError</failure></testcase><testcase classname="tests.unit.test_generator_reproducibility" name="test_rng_configuration_rejects_ambiguous_or_unknown_backend" time="0.002"><failure message="AttributeError: module 'assemble_pg_network' has no attribute 'RNGSeeds'">def test_rng_configuration_rejects_ambiguous_or_unknown_backend() -&gt; None:
+        with pytest.raises(ValueError, match="either seed or rng_seeds"):
+&gt;           _small_generation(rng_seeds=pg_network.RNGSeeds.from_master(1))
+E           AttributeError: module 'assemble_pg_network' has no attribute 'RNGSeeds'
+
+tests\unit\test_generator_reproducibility.py:176: AttributeError</failure></testcase></testsuite></testsuites>
