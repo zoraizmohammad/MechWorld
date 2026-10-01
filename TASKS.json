@@ -698,7 +698,7 @@
       "id": "P01-09",
       "work_package": "WP1",
       "title": "Repair non-destructive grouped analysis and dimensional labels",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "evaluation",
       "execution_kind": "agent",
       "mandatory": true,
@@ -722,11 +722,21 @@
       "planned_verification_commands": [
         "python -m pytest tests/unit/test_analysis_regression.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_INTEGRATION_2026-10-01; RED_6_FAILED_9.30S; TARGETED_6_PASSED_5.76S; FULL_SUITE_68_PASSED_9.80S; PY_COMPILE_PASS; DIFF_CHECK_PASS",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "src/process_network_ensembles.py",
+        "src/process_elastic_tensor.py",
+        "tests/unit/test_analysis_regression.py",
+        "docs/subagents/P01-09-analysis.md",
+        "evidence/subagents/P01-09/red.txt",
+        "evidence/subagents/P01-09/verification.md",
+        "evidence/integration/P01-09/verification.md",
+        "evidence/integration/P01-09/targeted.xml",
+        "evidence/integration/P01-09/full_suite.xml"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from accepted main revision a79a7aa on research/p01-09-analysis in isolated worktree C:/Users/mzora/MechWorld-wt-p01-09. Scope is red-first idempotent/non-destructive grouped processing, independent-network monotonic interpolation, and the verified A16 factor-1000 dimensional conversion/label repair without changing unapproved physical parameters."
+      "notes": "Integrated as 6df2a91 and 717f678. Raw elastic-constant files are byte-preserved; derived moduli are deterministic, atomic, and byte-idempotent. Duplicate strains/mixed units and ambiguous interpolation axes fail explicitly. Tension and elastic interpolation occur within each independent replicate/network. The audited A16 energy-density output is corrected by 1e-3 with explicit raw/converted columns, without coefficient changes. Cross-cohort pairing is deterministic and positional until a later manifest supplies stable replicate IDs."
     },
     {
       "id": "P01-10",
