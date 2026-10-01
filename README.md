@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting the periodic-identity repair; current related-work review remains active and P01-04/P01-09 are the next eligible engineering tasks.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting the periodic-identity repair and assigning P01-04 reproducibility plus P01-09 analysis repair in isolated worktrees; P10-01 current related-work review also remains active.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -26,8 +26,8 @@ Latest integration verification: P01-01 passed 15 focused periodic-geometry test
 ## Active work
 
 - P01-01 is done: its parser and periodic-identity slices now cover tilted bounds, unsupported-form rejection, arbitrary wrapping/image shifts, exact 2D minimum images, and persistent atom identity. Persistent per-edge image identity remains explicitly assigned to P03-01.
-- P01-04 is eligible: add namespaced RNG streams, achieved-network metrics, and high-precision serialization.
-- P01-09 is eligible: make grouped analysis idempotent and non-destructive, preserve independent-network interpolation, and repair the verified factor-1000 energy-density label/conversion defect without changing unapproved material parameters.
+- P01-04 on `research/p01-04-reproducibility`: add namespaced RNG streams, achieved-network metrics, and measured high-precision serialization error.
+- P01-09 on `research/p01-09-analysis`: make grouped analysis idempotent and non-destructive, preserve independent-network interpolation, and repair the verified factor-1000 energy-density label/conversion defect without changing unapproved material parameters.
 - P10-01 on `research/p10-01-related-work`: verify the current primary-source overlap matrix and bibliography; prior fracture GNNs already rule out any broad “first learned fracture simulator” claim.
 - P01-05 is blocked for Mohammad/lab review: choose the coarse-grain mapping and parameter profile, reference/observable conventions, physical-time scope, and any thickness; do not apply a blind factor-of-two coefficient edit.
 - Compatibility follow-up: seven inherited plotting/result scripts fail Python 3.11 compilation because of nested f-string quote syntax; targeted repaired files compile, and the broader issue is queued before P01-11.

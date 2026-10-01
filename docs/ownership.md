@@ -34,3 +34,14 @@ Integration state: the P01-03 distribution return was path-reviewed and integrat
 The P01-08 run-isolation return was path-reviewed and integrated as `9429b4c`. Independent integration verification passed 10 focused lifecycle tests and 50 total tests. A real serial LAMMPS one-atom `run 0` then completed through the manager with an accepted lifecycle record and successful close; this is adapter compatibility evidence, not restart, fracture, MPI, scheduler, or production validation.
 
 The remaining P01-01 periodic-identity return was path-reviewed and integrated as `71a5700`. Independent main-tree verification passed 15 focused tests and 62 total tests, targeted compilation, and a 1,000-case exact minimum-image oracle. Its ownership is cleared. Canonical persistent edge/image identity remains deferred to the P03-01 schema rather than inferred from per-frame geometry.
+
+## Third wave
+
+Both assignments use accepted main revision `a79a7aaf337f32dd459a00444babe2851633046d` and have disjoint source/test/evidence paths.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Generator reproducibility/data | `research/p01-04-reproducibility`; `C:/Users/mzora/MechWorld-wt-p01-04` | P01-04: exact red-first named RNG independence, same-seed graph reproducibility, achieved-network metrics, and measured precise-export round trip | `src/assemble_pg_network.py`, `src/lammps_PG_objects.py`, `tests/unit/test_generator_reproducibility.py`, `evidence/subagents/P01-04/`, `docs/subagents/P01-04-reproducibility.md` | No ledger/README/shared-contract/dependency edits, no unapproved parameter selection, no production simulation, and no changes outside owned paths |
+| Analysis regression/evaluation | `research/p01-09-analysis`; `C:/Users/mzora/MechWorld-wt-p01-09` | P01-09: exact red-first non-destructive/idempotent grouping, per-network monotonic interpolation, and A16 dimensional conversion/label repair | `src/process_network_ensembles.py`, `src/process_elastic_tensor.py`, `tests/unit/test_analysis_regression.py`, `evidence/subagents/P01-09/`, `docs/subagents/P01-09-analysis.md` | No ledger/README/shared-contract/dependency edits, no material-parameter changes, no deletion/overwrite of raw evidence, and no unrelated plotting redesign |
+
+Each return requires a sole-author Mohammad Zoraiz commit, exact commands and results, limitations, path-boundary proof, and integrator review plus rerun before acceptance.
