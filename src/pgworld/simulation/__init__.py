@@ -1,5 +1,21 @@
 """Bounded simulation lifecycle adapters."""
 
+from .controls import (
+    CONTROL_SCHEMA_VERSION,
+    AxisFrame,
+    ControlValidationError,
+    EffectiveInteractionState,
+    InterventionResult,
+    PhysicalInteraction,
+    PrescribedIntervention,
+    QuasiStaticControlStep,
+    QuasiStaticSchedule,
+    apply_prescribed_intervention,
+    build_deformation_schedule,
+    build_pressure_schedule,
+    load_control_config,
+    transform_control_step,
+)
 from .run_manager import (
     LocalComputeConfig,
     RunConfig,
@@ -14,7 +30,16 @@ from .run_manager import (
 )
 
 __all__ = [
+    "CONTROL_SCHEMA_VERSION",
+    "AxisFrame",
+    "ControlValidationError",
+    "EffectiveInteractionState",
+    "InterventionResult",
     "LocalComputeConfig",
+    "PhysicalInteraction",
+    "PrescribedIntervention",
+    "QuasiStaticControlStep",
+    "QuasiStaticSchedule",
     "RunConfig",
     "RunContext",
     "RunDirectoryExistsError",
@@ -23,5 +48,10 @@ __all__ = [
     "RunResult",
     "SourceProvenance",
     "UnsafeOutputPathError",
+    "apply_prescribed_intervention",
+    "build_deformation_schedule",
+    "build_pressure_schedule",
+    "load_control_config",
     "load_local_compute_config",
+    "transform_control_step",
 ]

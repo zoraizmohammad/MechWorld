@@ -1,0 +1,20 @@
+{
+  "schema_version": "pgworld.quasistatic_control.v1",
+  "config_id": "prescribed-local-weakening-smoke-v1",
+  "control_family": "prescribed_intervention",
+  "action": "weaken",
+  "source": "prescribed_intervention",
+  "selection_kind": "stable_physical_interaction_id",
+  "interaction_ids": ["glycan:0001"],
+  "fixed_reference_id": "fixed-cell-equilibrated-input-required",
+  "absolute_reference": "fixed_cell_equilibrated",
+  "reference_reset_policy": "never",
+  "load_coordinate_kind": "quasi_static_not_physical_time",
+  "load_coordinate_unit": "dimensionless",
+  "progress_unit": "dimensionless",
+  "lambda_load": 0.02,
+  "path_progress": 0.02,
+  "progress_increment": 0.0,
+  "factor": 0.5,
+  "parameter_names": ["K_pN_per_nm"]
+}

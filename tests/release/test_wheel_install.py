@@ -47,6 +47,7 @@ PACKAGE_MODULES = {
     "pgworld/physics/energy_force_virial.py",
     "pgworld/physics/lammps_oracle.py",
     "pgworld/simulation/__init__.py",
+    "pgworld/simulation/controls.py",
     "pgworld/simulation/run_manager.py",
 }
 
@@ -204,6 +205,7 @@ import lammps
 from pgworld.config.physics_profiles import available_profile_ids, load_physics_profile
 from pgworld.physics.energy_force_virial import PhysicsOracle
 from pgworld.physics.lammps_oracle import run_lammps_bond_fixture
+from pgworld.simulation.controls import CONTROL_SCHEMA_VERSION, build_deformation_schedule
 import run_lammps_elastic_tensor as elastic
 
 expected_hashes = {
@@ -263,7 +265,29 @@ assert tangent.solver_validation["instances_started"] == 7
 assert tangent.solver_validation["instances_closed"] == 7
 assert tangent.solver_validation["all_instances_closed"] is True
 
-modules = {"pgworld": str(Path(pgworld.__file__).resolve())}
+control_schedule = build_deformation_schedule({
+    "schema_version": CONTROL_SCHEMA_VERSION,
+    "config_id": "installed-axial-control-v1",
+    "control_family": "deformation",
+    "mode": "axial",
+    "axes": {"x": "axial", "y": "hoop"},
+    "fixed_reference_id": "installed-fixed-reference",
+    "absolute_reference": "fixed_cell_equilibrated",
+    "reference_reset_policy": "never",
+    "load_coordinate_kind": "quasi_static_not_physical_time",
+    "strain_unit": "dimensionless",
+    "lambda_values": [0.0, 0.01],
+})
+assert control_schedule.steps[-1].absolute_deformation_gradient.tolist() == [
+    [1.01, 0.0], [0.0, 1.0]
+]
+assert control_schedule.steps[-1].physical_time_valid is False
+
+controls_module = importlib.import_module("pgworld.simulation.controls")
+modules = {
+    "pgworld": str(Path(pgworld.__file__).resolve()),
+    "pgworld.simulation.controls": str(Path(controls_module.__file__).resolve()),
+}
 for name in %r:
     modules[name] = str(Path(importlib.import_module(name).__file__).resolve())
 print(json.dumps({
@@ -278,6 +302,11 @@ print(json.dumps({
         "solver_closed": solver.solver_closed,
     },
     "p01_07": tangent.solver_validation,
+    "p02_01": {
+        "schema_version": CONTROL_SCHEMA_VERSION,
+        "mode": control_schedule.mode,
+        "physical_time_claim": False,
+    },
 }, sort_keys=True))
 """ % (LEGACY_MODULES,),
         encoding="utf-8",

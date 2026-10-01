@@ -1,0 +1,14 @@
+{
+  "schema_version": "pgworld.quasistatic_control.v1",
+  "config_id": "unequal-biaxial-smoke-v1",
+  "control_family": "deformation",
+  "mode": "unequal_biaxial",
+  "axes": {"x": "axial", "y": "hoop"},
+  "fixed_reference_id": "fixed-cell-equilibrated-input-required",
+  "absolute_reference": "fixed_cell_equilibrated",
+  "reference_reset_policy": "never",
+  "load_coordinate_kind": "quasi_static_not_physical_time",
+  "strain_unit": "dimensionless",
+  "lambda_values": [0.0, 0.005, 0.01],
+  "strain_direction": {"epsilon_xx": 1.0, "epsilon_yy": 0.5}
+}
