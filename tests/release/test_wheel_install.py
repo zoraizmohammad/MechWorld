@@ -44,6 +44,7 @@ PACKAGE_MODULES = {
     "pgworld/config/__init__.py",
     "pgworld/config/physics_profiles.py",
     "pgworld/physics/__init__.py",
+    "pgworld/physics/damage.py",
     "pgworld/physics/energy_force_virial.py",
     "pgworld/physics/lammps_oracle.py",
     "pgworld/simulation/__init__.py",
@@ -205,6 +206,7 @@ import lammps
 from pgworld.config.physics_profiles import available_profile_ids, load_physics_profile
 from pgworld.physics.energy_force_virial import PhysicsOracle
 from pgworld.physics.lammps_oracle import run_lammps_bond_fixture
+from pgworld.physics.damage import DamageLaw, materialize_thresholds
 from pgworld.simulation.controls import CONTROL_SCHEMA_VERSION, build_deformation_schedule
 import run_lammps_elastic_tensor as elastic
 
@@ -283,9 +285,31 @@ assert control_schedule.steps[-1].absolute_deformation_gradient.tolist() == [
 ]
 assert control_schedule.steps[-1].physical_time_valid is False
 
+damage_law = DamageLaw(
+    law_id="installed-deterministic-energy-v1",
+    law_kind="deterministic_threshold",
+    criterion="bond_energy",
+    criterion_unit="pN nm",
+    base_threshold=10.0,
+    distribution=None,
+    predictor_visibility="hidden_from_predictor",
+    physics_profile_id=profile.profile_id,
+    physics_profile_hash=profile.canonical_hash,
+    reference_state_id="installed-fixed-reference",
+)
+damage_thresholds = materialize_thresholds(
+    damage_law, ["installed-bond-b", "installed-bond-a"]
+)
+assert list(damage_thresholds.thresholds) == [
+    "installed-bond-a", "installed-bond-b"
+]
+assert damage_thresholds.physical_time_valid is False
+
 controls_module = importlib.import_module("pgworld.simulation.controls")
+damage_module = importlib.import_module("pgworld.physics.damage")
 modules = {
     "pgworld": str(Path(pgworld.__file__).resolve()),
+    "pgworld.physics.damage": str(Path(damage_module.__file__).resolve()),
     "pgworld.simulation.controls": str(Path(controls_module.__file__).resolve()),
 }
 for name in %r:
@@ -305,6 +329,13 @@ print(json.dumps({
     "p02_01": {
         "schema_version": CONTROL_SCHEMA_VERSION,
         "mode": control_schedule.mode,
+        "physical_time_claim": False,
+    },
+    "p02_02": {
+        "schema_version": damage_law.schema_version,
+        "law_kind": damage_law.law_kind,
+        "predictor_visibility": damage_law.predictor_visibility,
+        "threshold_realization_id": damage_thresholds.realization_id,
         "physical_time_claim": False,
     },
 }, sort_keys=True))
