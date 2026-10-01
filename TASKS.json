@@ -552,7 +552,7 @@
       "id": "P01-05A",
       "work_package": "WP1",
       "title": "Freeze the provisional computational physics contract",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -583,7 +583,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": "Authorized by the 2026-10-01 scope decision. This computational slice may complete independently; it must preserve final coarse-graining, nonlinear-fit, angle-resolution, mass/time, and reviewer approval as explicit pending fields."
+      "notes": "Assigned from accepted main revision 78da30f on research/p01-05a-computational-contract in isolated worktree C:/Users/mzora/MechWorld-wt-p01-05a. This computational slice may complete independently; it must preserve final coarse-graining, nonlinear-fit, angle-resolution, mass/time, and reviewer approval as explicit pending fields, with no ledger/README edits or profile claim beyond bounded numerical work."
     },
     {
       "id": "P01-05",

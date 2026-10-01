@@ -6,7 +6,7 @@
 - **Current session objective:** Reconcile the execution packet with the actual checkout, establish the measured workstation baseline and isolated subagent workflow, then integrate the first reproduced-defect regression repair and continue through eligible dependencies.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
-- **Gate state:** G0 is accepted; G1-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-08 through P01-10, and P10-01 are done. P01-05A provisional computational profiles are now eligible. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
+- **Gate state:** G0 is accepted; G1-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-08 through P01-10, and P10-01 are done. P01-05A provisional computational profiles are active in an isolated worktree. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
 
 ## 📊 Transient State & What Changed
 
@@ -25,6 +25,7 @@
 - The physics audit found that current 2D tension conversion is dimensionally correct, A16 is a definite factor-1000 energy-density label/conversion defect, and A12 cannot be resolved by blindly halving the harmonic coefficient because a two-edge series interpretation reproduces the cited coarse spring. Three legacy parameter routes must remain distinct. Physical time, any 3D thickness, coarse-grain mapping, angle mapping, nonlinear-fit provenance, and reference-state/observable choices remain human-review questions.
 - P01-02 repaired the reproduced A03/A04/A06 control-flow defects: analysis filters now accumulate, one-shot output criteria mutate the caller-owned schedule, and the ensemble wrapper passes the current minimizer API by explicit keywords while preserving requested initial/final dumps and remap selection.
 - Mohammad's 2026-10-01 decision fixes a simulation-first quasi-static scope, fixed-cell equilibrated reference, total configurational 2D tension primary plus incremental tension, damage initiation as the primary phenomenological event endpoint, bounded local compute, and no 3D/time claims without separate validation. It authorizes a provisional computational contract but not final biological parameters, lab access, production compute, public release, or manuscript submission.
+- P01-05A is assigned from accepted main `78da30f` to `research/p01-05a-computational-contract` at `C:/Users/mzora/MechWorld-wt-p01-05a`, with ownership limited to the parameter contract/profiles, profile loader/tests, and its own evidence/report paths.
 
 ## ✅ Verification & Hard Evidence
 
@@ -60,7 +61,7 @@
 
 ## ⏭️ Next Concrete Steps
 
-1. [ ] Implement and review P01-05A: distinct immutable legacy routes plus a fail-closed `reviewed_physics_provisional_v0` profile with expanded identity/hash and mixed-profile rejection.
+1. [ ] Review the active P01-05A return: distinct immutable legacy routes plus a fail-closed `reviewed_physics_provisional_v0` profile with expanded identity/hash and mixed-profile rejection.
 2. [ ] Carry the P01-09 positional cross-cohort pairing limitation into the trajectory manifest so later comparisons use persistent replicate IDs rather than filename order.
 3. [ ] After P01-05A acceptance, assign P01-06 analytical/LAMMPS energy-force-virial checks, then P01-07 tangent/coupling validation and P01-11 packaging/G1 review.
 4. [ ] Migrate inherited simulation entry points to P01-08 paths in a later owned task and add true restart-resume/suffix-equivalence coverage before claiming restartability.

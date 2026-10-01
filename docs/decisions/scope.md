@@ -1,7 +1,9 @@
 # Study scope and governance decision
 
-Decision date: 2026-10-01  
-Decision owner: Mohammad Zoraiz  
+Decision date: 2026-10-01
+
+Decision owner: Mohammad Zoraiz
+
 Status: accepted for internal computational work; the explicitly pending reviews and access items below are not approvals.
 
 ## Main scientific scope

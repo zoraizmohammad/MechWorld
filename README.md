@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after recording Mohammad's quasi-static scope/governance decisions. P01-05A provisional computational-profile work is now dependency-eligible; final biological parameter review remains blocked.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after recording Mohammad's quasi-static scope/governance decisions and assigning P01-05A provisional computational-profile work in an isolated worktree. Final biological parameter review remains blocked.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -32,7 +32,7 @@ Latest integration verification: P01-10 passed 19 focused, 33 compatibility, and
 - P01-09 is done: derived moduli are rebuilt atomically without deleting raw records, interpolation stays within networks/replicates, ambiguous axes fail explicitly, and the verified factor-1000 energy-density label/conversion defect is repaired. Cross-cohort replicate pairing remains positional until the later manifest defines persistent IDs.
 - P10-01 is done as a targeted 2026-10-01 claim audit: prior GNN, fracture, failure-learning, stochastic-simulation, uncertainty, and PG-mechanics work is explicit. The eventual contribution must be scoped to demonstrated PG-specific joint mechanics/event rollouts, calibrated uncertainty, real experiments, and the scientist workflow; no broad priority language is allowed.
 - P00-06 is done as a governance decision: main claims are quasi-static; the primary endpoint is phenomenological damage initiation; compute remains bounded/local; public release and manuscript submission still require separate approval.
-- P01-05A is next: freeze distinct legacy routes and a fail-closed `reviewed_physics_provisional_v0` profile with hashes/provenance. P01-05 remains blocked for Prof. Schmidt/Octavio review and final biological parameter certification.
+- P01-05A is active on `research/p01-05a-computational-contract`: freeze distinct legacy routes and a fail-closed `reviewed_physics_provisional_v0` profile with hashes/provenance. P01-05 remains blocked for Prof. Schmidt/Octavio review and final biological parameter certification.
 - Tasks left before G1: complete P01-05A, P01-06 analytical/LAMMPS energy-force-virial checks, P01-07 tangent/coupling validation, and P01-11 clean packaging/gate review. G1 may establish numerical consistency under provisional profiles, not biological calibration.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
 - Compatibility follow-up: seven inherited plotting/result scripts fail Python 3.11 compilation because of nested f-string quote syntax; targeted repaired files compile, and the broader issue is queued before P01-11.

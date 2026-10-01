@@ -65,3 +65,13 @@ The return requires a sole-author Mohammad Zoraiz commit, exact commands/results
 Integration state: the P01-10 return was path-reviewed and integrated as `916c5a7`. Independent main-tree verification passed 19 focused tests, 33 compatibility tests, and 112 total tests plus targeted compilation, diff checking, and the declared sensitivity reproducer. Chemical connectivity is derived only from explicit bonds; raster pores remain setting-dependent image observables. Its ownership is cleared. No further agent task is dependency-eligible until the recorded P00-06/P01-05 human decisions unblock P01-06.
 
 Decision reconciliation state: two read-only subagents independently reviewed the 2026-10-01 human decisions. They made no file changes. Both supported closing P00-06 as governance, adding a mandatory provisional computational-contract slice P01-05A, retaining P01-05 as blocked final biological certification, and allowing bounded numerical validation to continue under explicit profile hashes and fail-closed status flags.
+
+## Fifth wave
+
+The assignment uses accepted main revision `78da30ffd8b374125a34edaacc71ae7650b8f722`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Provisional physics contract/physics | `research/p01-05a-computational-contract`; `C:/Users/mzora/MechWorld-wt-p01-05a` | P01-05A: exact red-first immutable route-specific legacy profiles and a fail-closed provisional reviewed profile with expanded identity/hash and mixed-profile rejection | `docs/physics_parameters.md`, `configs/physics/`, `src/pgworld/config/physics_profiles.py`, `tests/physics/test_physics_profiles.py`, `evidence/subagents/P01-05A/`, `docs/subagents/P01-05A-computational-contract.md` | No ledger/README/shared-contract/dependency edits; no final biological certification, parameter retuning, source-constant migration, solver run, production compute, or changes outside owned paths |
+
+The return requires a sole-author Mohammad Zoraiz commit, exact red/green commands/results/limitations, path-boundary proof, and integrator review plus rerun before acceptance.
