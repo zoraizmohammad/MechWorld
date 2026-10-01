@@ -143,3 +143,20 @@ are machine-readable in `wheel-install.json` (SHA-256
 - These checks do not certify biological parameters, experiments, rupture,
   physical time, production campaigns, public release, or manuscript claims.
   `reports/gates/G1.candidate.json` is not gate acceptance.
+
+## Post-integration newline-materialization correction
+
+The integrator subsequently reproduced one packaging-test failure after
+cherry-picking the implementation into a Windows checkout with
+`core.autocrlf=true`. The packaged resource was materialized with CRLF while
+`git show` returned canonical LF bytes; the JSON content, Git blobs, and all
+registered canonical profile hashes were unchanged. Revision
+`29e8fec602743db24826beba344281797238995f` now compares exact content after
+normalizing only CRLF to LF, rejects lone CR, and includes a regression that
+mutates every non-newline byte in the fixture and requires rejection.
+
+At that revision, the focused packaging contract passed 7 tests in 0.917 s and
+the full suite passed 173 tests in 161.067 s with no failures, errors, or skips.
+The full suite retained 14 known warnings and included the tracked-source
+compilation check. Exact commands, hashes, and the integrator-supplied failure
+provenance are in `newline-regression.md`.

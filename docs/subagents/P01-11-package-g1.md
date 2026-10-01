@@ -5,10 +5,12 @@
 The implementation is complete on `research/p01-11-package-g1` from accepted
 base `a0d625994d593c236195dda2734c62111d201ea1`. The substantive implementation
 commit is `ea59aea89e9431689b63db1bc8288b30116a2534`; the final evaluated source
-revision is `a9d6d690e89a761758acc1ac3e72f98087278543`, whose only change removes four
-terminal blank lines flagged by `git diff --check`. Gate acceptance,
-integration, and release remain integrator decisions; this report does not
-accept G1.
+revision is `29e8fec602743db24826beba344281797238995f`. Commit `a9d6d690e89a761758acc1ac3e72f98087278543`
+removed four terminal blank lines flagged by `git diff --check`; commit
+`29e8fec602743db24826beba344281797238995f` makes the Git-blob comparison
+portable across LF and CRLF checkout materialization without allowing other
+content changes. Gate acceptance, integration, and release remain integrator
+decisions; this report does not accept G1.
 
 ## Implemented result
 
@@ -69,6 +71,13 @@ Installed numerical evidence:
 - Final wrapper/contract selection: 6 passed in 0.65 s.
 - Final full suite at revision `a9d6d69`: 172 passed, 0 failed, 0 errors, 0
   skipped, 14 warnings in 183.73 s (outer 185.52 s).
+- Integrator-supplied main evidence at `7e6295a`: 171 passed and 1 failed in
+  151.11 s because the old regression compared CRLF checkout bytes directly
+  with LF Git-blob bytes. Git identities and canonical profile hashes still
+  matched.
+- Post-correction packaging contract at `29e8fec`: 7 passed in 0.92 s.
+- Post-correction full suite at `29e8fec`: 173 passed, 0 failed, 0 errors, 0
+  skipped, 14 warnings in 161.07 s.
 - Standalone tracked-source compilation after the implementation commit:
   80 files, 0 failures, exit 0 in 0.270 s.
 - `git diff --check a0d6259..a9d6d69` exited 0.
@@ -76,6 +85,8 @@ Installed numerical evidence:
 Commands, exact paths, exit codes, runtimes, wheel members/hash, module paths,
 locked versions, solver/profile evidence, and limitations are recorded in
 `evidence/subagents/P01-11/verification.md` and `wheel-install.json`.
+The newline-correction commands, hashes, and the supplied integration failure
+are recorded in `evidence/subagents/P01-11/newline-regression.md`.
 
 ## Boundaries
 
