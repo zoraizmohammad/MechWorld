@@ -88,3 +88,17 @@ Final independent review accepted the return. Main verification passed 15
 focused, 33 compatibility, and 127 total tests plus strict load/read-back,
 forgery rejection, compilation, diff, ownership, and identity checks. Ownership
 is cleared; P01-05 remains human-review blocked and P01-06 is eligible.
+
+## Sixth wave
+
+The assignment uses accepted main revision
+`5243771fa97927beafe49dd66cea4c2bec07bb5c`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Energy/force/virial oracle/physics | `research/p01-06-energy-force-virial`; `C:/Users/mzora/MechWorld-wt-p01-06` | P01-06: exact red-first independent analytical, finite-difference, and real serial LAMMPS checks for bond/angle energy, force, configurational virial, 2D tension normalization/sign, and fixed-reference total/incremental reporting | `src/pgworld/physics/`, `tests/physics/test_energy_force_virial.py`, `evidence/subagents/P01-06/`, `docs/subagents/P01-06-energy-force-virial.md` | No profile/config/ledger/README edits; no parameter retuning, rupture implementation, runner migration, production simulation, biological certification, or changes outside owned paths |
+
+The return requires the exact red regression before implementation, sole-author
+Mohammad commits, real LAMMPS version/close evidence, explicit tolerances and
+units, singular/degenerate-input rejection, path-boundary proof, and limitations.
+The integrator must independently review and rerun the branch before acceptance.

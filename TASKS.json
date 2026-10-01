@@ -634,7 +634,7 @@
       "id": "P01-06",
       "work_package": "WP1",
       "title": "Implement independent small-network energy, force, and virial checks",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -662,7 +662,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": ""
+      "notes": "Assigned from accepted main 5243771 to research/p01-06-energy-force-virial in isolated worktree C:/Users/mzora/MechWorld-wt-p01-06. Ownership is limited to src/pgworld/physics/, tests/physics/test_energy_force_virial.py, evidence/subagents/P01-06/, and docs/subagents/P01-06-energy-force-virial.md. The task must start from exact red regressions and compare independent analytical/finite-difference oracles with real serial LAMMPS 20260902 for harmonic/nonlinear bonds, noncollinear angles, configurational virials, 2D normalization/signs, and fixed-reference total/incremental tension. It may use only immutable provisional profile snapshots, must reject singular/degenerate fixtures, and cannot certify biological parameters or start production simulation."
     },
     {
       "id": "P01-07",
