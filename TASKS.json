@@ -2416,7 +2416,7 @@
       "id": "P10-01",
       "work_package": "WP10",
       "title": "Complete current primary-source related-work and novelty assessment",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "research/integrator",
       "execution_kind": "agent",
       "mandatory": true,
@@ -2441,7 +2441,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": "Begin early, revisit after results. Implement a real reference validator before treating this proposed command as evidence."
+      "notes": "Assigned on research/p10-01-related-work at a2805a6 with a current primary-source search, explicit overlap/negative novelty findings, bibliography plus real local validator/tests, evidence, and return report. Begin early and revisit after results; no broad priority claim is allowed."
     },
     {
       "id": "P10-02",

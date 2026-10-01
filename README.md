@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after integrating the bounded distribution repair; periodic-identity and run-isolation work remain active.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after integrating the bounded distribution repair and assigning the current primary-source related-work review; periodic-identity and run-isolation work remain active.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -27,6 +27,7 @@ Latest integration verification: P01-03 passed 26 targeted tests and the complet
 - P01-01 on `research/p01-01-periodic-identities`: add general-triclinic rejection and repeated/large-offset image-shift and persistent-identity coverage; the parser slice alone does not complete the task.
 - P01-08 on `research/p01-08-run-isolation`: add typed local run configuration, unique work directories, bounded concurrency checks, and failure-safe solver cleanup without launching production jobs.
 - P01-04 is newly eligible after P01-03: add namespaced RNG streams, achieved-network metrics, and high-precision serialization after the active P01-01 ownership of `src/lammps_PG_objects.py` clears.
+- P10-01 on `research/p10-01-related-work`: verify the current primary-source overlap matrix and bibliography; prior fracture GNNs already rule out any broad “first learned fracture simulator” claim.
 - P01-05 is blocked for Mohammad/lab review: choose the coarse-grain mapping and parameter profile, reference/observable conventions, physical-time scope, and any thickness; do not apply a blind factor-of-two coefficient edit.
 - Compatibility follow-up: seven inherited plotting/result scripts fail Python 3.11 compilation because of nested f-string quote syntax; targeted repaired files compile, and the broader issue is queued before P01-11.
 
