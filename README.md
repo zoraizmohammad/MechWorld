@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independently reviewing, integrating, and verifying P02-01 explicit quasi-static loading/control protocols. P02-02 damage/event definitions are the next eligible task; final biological parameter review remains blocked.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independently reviewing, integrating, verifying, and pushing P02-01, then assigning P02-02 damage/event definitions in an isolated worktree. Final biological parameter review remains blocked.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -16,7 +16,7 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independe
 | Inherited mechanics repair | G1 accepted | P01-01 through P01-11 are integrated or explicitly retained as provisional/blocked; the installable wheel and `pgworld doctor` passed fresh-environment real-LAMMPS checks |
 | Physics/units contract | Immutable provisional profiles verified; biological review pending | Four route-specific hashes separate historical execution from the required new virial-only policy and reject tampered persisted snapshots. Coarse-graining, angle mapping, nonlinear-fit recovery, and the final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
-| Rupture, dataset, models, evaluation, explorer | P02-01 done; P02-02 next | Explicit quasi-static controls are accepted; the rupture law, irreversible topology, datasets, trained models, evaluation, and explorer gates remain unaccepted |
+| Rupture, dataset, models, evaluation, explorer | P02-01 done; P02-02 active | Explicit quasi-static controls are accepted; the phenomenological damage/event contract is isolated on `research/p02-02-damage-law`, while topology mutation and later gates remain unaccepted |
 | Experimental validation | P08-01 blocked on access | AFM plus matched morphology is the proposed target, but actual lab protocol, custodian, permissions, acquisition, raw files, calibration, and review remain unconfirmed |
 | Release | Foundation and mechanics gates accepted | G0 and numerical/software mechanics gate G1 are accepted; G2-G11 remain unaccepted and no public hosting, data/model release, or paper submission is authorized |
 
@@ -37,6 +37,7 @@ Latest integration verification: P02-01 passed 213 total tests on integrated `ma
 - P01-07 is done after independent rejection/correction cycles: the immutable fixed reference is separate from the local tangent base, current-area native-2D conventions are explicit, all nine raw couplings survive, saved stencils replay on readback, branch-changing outputs are directional secants, and the inherited misleading route fails closed by default.
 - P01-11 and G1 are done after two independent review cycles. The package bundles unchanged immutable profile identities, exposes `pgworld doctor`, makes the old elastic task explicitly forensic/fail-closed, compiles all 80 tracked Python files under Python 3.11, and passes a true isolated install against external LAMMPS 20260902.
 - P02-01 is done after independent adversarial review. Forty focused cases enforce absolute/increment replay, coordinate covariance, cyclic path progress, closed-cylinder pressure assumptions, stable-ID intervention locality, and the separation of prescribed interventions from material rupture. Integrated `main` passed 213/213 tests; P02-02 is now eligible to define the phenomenological damage law and distinct failure endpoints.
+- P02-02 is active from pushed main `7b2a025` in an isolated worktree. Its bounded contract covers deterministic and sample-once heterogeneous thresholds, irreversible masks, right-censored no-event outcomes, damage initiation, and separate connectivity/degradation/instability labels; it cannot implement the later solver/topology cascade or claim molecular cleavage validation.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
 - Compatibility follow-up complete: the seven inherited nested-f-string quote failures were repaired without changing plotting semantics, and the tracked-source compilation regression now covers all 80 Python files.
 

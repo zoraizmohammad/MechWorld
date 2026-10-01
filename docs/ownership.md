@@ -190,3 +190,19 @@ accepted and integrated as `c4e71c0`, `5c4907c`, `1999149`, and `736fe51`.
 The final focused suite passed 40 tests, the separate fresh-wheel test passed,
 and integrated `main` passed 213 tests. P02-01 edit ownership is cleared; no
 agent owns root ledgers, shared contracts, or gate state.
+
+## Tenth wave
+
+The assignment uses accepted and pushed main revision
+`7b2a025bdc7b74c7956cebf9787df59256403fce`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Damage law/physics | `research/p02-02-damage-law`; `C:/Users/mzora/MechWorld-wt-p02-02` | P02-02: exact red-first phenomenological deterministic and sample-once heterogeneous thresholds, irreversible masks, damage-initiation/censoring records, and distinct connectivity/degradation/instability endpoints | `docs/decisions/fracture_model.md`, `src/pgworld/physics/damage.py`, `tests/physics/test_damage_law.py`, `evidence/subagents/P02-02/`, `docs/subagents/P02-02-damage-law.md` | No root ledger/README/shared-schema/profile/loading-control/solver-cascade edits; no LAMMPS mutation, molecular-cleavage certification, physical-time/3D claim, production simulation, gate decision, public release, private data, or changes outside owned paths |
+
+The return requires the first exact failing regression, stable-ID and
+retry/order-invariant threshold fixtures, fail-closed units/profile/reference
+checks, explicit predictor-visibility metadata, prescribed-intervention
+exclusion, right-censored no-event outcomes, distinct endpoint semantics,
+sole-author Mohammad commits, path/identity proof, and limitations. A separate
+read-only reviewer audits the immutable return before integration.
