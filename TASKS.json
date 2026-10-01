@@ -511,7 +511,7 @@
       "id": "P01-04",
       "work_package": "WP1",
       "title": "Make geometry generation reproducible and serialization precise",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "data",
       "execution_kind": "agent",
       "mandatory": true,
@@ -535,11 +535,19 @@
       "planned_verification_commands": [
         "python -m pytest tests/unit/test_generator_reproducibility.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "VERIFIED_ON_MAIN",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "docs/subagents/P01-04-reproducibility.md",
+        "evidence/subagents/P01-04/red-pytest.xml",
+        "evidence/subagents/P01-04/verification.md",
+        "evidence/integration/P01-04/verification.md",
+        "evidence/integration/P01-04/targeted.xml",
+        "evidence/integration/P01-04/compatibility.xml",
+        "evidence/integration/P01-04/full.xml"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from accepted main revision a79a7aa on research/p01-04-reproducibility in isolated worktree C:/Users/mzora/MechWorld-wt-p01-04. Scope is exact red-first reproducibility, independent named RNG streams for geometry/material/events/model, achieved-network metrics, and measured high-precision serialization error; no ledger/shared-contract edits or scientific parameter approval."
+      "notes": "Integrated as 1f90577 after path/author review. Main verification passed 14 focused, 45 compatibility, and 93 total tests; targeted compilation and diff checks passed. Real LAMMPS 20260902 loaded all 108 deterministic fixture atoms, preserved 324 coordinate tokens with zero measured max/RMS error, and closed. Named seed derivation, achieved-network metrics, and high-precision output are accepted; material fields, stochastic events, model training, physical coefficients, relaxation mechanics, and historical-file repair remain outside this task."
     },
     {
       "id": "P01-05",
