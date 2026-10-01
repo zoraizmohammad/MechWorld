@@ -1,9 +1,13 @@
 # P01-05A subagent verification
 
-Date: 2026-10-01 (America/New_York)  
-Worktree: `C:\Users\mzora\MechWorld-wt-p01-05a`  
-Branch: `research/p01-05a-computational-contract`  
-Base: `78da30ffd8b374125a34edaacc71ae7650b8f722`  
+Date: 2026-10-01 (America/New_York)
+
+Worktree: `C:\Users\mzora\MechWorld-wt-p01-05a`
+
+Branch: `research/p01-05a-computational-contract`
+
+Base: `78da30ffd8b374125a34edaacc71ae7650b8f722`
+
 Interpreter: `C:\Users\mzora\MechWorld\.venv\Scripts\python.exe`, Python 3.11.9
 
 Resource boundary: serial pytest and Python commands only; no simulation,
