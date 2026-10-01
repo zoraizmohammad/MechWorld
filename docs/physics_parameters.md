@@ -36,7 +36,7 @@ profile turns that display into native three-dimensional mechanics.
 |---|---|---|
 | `legacy_python_2026_03_12_v1` | Exact inherited current-Python coefficients; reproduction and bounded numerical fixtures | `sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b` |
 | `legacy_direct_isotropic_pre_unit_fix_v1` | Exact retained `src/IsotropicPrestrain` 1/1000-scale route; forensic reproduction only | `sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0` |
-| `legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1` | Exact retained `ELASTIC_2D_ZERO_TEMP` route, including its distinct nonlinear fit and invalid GPa interpretation; forensic reproduction only | `sha256:58b5271932856c040992306c19e393788bd28f829245348951de2e4733fb7f6a` |
+| `legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1` | Exact retained `ELASTIC_2D_ZERO_TEMP` route, including its distinct nonlinear fit and invalid GPa interpretation; forensic reproduction only | `sha256:b005c666d187538d60bbe6f924959473d6823e2287089e11621a1fc0dbc43771` |
 | `reviewed_physics_provisional_v0` | Current-Python values copied only for bounded numerical fixtures and development; pending and not biologically certified | `sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5` |
 
 `legacy_python_2026_03_12_v1` uses the date **2026-03-12** because the two

@@ -38,7 +38,7 @@ EXPECTED_HASHES = {
         "sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0"
     ),
     "legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1": (
-        "sha256:58b5271932856c040992306c19e393788bd28f829245348951de2e4733fb7f6a"
+        "sha256:b005c666d187538d60bbe6f924959473d6823e2287089e11621a1fc0dbc43771"
     ),
     "reviewed_physics_provisional_v0": (
         "sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5"
@@ -300,6 +300,24 @@ def test_historical_execution_is_not_rewritten_as_virial_only_policy() -> None:
         "not_applicable_new_provisional_profile"
     )
     assert provisional["historical_execution"]["entry_points"] == []
+
+
+def test_every_legacy_entry_point_has_bidirectional_source_provenance() -> None:
+    for profile_id in PROFILE_IDS[:3]:
+        snapshot = load_physics_profile(profile_id).expanded_snapshot()
+        entry_point_paths = {
+            entry_point.split("::", 1)[0]
+            for entry_point in snapshot["historical_execution"]["entry_points"]
+        }
+        repository_sources = {
+            source["citation_or_path"]
+            for source in snapshot["sources"]
+            if source["kind"] == "repository_source"
+        }
+        provenance_routes = set(snapshot["provenance"]["source_routes"])
+
+        assert entry_point_paths.issubset(repository_sources)
+        assert entry_point_paths.issubset(provenance_routes)
 
 
 def test_parameter_unknowns_fit_artifact_sources_and_provenance_are_explicit() -> None:

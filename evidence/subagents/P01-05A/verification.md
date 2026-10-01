@@ -168,7 +168,7 @@ public expanded-snapshot read-back exited `0` for all four records:
 ```text
 legacy_python_2026_03_12_v1 sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b roundtrip_readback=PASS
 legacy_direct_isotropic_pre_unit_fix_v1 sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0 roundtrip_readback=PASS
-legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1 sha256:58b5271932856c040992306c19e393788bd28f829245348951de2e4733fb7f6a roundtrip_readback=PASS
+legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1 sha256:b005c666d187538d60bbe6f924959473d6823e2287089e11621a1fc0dbc43771 roundtrip_readback=PASS
 reviewed_physics_provisional_v0 sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5 roundtrip_readback=PASS
 ```
 
@@ -205,6 +205,50 @@ a0c2e1825265c9e032625e90899f702dad7e6db48093a6ab20595360782c9e44  configs/physic
 aa43596939c3156b77f526aec26e97c729ed1a589ab991bfd42f6b5044f97645  evidence/subagents/P01-05A/review-targeted.xml
 2adc294ff4c03622f57bb268d10d29156f09adafc12364e6cf2cb635993b9477  evidence/subagents/P01-05A/review-full.txt
 f5bc287d071f5955bca273256323e173d21551b40b92694a39e8f69385703076  evidence/subagents/P01-05A/review-full.xml
+```
+
+## Final entry-point provenance correction
+
+A final review found that the direct-elastic historical entry points were named
+but not bidirectionally linked to repository-source records and
+`provenance.source_routes`. A generic regression was added first. Before the
+fix it exited `1` with **1 failed in 0.25s** (wrapper `1.190s`) because both
+`PG_2D_main.elastic` and `PG_2D_displace_deform.mod` were absent from the two
+provenance collections. Evidence: `provenance-red.txt`.
+
+The two files now have narrow source claim scopes, appear in `source_routes`,
+and are enforced generically for every legacy historical entry point. Only the
+direct-elastic profile hash changed.
+
+- Corrected focused: exit `0`, **15 passed in 0.21s**, wrapper `0.945s`;
+  `provenance-targeted.txt/xml`.
+- Corrected full suite: exit `0`, **127 passed in 6.65s**, wrapper `7.411s`;
+  `provenance-full.txt/xml`.
+- Targeted `py_compile`: exit `0`, `0.096s`.
+- Strict JSON round-trip, registered load, and expanded-snapshot read-back:
+  exit `0` for all four profiles.
+
+Authoritative final identities:
+
+```text
+legacy_python_2026_03_12_v1 sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b
+legacy_direct_isotropic_pre_unit_fix_v1 sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0
+legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1 sha256:b005c666d187538d60bbe6f924959473d6823e2287089e11621a1fc0dbc43771
+reviewed_physics_provisional_v0 sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5
+```
+
+Authoritative final changed-file/evidence hashes before this report-only edit:
+
+```text
+31c9221492f3149c845d409f05ba4e0bd35edfab8e9a6316c75797e5c778ded3  src/pgworld/config/physics_profiles.py
+5bae01f5472a3bab16078dec4555cac1fc92f30fd18aa0a2e618789c35aece4a  tests/physics/test_physics_profiles.py
+edbcfd6502b651aec66640c7bc5c3806fe58a8f7ae92f5c5161d018d2cd1d855  docs/physics_parameters.md
+f430852e7da3c0cefaa42026f09a4a9b90a919d05bc9e099066eaac4d891b44c  configs/physics/legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1.json
+66b100586dfa4d44780a2a518a9609feb6bceac298bd0cd50a6f648f326ca9bc  evidence/subagents/P01-05A/provenance-red.txt
+03715e106a21d718013dffa8a785c391c6331c610378f296128b0206740e2c27  evidence/subagents/P01-05A/provenance-targeted.txt
+e894a6b84c66647c6b68290e06c72f34b9652026211148b1ebd200aeca1b1bf5  evidence/subagents/P01-05A/provenance-targeted.xml
+3202b81eea216f95b1f7bd909b34f180609eeeaf8b0aafeb9761584c5e46c790  evidence/subagents/P01-05A/provenance-full.txt
+6087ef3ac4a57a91120a9ad5d65c9430afda475104df8df0618cfedfd423a141  evidence/subagents/P01-05A/provenance-full.xml
 ```
 
 ## Limitations

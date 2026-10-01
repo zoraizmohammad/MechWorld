@@ -43,7 +43,7 @@ _PROFILE_HASHES = {
         "sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0"
     ),
     "legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1": (
-        "sha256:58b5271932856c040992306c19e393788bd28f829245348951de2e4733fb7f6a"
+        "sha256:b005c666d187538d60bbe6f924959473d6823e2287089e11621a1fc0dbc43771"
     ),
     "reviewed_physics_provisional_v0": (
         "sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5"
@@ -699,6 +699,26 @@ def _validate_profile(data: Mapping[str, Any], expected_profile_id: str | None) 
         if not required_current_sources.issubset(set(provenance["source_routes"])):
             raise PhysicsProfileError(
                 "current-route provenance must list every coefficient/unit/entrypoint source"
+            )
+
+    if data["family"] == "legacy_reproduction":
+        entry_point_paths = {
+            entry_point.split("::", 1)[0]
+            for entry_point in data["historical_execution"]["entry_points"]
+        }
+        repository_source_paths = {
+            source["citation_or_path"]
+            for source in sources
+            if source["kind"] == "repository_source"
+        }
+        missing_source_records = entry_point_paths - repository_source_paths
+        missing_provenance_routes = entry_point_paths - set(
+            provenance["source_routes"]
+        )
+        if missing_source_records or missing_provenance_routes:
+            raise PhysicsProfileError(
+                "every legacy historical entry point must appear in repository "
+                "sources and provenance.source_routes"
             )
 
     _validate_fixed_contract(data)

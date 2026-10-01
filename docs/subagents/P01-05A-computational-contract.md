@@ -114,6 +114,10 @@ are in `evidence/subagents/P01-05A/verification.md`.
   constructor did not raise.
 - Corrected schema-v2 focused: **14 passed in 0.53s**, exit `0`.
 - Corrected full repository suite: **126 passed in 10.43s**, exit `0`.
+- Final entry-point provenance red: **1 failed in 0.25s**, exit `1`, because
+  both direct-elastic execution files were absent from source provenance.
+- Final corrected focused: **15 passed in 0.21s**, exit `0`.
+- Final corrected full suite: **127 passed in 6.65s**, exit `0`.
 - Targeted `py_compile`: exit `0`.
 - Four-file strict JSON parse/round-trip and production load: exit `0`.
 - `git diff --check`: exit `0`.
