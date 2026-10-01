@@ -50,7 +50,7 @@ The regression uses `pe=10`, `lx=2`, `ly=5`, proving that raw density `1 pN/nm` 
 ```text
 acc54baf540a166e1aeb48b1d54aa6eeeb3215aa92f5a949200bbcceb96ca532  src/process_network_ensembles.py
 5d0a17c6c716d7f20e00bc2726d3ae0740dcab3df86003b27f6888b8394fe748  src/process_elastic_tensor.py
-0b8fd88e72ab077bc9d576adfce1ae9258e2daa4be03b48608798ed7f685f156  tests/unit/test_analysis_regression.py
+90b06ea0e565247ebc0231f04ec82e271d7ba5760f9a90c2c054fb9ffe64ca60  tests/unit/test_analysis_regression.py
 ```
 
 ## Scope and limitations

@@ -152,4 +152,3 @@ def test_grouped_elastic_interpolation_never_crosses_networks() -> None:
     assert interpolated.loc["second", "Ex"] == pytest.approx(200.0)
     assert interpolated.loc["first", "Ey"] == pytest.approx(40.0)
     assert interpolated.loc["second", "Ey"] == pytest.approx(400.0)
-
