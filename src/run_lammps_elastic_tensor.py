@@ -1264,7 +1264,7 @@ def _run_lammps_harmonic_observation(
     base_pair_positions_nm: np.ndarray,
     increment: np.ndarray,
 ) -> TensionObservation:
-    """Run one serial two-atom fixed-topology affine LAMMPS state."""
+    """Run one serial fixed-topology periodic-ring LAMMPS state."""
 
     deformation = deformation_gradient(increment)
     cell = deformation @ reference.cell_matrix_nm
