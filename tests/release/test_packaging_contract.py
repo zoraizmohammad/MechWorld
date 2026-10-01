@@ -67,7 +67,17 @@ def test_pyproject_declares_one_pgworld_doctor_console_surface() -> None:
     }
 
 
-def test_packaged_profiles_preserve_exact_git_blob_and_canonical_identity() -> None:
+def _assert_git_content_identity(
+    materialized_bytes: bytes, canonical_blob: bytes
+) -> None:
+    """Allow Git's LF-to-CRLF checkout conversion, but no content changes."""
+    assert b"\r" not in canonical_blob
+    normalized_materialized = materialized_bytes.replace(b"\r\n", b"\n")
+    assert b"\r" not in normalized_materialized
+    assert normalized_materialized == canonical_blob
+
+
+def test_packaged_profiles_match_git_content_and_canonical_identity() -> None:
     packaged = SRC / "pgworld" / "config" / "profiles"
     assert {path.stem for path in packaged.glob("*.json")} == set(PROFILE_IDS)
     for profile_id in PROFILE_IDS:
@@ -82,10 +92,31 @@ def test_packaged_profiles_preserve_exact_git_blob_and_canonical_identity() -> N
             check=True,
         ).stdout
         packaged_bytes = (packaged / f"{profile_id}.json").read_bytes()
-        assert packaged_bytes == canonical_blob
+        _assert_git_content_identity(packaged_bytes, canonical_blob)
         snapshot = json.loads(packaged_bytes)
         assert snapshot["profile_id"] == profile_id
         assert snapshot["canonical_hash"] == EXPECTED_PROFILE_HASHES[profile_id]
+
+
+def test_git_content_identity_allows_crlf_only_and_rejects_content_changes() -> None:
+    canonical_blob = b'{\n  "profile_id": "fixture",\n  "value": 5570\n}\n'
+    _assert_git_content_identity(canonical_blob, canonical_blob)
+    _assert_git_content_identity(
+        canonical_blob.replace(b"\n", b"\r\n"), canonical_blob
+    )
+
+    for index, original_byte in enumerate(canonical_blob):
+        if original_byte == ord("\n"):
+            continue
+        replacement_byte = b"!" if original_byte != ord("!") else b"?"
+        changed_content = (
+            canonical_blob[:index] + replacement_byte + canonical_blob[index + 1 :]
+        )
+        with pytest.raises(AssertionError):
+            _assert_git_content_identity(changed_content, canonical_blob)
+
+    with pytest.raises(AssertionError):
+        _assert_git_content_identity(canonical_blob.replace(b"\n", b"\r"), canonical_blob)
 
 
 def _source_environment() -> dict[str, str]:

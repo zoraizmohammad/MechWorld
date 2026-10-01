@@ -14,9 +14,11 @@ accept G1.
 
 - A standards-based `pyproject.toml` builds `mechworld-pg` and exposes only the
   `pgworld doctor` console command.
-- All four immutable profile JSON files are package resources copied exactly
-  from their accepted Git blobs. Loading works outside the checkout, preserves
-  all canonical IDs/hashes, and rejects a modified installed resource.
+- All four immutable profile JSON files are package resources with the same
+  canonical JSON content as their accepted Git blobs. The regression permits
+  only Git's CRLF/LF checkout materialization difference. Loading works outside
+  the checkout, preserves all canonical IDs/hashes, and rejects a modified
+  installed resource.
 - `tools/doctor.py` is a compatibility wrapper around `pgworld.doctor`. The
   real LAMMPS fixture is profile-provenanced and closes the solver.
 - The verified `pgworld` modules and twelve required top-level legacy core

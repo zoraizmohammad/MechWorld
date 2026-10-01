@@ -18,7 +18,8 @@ parameter certification.
 
 The wheel contains the `pgworld` package, including the physics oracles, local
 run manager, CLI/doctor, and all four immutable physics profiles. The profile
-JSON resources are byte-identical to the accepted Git blobs in
+JSON resource content matches the accepted Git blobs exactly after normalizing
+only Git's platform CRLF checkout materialization to canonical LF in
 `configs/physics/`; the originals remain unchanged. The registered IDs and
 canonical hashes remain:
 
