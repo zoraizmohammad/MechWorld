@@ -102,3 +102,12 @@ The return requires the exact red regression before implementation, sole-author
 Mohammad commits, real LAMMPS version/close evidence, explicit tolerances and
 units, singular/degenerate-input rejection, path-boundary proof, and limitations.
 The integrator must independently review and rerun the branch before acceptance.
+
+Integration state: the three P01-06 return commits were path- and
+identity-reviewed and integrated as `05ef3fc`, `56eec8b`, and `709933f`.
+The first pass was not accepted until mass/kinetic-pressure provenance and
+minimum-image nonlinear-domain validation were corrected. Independent
+main-tree verification passed 26 focused, 56 compatibility, and 153 total
+tests, targeted compilation, a 10,000-case minimum-image comparison, and the
+real-LAMMPS report assertions. All LAMMPS 20260902 instances closed. Ownership
+is cleared; P01-07 is eligible.

@@ -634,7 +634,7 @@
       "id": "P01-06",
       "work_package": "WP1",
       "title": "Implement independent small-network energy, force, and virial checks",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -658,11 +658,19 @@
       "planned_verification_commands": [
         "python -m pytest tests/physics/test_energy_force_virial.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "VERIFIED",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "docs/subagents/P01-06-energy-force-virial.md",
+        "evidence/subagents/P01-06/verification.md",
+        "evidence/subagents/P01-06/lammps_comparison.json",
+        "evidence/integration/P01-06/verification.md",
+        "evidence/integration/P01-06/focused.xml",
+        "evidence/integration/P01-06/compatibility.xml",
+        "evidence/integration/P01-06/full.xml"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from accepted main 5243771 to research/p01-06-energy-force-virial in isolated worktree C:/Users/mzora/MechWorld-wt-p01-06. Ownership is limited to src/pgworld/physics/, tests/physics/test_energy_force_virial.py, evidence/subagents/P01-06/, and docs/subagents/P01-06-energy-force-virial.md. The task must start from exact red regressions and compare independent analytical/finite-difference oracles with real serial LAMMPS 20260902 for harmonic/nonlinear bonds, noncollinear angles, configurational virials, 2D normalization/signs, and fixed-reference total/incremental tension. It may use only immutable provisional profile snapshots, must reject singular/degenerate fixtures, and cannot certify biological parameters or start production simulation."
+      "notes": "Accepted after adversarial correction and independent main verification. Integrated commits 05ef3fc, 56eec8b, and 709933f are sole-author Mohammad Zoraiz changes within assigned ownership. Main reruns passed 26 focused, 56 compatibility, and 153 total tests with no skips/failures; targeted compilation, diff, ownership, identity, real-LAMMPS report assertions, and a 10,000-case periodic length comparison passed. LAMMPS 20260902 closed every instance; maximum energy, force, and virial absolute errors were 0.0 pN nm, 4.547473508864641e-13 pN, and 1.8189894035458565e-12 pN nm. This verifies numerical implementation consistency under immutable profiles, not biological parameters, rupture behavior, production readiness, or G1. Persistent per-edge image identity remains P03-01 scope."
     },
     {
       "id": "P01-07",

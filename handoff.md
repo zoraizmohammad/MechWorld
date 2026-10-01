@@ -6,7 +6,7 @@
 - **Current session objective:** Reconcile the execution packet with the actual checkout, establish the measured workstation baseline and isolated subagent workflow, then integrate the first reproduced-defect regression repair and continue through eligible dependencies.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
-- **Gate state:** G0 is accepted; G1-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-05A, P01-08 through P01-10, and P10-01 are done. P01-06 is active in an isolated worktree. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
+- **Gate state:** G0 is accepted; G1-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-05A, P01-06, P01-08 through P01-10, and P10-01 are done. P01-07 is the next eligible task. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
 
 ## 📊 Transient State & What Changed
 
@@ -26,7 +26,7 @@
 - P01-02 repaired the reproduced A03/A04/A06 control-flow defects: analysis filters now accumulate, one-shot output criteria mutate the caller-owned schedule, and the ensemble wrapper passes the current minimizer API by explicit keywords while preserving requested initial/final dumps and remap selection.
 - Mohammad's 2026-10-01 decision fixes a simulation-first quasi-static scope, fixed-cell equilibrated reference, total configurational 2D tension primary plus incremental tension, damage initiation as the primary phenomenological event endpoint, bounded local compute, and no 3D/time claims without separate validation. It authorizes a provisional computational contract but not final biological parameters, lab access, production compute, public release, or manuscript submission.
 - P01-05A was assigned from accepted main `78da30f` to `research/p01-05a-computational-contract` at `C:/Users/mzora/MechWorld-wt-p01-05a`, with ownership limited to the parameter contract/profiles, profile loader/tests, and its own evidence/report paths. Its four returned implementation/correction commits are integrated as `3e734f3`, `7bc36e6`, `08b8a11`, and `c41c58a`.
-- P01-06 is assigned from accepted main `5243771` to `research/p01-06-energy-force-virial` at `C:/Users/mzora/MechWorld-wt-p01-06`. Ownership is limited to `src/pgworld/physics/`, `tests/physics/test_energy_force_virial.py`, `evidence/subagents/P01-06/`, and `docs/subagents/P01-06-energy-force-virial.md`; root ledgers and the immutable profile contract are read-only.
+- P01-06 returned three sole-author commits, integrated as `05ef3fc`, `56eec8b`, and `709933f`. Its isolated ownership is cleared after path review, two substantive correction rounds, independent reviewer acceptance, and main-worktree reruns.
 
 ## ✅ Verification & Hard Evidence
 
@@ -51,6 +51,7 @@
 - Integrated P01-10 structural observables: two exact red regressions captured grayscale handling and rectangular x-scale defects. On main, **19 focused tests passed in 3.09s**, **33 compatibility tests passed in 4.23s**, and the merged full suite passed **112 tests in 6.22s**; compilation, diff checks, and the sensitivity reproducer passed. Raster settings measurably change image-pore values; a rendered crossing remains two chemical components because topology comes only from declared bonds. Evidence: `evidence/integration/P01-10/`.
 - P00-06 human decision accepted: the dated record and bounded resource/release/access policy are in `docs/decisions/scope.md` and `docs/access_and_resources.md`. Two independent read-only reviewers agreed that P01-05A/P01-06 may proceed under fail-closed provisional profiles while P01-05 remains blocked. Primary-source review confirmed the cited harmonic/nonlinear/2D-pressure conventions and Nguyen bead/parameter facts; it did not certify the repository mapping. Evidence: `evidence/decisions/2026-10-01-scope-source-review.md`.
 - Integrated P01-05A provisional computational contract: the first pass was rejected until historical default-pressure/NVE semantics were separated from the required new configurational-virial policy and forged expanded snapshots failed closed. A second review found and closed one direct-elastic source-provenance gap. On final main, **15 focused tests passed in 0.34s**, **33 compatibility tests passed in 1.77s**, and the merged full suite passed **127 tests in 3.42s**. All four profile hashes round-tripped and passed persisted-snapshot read-back; direct construction and read-back both rejected a registered-ID/hash snapshot mutated to `K=1`. Compilation, diff, ownership, and sole-author checks passed. Evidence: `evidence/integration/P01-05A/`.
+- Integrated P01-06 energy/force/virial oracle: after corrections for mass/kinetic-pressure provenance and periodic-domain validation, main verification passed **26 focused**, **56 compatibility**, and **153 total** tests with no skips or failures. Real LAMMPS 20260902 closed every instance. Maximum energy, force, and virial absolute errors were `0.0 pN nm`, `4.547473508864641e-13 pN`, and `1.8189894035458565e-12 pN nm`; 10,000 independent orthogonal minimum-image length comparisons had zero mismatch. Targeted compilation, diff, ownership, and sole-author checks passed. Evidence: `evidence/integration/P01-06/`.
 - Packet archive limitation: no ZIP was present; the historical archive SHA-256 could not be recomputed. Live inventory matches the packet's counts, but byte identity is `[UNVERIFIED]`.
 
 ## 🚫 Constraints & "Do Not Touch" Zones
@@ -65,13 +66,14 @@
 
 1. [x] Accept P01-05A after independent adversarial review: distinct immutable legacy routes, a fail-closed `reviewed_physics_provisional_v0`, persisted-snapshot validation, and bidirectional source provenance are integrated.
 2. [ ] Carry the P01-09 positional cross-cohort pairing limitation into the trajectory manifest so later comparisons use persistent replicate IDs rather than filename order.
-3. [ ] Review and integrate the active P01-06 analytical/LAMMPS energy-force-virial checks, then assign P01-07 tangent/coupling validation and P01-11 packaging/G1 review.
-4. [ ] Migrate inherited simulation entry points to P01-08 paths in a later owned task and add true restart-resume/suffix-equivalence coverage before claiming restartability.
-5. [ ] Continue eligible independent engineering while P00-06/P01-05 and lab inputs remain blocked.
-6. [ ] Preserve P03-01 ownership of canonical persistent per-edge image offsets and stable edge identity; the P01-01 inferred minimum image is not a trajectory identity substitute.
-7. [ ] Refresh P10-01 after project results and obtain independent claim review before any manuscript priority language; the current audit is targeted through 2026-10-01, not exhaustive.
-8. [ ] Repair and test the seven inherited Python 3.11 figure-script syntax failures before P01-11 clean-install acceptance.
-9. [ ] Do not begin a main dataset sweep before G1; do not begin model claims before real rupture, schema, split, and pilot gates.
+3. [x] Review and integrate P01-06 analytical/LAMMPS energy-force-virial checks after adversarial corrections.
+4. [ ] Assign and complete P01-07 tangent/coupling validation, then P01-11 packaging/G1 review.
+5. [ ] Migrate inherited simulation entry points to P01-08 paths in a later owned task and add true restart-resume/suffix-equivalence coverage before claiming restartability.
+6. [ ] Continue eligible independent engineering while P00-06/P01-05 and lab inputs remain blocked.
+7. [ ] Preserve P03-01 ownership of canonical persistent per-edge image offsets and stable edge identity; the P01-01 inferred minimum image is not a trajectory identity substitute.
+8. [ ] Refresh P10-01 after project results and obtain independent claim review before any manuscript priority language; the current audit is targeted through 2026-10-01, not exhaustive.
+9. [ ] Repair and test the seven inherited Python 3.11 figure-script syntax failures before P01-11 clean-install acceptance.
+10. [ ] Do not begin a main dataset sweep before G1; do not begin model claims before real rupture, schema, split, and pilot gates.
 
 **Active jobs:** none. **Persistent simulation/training jobs:** none. Inspect `reports/jobs.jsonl` before starting any future job.
 
