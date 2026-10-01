@@ -51,6 +51,10 @@ Implementation commit: `9291f0b686e079c7b38045d61f08b7c166665b3b`.
   (`full-final.xml`).
 - Final compileall and `git diff --check`: exit 0.
 
+The final base-to-tip diff check was repeated after normalizing one
+whitespace-only blank line embedded in a generated JUnit failure-text excerpt;
+no source, test result, or scientific evidence changed.
+
 An independent reviewer reproduced and closed constructor bypasses, mutable
 nested metadata, coordinate covariance, inverted/inconsistent deformation,
 pressure relabeling, cyclic metadata loss, arbitrary progress, and duplicate

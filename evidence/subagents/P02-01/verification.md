@@ -88,7 +88,10 @@ or public action was used.
    git diff --check
    ```
 
-   Both exited 0. Git emitted only Windows LF-to-CRLF checkout notices.
+   Both exited 0 for the then-tracked source/test diff. After generated evidence
+   was added, the immutable-range check found one whitespace-only blank line in
+   a JUnit failure-text excerpt. That line was normalized without changing test
+   content or outcomes, and the final base-to-tip `git diff --check` exited 0.
 
 ## Raw config SHA-256
 

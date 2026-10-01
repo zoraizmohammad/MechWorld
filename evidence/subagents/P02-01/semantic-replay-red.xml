@@ -23,7 +23,7 @@ tests\physics\test_loading.py:198: Failed</failure></testcase><testcase classnam
         )
         with pytest.raises(ControlValidationError, match="increment|replay"):
             replace(schedule, steps=(schedule.steps[0], forged_step, schedule.steps[2]))
-    
+
         relabeled_steps = []
         previous = np.zeros((2, 2))
         for step in schedule.steps:
