@@ -75,3 +75,16 @@ The assignment uses accepted main revision `78da30ffd8b374125a34edaacc71ae7650b8
 | Provisional physics contract/physics | `research/p01-05a-computational-contract`; `C:/Users/mzora/MechWorld-wt-p01-05a` | P01-05A: exact red-first immutable route-specific legacy profiles and a fail-closed provisional reviewed profile with expanded identity/hash and mixed-profile rejection | `docs/physics_parameters.md`, `configs/physics/`, `src/pgworld/config/physics_profiles.py`, `tests/physics/test_physics_profiles.py`, `evidence/subagents/P01-05A/`, `docs/subagents/P01-05A-computational-contract.md` | No ledger/README/shared-contract/dependency edits; no final biological certification, parameter retuning, source-constant migration, solver run, production compute, or changes outside owned paths |
 
 The return requires a sole-author Mohammad Zoraiz commit, exact red/green commands/results/limitations, path-boundary proof, and integrator review plus rerun before acceptance.
+
+Integration state: the initial P01-05A return was integrated for review as
+`3e734f3` and `7bc36e6` but was not accepted until adversarial review found and
+closed two contract defects: historical default-pressure/NVE behavior had been
+conflated with the required new virial-only output policy, and a forged expanded
+snapshot could retain a registered compact ID/hash. Corrections `08b8a11` and
+`c41c58a` add strict persisted-snapshot validation, separate historical/new
+policy fields, explicit unknown range/fit provenance, installed-release-pinned
+LAMMPS sources, and bidirectional source coverage for every legacy entry point.
+Final independent review accepted the return. Main verification passed 15
+focused, 33 compatibility, and 127 total tests plus strict load/read-back,
+forgery rejection, compilation, diff, ownership, and identity checks. Ownership
+is cleared; P01-05 remains human-review blocked and P01-06 is eligible.

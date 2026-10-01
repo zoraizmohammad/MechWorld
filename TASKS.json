@@ -552,7 +552,7 @@
       "id": "P01-05A",
       "work_package": "WP1",
       "title": "Freeze the provisional computational physics contract",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -579,11 +579,19 @@
       "planned_verification_commands": [
         "python -m pytest tests/physics/test_physics_profiles.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "VERIFIED",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "docs/physics_parameters.md",
+        "docs/subagents/P01-05A-computational-contract.md",
+        "evidence/subagents/P01-05A/verification.md",
+        "evidence/integration/P01-05A/verification.md",
+        "evidence/integration/P01-05A/focused.xml",
+        "evidence/integration/P01-05A/compatibility.xml",
+        "evidence/integration/P01-05A/full.xml"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from accepted main revision 78da30f on research/p01-05a-computational-contract in isolated worktree C:/Users/mzora/MechWorld-wt-p01-05a. This computational slice may complete independently; it must preserve final coarse-graining, nonlinear-fit, angle-resolution, mass/time, and reviewer approval as explicit pending fields, with no ledger/README edits or profile claim beyond bounded numerical work."
+      "notes": "Accepted after two independent review/correction cycles. Integrated implementation commits are 3e734f3, 7bc36e6, 08b8a11, and c41c58a. Main verification passed 15 focused, 33 compatibility, and 127 total tests; strict profile round-trip/read-back, two forged-snapshot rejection probes, source compilation, diff checking, ownership, and sole-author identity checks passed. Four immutable route-specific profiles distinguish historical execution from the required new virial-only output policy and record unknown parameter ranges/fit artifacts without invention. This completes only the provisional computational contract; P01-05 remains blocked on biological review and P01-06 owns actual analytical/LAMMPS oracle validation."
     },
     {
       "id": "P01-05",

@@ -6,7 +6,7 @@
 - **Current session objective:** Reconcile the execution packet with the actual checkout, establish the measured workstation baseline and isolated subagent workflow, then integrate the first reproduced-defect regression repair and continue through eligible dependencies.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
-- **Gate state:** G0 is accepted; G1-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-08 through P01-10, and P10-01 are done. P01-05A provisional computational profiles are active in an isolated worktree. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
+- **Gate state:** G0 is accepted; G1-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-05A, P01-08 through P01-10, and P10-01 are done. P01-06 is now dependency-eligible. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
 
 ## 📊 Transient State & What Changed
 
@@ -25,7 +25,7 @@
 - The physics audit found that current 2D tension conversion is dimensionally correct, A16 is a definite factor-1000 energy-density label/conversion defect, and A12 cannot be resolved by blindly halving the harmonic coefficient because a two-edge series interpretation reproduces the cited coarse spring. Three legacy parameter routes must remain distinct. Physical time, any 3D thickness, coarse-grain mapping, angle mapping, nonlinear-fit provenance, and reference-state/observable choices remain human-review questions.
 - P01-02 repaired the reproduced A03/A04/A06 control-flow defects: analysis filters now accumulate, one-shot output criteria mutate the caller-owned schedule, and the ensemble wrapper passes the current minimizer API by explicit keywords while preserving requested initial/final dumps and remap selection.
 - Mohammad's 2026-10-01 decision fixes a simulation-first quasi-static scope, fixed-cell equilibrated reference, total configurational 2D tension primary plus incremental tension, damage initiation as the primary phenomenological event endpoint, bounded local compute, and no 3D/time claims without separate validation. It authorizes a provisional computational contract but not final biological parameters, lab access, production compute, public release, or manuscript submission.
-- P01-05A is assigned from accepted main `78da30f` to `research/p01-05a-computational-contract` at `C:/Users/mzora/MechWorld-wt-p01-05a`, with ownership limited to the parameter contract/profiles, profile loader/tests, and its own evidence/report paths.
+- P01-05A was assigned from accepted main `78da30f` to `research/p01-05a-computational-contract` at `C:/Users/mzora/MechWorld-wt-p01-05a`, with ownership limited to the parameter contract/profiles, profile loader/tests, and its own evidence/report paths. Its four returned implementation/correction commits are integrated as `3e734f3`, `7bc36e6`, `08b8a11`, and `c41c58a`.
 
 ## ✅ Verification & Hard Evidence
 
@@ -49,21 +49,22 @@
 - Integrated P01-04 reproducible generation: the pre-implementation return preserved nine exact red failures. On main, **14 focused tests passed in 8.45s**, **45 compatibility tests passed in 8.83s**, and the merged full suite passed **93 tests in 12.27s**; compilation and diff checks passed. Real LAMMPS 20260902 loaded 108/108 deterministic fixture atoms, all 324 coordinate tokens had measured max/RMS round-trip error 0, and the solver closed. Evidence: `evidence/integration/P01-04/`.
 - Integrated P01-10 structural observables: two exact red regressions captured grayscale handling and rectangular x-scale defects. On main, **19 focused tests passed in 3.09s**, **33 compatibility tests passed in 4.23s**, and the merged full suite passed **112 tests in 6.22s**; compilation, diff checks, and the sensitivity reproducer passed. Raster settings measurably change image-pore values; a rendered crossing remains two chemical components because topology comes only from declared bonds. Evidence: `evidence/integration/P01-10/`.
 - P00-06 human decision accepted: the dated record and bounded resource/release/access policy are in `docs/decisions/scope.md` and `docs/access_and_resources.md`. Two independent read-only reviewers agreed that P01-05A/P01-06 may proceed under fail-closed provisional profiles while P01-05 remains blocked. Primary-source review confirmed the cited harmonic/nonlinear/2D-pressure conventions and Nguyen bead/parameter facts; it did not certify the repository mapping. Evidence: `evidence/decisions/2026-10-01-scope-source-review.md`.
+- Integrated P01-05A provisional computational contract: the first pass was rejected until historical default-pressure/NVE semantics were separated from the required new configurational-virial policy and forged expanded snapshots failed closed. A second review found and closed one direct-elastic source-provenance gap. On final main, **15 focused tests passed in 0.34s**, **33 compatibility tests passed in 1.77s**, and the merged full suite passed **127 tests in 3.42s**. All four profile hashes round-tripped and passed persisted-snapshot read-back; direct construction and read-back both rejected a registered-ID/hash snapshot mutated to `K=1`. Compilation, diff, ownership, and sole-author checks passed. Evidence: `evidence/integration/P01-05A/`.
 - Packet archive limitation: no ZIP was present; the historical archive SHA-256 could not be recomputed. Live inventory matches the packet's counts, but byte identity is `[UNVERIFIED]`.
 
 ## 🚫 Constraints & "Do Not Touch" Zones
 
 - Preserve uncommitted packet material, inherited `status.md`/`todo.md`, Git history, licenses/notices, tracked restart data, and private lab information. Do not reset, force-push, rewrite history, or attribute inherited code to the new commit author.
 - Do not call minimized states physical time, a configured `fix bond/break` fracture during minimization, an illustrative cylinder native 3D mechanics, or a saved/untrained checkpoint a validated model.
-- No production campaign, paid/cloud resource, public deployment, remote push, private-data upload, paper submission, or release approval is authorized.
+- No production campaign, paid/cloud resource, public deployment, private-data upload, paper submission, or release approval is authorized. The user separately authorized ordinary reviewed source commits to be pushed to the configured `origin`; that is not authorization to publish data, models, figures, or release artifacts.
 - Only the integrator edits `handoff.md`, `TASKS.json`, shared contracts, root dependency files, and gate state. Subagents use dedicated branches/worktrees or read-only scope and may write only assigned paths plus their return report.
 - P00-06/P01-05/WP8 human decisions and actual lab acquisition cannot be self-approved or replaced with synthetic data. Continue independent eligible implementation.
 
 ## ⏭️ Next Concrete Steps
 
-1. [ ] Review the active P01-05A return: distinct immutable legacy routes plus a fail-closed `reviewed_physics_provisional_v0` profile with expanded identity/hash and mixed-profile rejection.
+1. [x] Accept P01-05A after independent adversarial review: distinct immutable legacy routes, a fail-closed `reviewed_physics_provisional_v0`, persisted-snapshot validation, and bidirectional source provenance are integrated.
 2. [ ] Carry the P01-09 positional cross-cohort pairing limitation into the trajectory manifest so later comparisons use persistent replicate IDs rather than filename order.
-3. [ ] After P01-05A acceptance, assign P01-06 analytical/LAMMPS energy-force-virial checks, then P01-07 tangent/coupling validation and P01-11 packaging/G1 review.
+3. [ ] Assign P01-06 analytical/LAMMPS energy-force-virial checks, then P01-07 tangent/coupling validation and P01-11 packaging/G1 review.
 4. [ ] Migrate inherited simulation entry points to P01-08 paths in a later owned task and add true restart-resume/suffix-equivalence coverage before claiming restartability.
 5. [ ] Continue eligible independent engineering while P00-06/P01-05 and lab inputs remain blocked.
 6. [ ] Preserve P03-01 ownership of canonical persistent per-edge image offsets and stable edge identity; the P01-01 inferred minimum image is not a trajectory identity substitute.
