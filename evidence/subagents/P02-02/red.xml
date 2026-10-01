@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="0.271" timestamp="2026-10-01T19:00:10.159941" hostname="MZoraiz_P15"><testcase classname="" name="tests.physics.test_damage_law" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-02\tests\physics\test_damage_law.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\physics\test_damage_law.py:12: in &lt;module&gt;
+    from pgworld.physics.damage import (  # noqa: E402
+E   ModuleNotFoundError: No module named 'pgworld.physics.damage'</error></testcase></testsuite></testsuites>

@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="45" time="0.719" timestamp="2026-10-01T19:14:07.355105" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_damage_law" name="test_deterministic_threshold_law_is_explicitly_phenomenological" time="0.024" /><testcase classname="tests.physics.test_damage_law" name="test_all_reference_criterion_modes_have_exact_units[bond_extension_ratio-dimensionless]" time="0.004" /><testcase classname="tests.physics.test_damage_law" name="test_all_reference_criterion_modes_have_exact_units[bond_tension-pN]" time="0.003" /><testcase classname="tests.physics.test_damage_law" name="test_all_reference_criterion_modes_have_exact_units[bond_energy-pN nm]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates0-schema_version]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates1-criterion_unit]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates2-finite]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates3-finite]" time="0.004" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates4-physical time]" time="0.004" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates5-material_rupture]" time="0.003" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates6-cannot claim]" time="0.005" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates7-visible or hidden]" time="0.004" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates8-sha256]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates9-trimmed string]" time="0.003" /><testcase classname="tests.physics.test_damage_law" name="test_law_record_replay_is_exact_and_unknown_fields_fail_closed" time="0.004" /><testcase classname="tests.physics.test_damage_law" name="test_law_requires_a_registered_profile_id_hash_pair" time="0.005" /><testcase classname="tests.physics.test_damage_law" name="test_heterogeneous_thresholds_are_stable_id_keyed_sample_once_and_immutable" time="0.006" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids0-1-duplicate]" time="0.003" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids1-1-trimmed string]" time="0.005" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids2-True-nonnegative integer]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids3-1-cannot be empty]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_record_replay_rejects_duplicates_and_tampering" time="0.010" /><testcase classname="tests.physics.test_damage_law" name="test_initial_threshold_violation_is_flagged_but_never_damage_initiation" time="0.006" /><testcase classname="tests.physics.test_damage_law" name="test_accepted_crossings_have_deterministic_ties_and_retry_invariant_event" time="0.024" /><testcase classname="tests.physics.test_damage_law" name="test_nonaccepted_phases_cannot_create_material_events[reference_preparation-not_a_damage_event]" time="0.007" /><testcase classname="tests.physics.test_damage_law" name="test_nonaccepted_phases_cannot_create_material_events[rejected_numerical_trial-rejected_trial]" time="0.007" /><testcase classname="tests.physics.test_damage_law" name="test_nonaccepted_phases_cannot_create_material_events[solver_error-solver_error_not_physical_failure]" time="0.007" /><testcase classname="tests.physics.test_damage_law" name="test_observations_require_exact_alive_stable_ids_and_units" time="0.004" /><testcase classname="tests.physics.test_damage_law" name="test_profile_and_reference_mixing_fail_before_assessment" time="0.009" /><testcase classname="tests.physics.test_damage_law" name="test_acceptance_rejects_forged_cross_law_assessment_and_unknown_bond" time="0.016" /><testcase classname="tests.physics.test_damage_law" name="test_assessment_replay_rejects_noncanonical_candidate_order" time="0.017" /><testcase classname="tests.physics.test_damage_law" name="test_prescribed_removal_is_irreversible_but_not_material_rupture" time="0.006" /><testcase classname="tests.physics.test_damage_law" name="test_excluded_event_record_replay_is_hash_bound_and_weakening_checks_bond" time="0.009"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'event_id'&#10; Input: 'prescribed event alive/accepted semantics are inconsistent'">def test_excluded_event_record_replay_is_hash_bound_and_weakening_checks_bond() -&gt; None:
+        _, _, state = _intact_fixture(("bond-a",))
+        event = ExcludedEventRecord.create(
+            source="prescribed_intervention",
+            event_kind="prescribed_weakening",
+            physics_profile_id=PROFILE_ID,
+            physics_profile_hash=PROFILE_HASH,
+            reference_state_id=REFERENCE_ID,
+            accepted=True,
+            physical_bond_id="bond-z",
+            old_alive=True,
+            new_alive=True,
+        )
+        record = event.as_record()
+        assert ExcludedEventRecord.from_record(record).as_record() == record
+        tampered = dict(record)
+        tampered["event_kind"] = "prescribed_removal"
+        with pytest.raises(DamageValidationError, match="event_id"):
+&gt;           ExcludedEventRecord.from_record(tampered)
+
+tests\physics\test_damage_law.py:504: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\physics\damage.py:1740: in from_record
+    return cls(**dict(value))  # type: ignore[arg-type]
+&lt;string&gt;:17: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ExcludedEventRecord(event_id='sha256:bff4130d690e69f7c0d367c6a1f09da1eae1009e0de7c457adaee6c92f34960f', source='prescr...echanical_trigger=False, physical_time=None, physical_time_valid=False, schema_version='pgworld.quasistatic_damage.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != DAMAGE_SCHEMA_VERSION:
+            raise DamageValidationError("invalid excluded event schema_version")
+        if _HASH_RE.fullmatch(self.event_id) is None:
+            raise DamageValidationError("excluded event_id must be a sha256 digest")
+        _registered_profile_identity(
+            self.physics_profile_id, self.physics_profile_hash
+        )
+        _nonempty_string(self.reference_state_id, "reference_state_id")
+        _exact_bool(self.accepted, "accepted")
+        if self.mechanical_trigger is not False:
+            raise DamageValidationError(
+                "excluded event cannot claim a mechanical rupture trigger"
+            )
+        if self.physical_time is not None or self.physical_time_valid is not False:
+            raise DamageValidationError("excluded event cannot carry physical time")
+        expected_kind = {
+            "computational_neighbor_change": "computational_neighbor_change",
+            "rendering_change": "rendering_change",
+            "solver_error": "solver_error",
+        }
+        if self.source == "prescribed_intervention":
+            if self.event_kind not in {
+                "prescribed_removal",
+                "prescribed_weakening",
+            }:
+                raise DamageValidationError("unsupported prescribed event kind")
+            _nonempty_string(self.physical_bond_id, "physical_bond_id")
+            if self.old_alive is not True:
+                raise DamageValidationError("prescribed event requires an alive bond")
+            expected_new = self.event_kind == "prescribed_weakening"
+            if self.new_alive is not expected_new or self.accepted is not True:
+&gt;               raise DamageValidationError(
+                    "prescribed event alive/accepted semantics are inconsistent"
+E                   pgworld.physics.damage.DamageValidationError: prescribed event alive/accepted semantics are inconsistent
+
+src\pgworld\physics\damage.py:1645: DamageValidationError
+
+During handling of the above exception, another exception occurred:
+
+    def test_excluded_event_record_replay_is_hash_bound_and_weakening_checks_bond() -&gt; None:
+        _, _, state = _intact_fixture(("bond-a",))
+        event = ExcludedEventRecord.create(
+            source="prescribed_intervention",
+            event_kind="prescribed_weakening",
+            physics_profile_id=PROFILE_ID,
+            physics_profile_hash=PROFILE_HASH,
+            reference_state_id=REFERENCE_ID,
+            accepted=True,
+            physical_bond_id="bond-z",
+            old_alive=True,
+            new_alive=True,
+        )
+        record = event.as_record()
+        assert ExcludedEventRecord.from_record(record).as_record() == record
+        tampered = dict(record)
+        tampered["event_kind"] = "prescribed_removal"
+&gt;       with pytest.raises(DamageValidationError, match="event_id"):
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'event_id'
+E        Input: 'prescribed event alive/accepted semantics are inconsistent'
+
+tests\physics\test_damage_law.py:503: AssertionError</failure></testcase><testcase classname="tests.physics.test_damage_law" name="test_computational_render_and_solver_events_never_mutate_damage[computational_neighbor_change-computational_neighbor_change-True]" time="0.007" /><testcase classname="tests.physics.test_damage_law" name="test_computational_render_and_solver_events_never_mutate_damage[rendering_change-rendering_change-True]" time="0.011" /><testcase classname="tests.physics.test_damage_law" name="test_computational_render_and_solver_events_never_mutate_damage[solver_error-solver_error-False]" time="0.008" /><testcase classname="tests.physics.test_damage_law" name="test_initial_violation_flags_are_immutable_across_transitions" time="0.012" /><testcase classname="tests.physics.test_damage_law" name="test_excluded_event_constructor_rejects_source_relabeling_and_physical_mutation" time="0.006" /><testcase classname="tests.physics.test_damage_law" name="test_no_material_event_is_explicitly_right_censored" time="0.008" /><testcase classname="tests.physics.test_damage_law" name="test_first_accepted_material_event_alone_defines_damage_initiation" time="0.021" /><testcase classname="tests.physics.test_damage_law" name="test_material_event_serialization_binds_prestate_assessment_law_and_thresholds" time="0.014" /><testcase classname="tests.physics.test_damage_law" name="test_endpoint_builder_rejects_duplicate_bonds_and_mixed_load_units" time="0.015" /><testcase classname="tests.physics.test_damage_law" name="test_connectivity_load_degradation_and_instability_require_distinct_evidence" time="0.009" /><testcase classname="tests.physics.test_damage_law" name="test_all_primary_records_round_trip_and_reject_tampered_sources" time="0.051"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'mix profile/reference'&#10; Input: 'failure endpoint cannot mix physics profile identity/hash or reference state'">def test_all_primary_records_round_trip_and_reject_tampered_sources() -&gt; None:
+        law, field, state = _intact_fixture(("bond-a",))
+        assessment = assess_material_rupture(
+            law,
+            field,
+            state,
+            [_observation("bond-a", 11.0)],
+            phase="accepted_equilibrium",
+            control_id="step-1",
+            load_coordinate=0.1,
+            load_coordinate_unit="dimensionless",
+        )
+        transition = accept_next_material_rupture(state, assessment)
+        endpoint = build_failure_endpoints(
+            [transition.event],
+            tested_load_coordinate=0.2,
+            load_coordinate_unit="dimensionless",
+            physics_profile_id=PROFILE_ID,
+            physics_profile_hash=PROFILE_HASH,
+            reference_state_id=REFERENCE_ID,
+        ).damage_initiation
+    
+        assert DamageState.from_record(state.as_record()).as_record() == state.as_record()
+        assert DamageAssessment.from_record(assessment.as_record()).as_record() == assessment.as_record()
+        assert RuptureCandidate.from_record(
+            assessment.candidates[0].as_record()
+        ).as_record() == assessment.candidates[0].as_record()
+        assert MaterialRuptureEvent.from_record(
+            transition.event.as_record()
+        ).as_record() == transition.event.as_record()
+        assert EndpointObservation.from_record(endpoint.as_record()).as_record() == endpoint.as_record()
+    
+        candidate_record = assessment.candidates[0].as_record()
+        candidate_record["event_source"] = "prescribed_intervention"
+        with pytest.raises(DamageValidationError, match="material_rupture"):
+            RuptureCandidate.from_record(candidate_record)
+        event_record = transition.event.as_record()
+        event_record["new_alive"] = True
+        with pytest.raises(DamageValidationError, match="alive-to-dead"):
+            MaterialRuptureEvent.from_record(event_record)
+        endpoint_record = build_failure_endpoints(
+            [],
+            tested_load_coordinate=0.2,
+            load_coordinate_unit="dimensionless",
+            physics_profile_id=PROFILE_ID,
+            physics_profile_hash=PROFILE_HASH,
+            reference_state_id=REFERENCE_ID,
+        ).mechanical_instability.as_record()
+        endpoint_record["physics_profile_id"] = "legacy_python_2026_03_12_v1"
+        endpoint_record["physics_profile_hash"] = (
+            "sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b"
+        )
+        replayed = EndpointObservation.from_record(endpoint_record)
+        with pytest.raises(DamageValidationError, match="mix profile/reference"):
+&gt;           build_failure_endpoints(
+                [],
+                tested_load_coordinate=0.2,
+                load_coordinate_unit="dimensionless",
+                physics_profile_id=PROFILE_ID,
+                physics_profile_hash=PROFILE_HASH,
+                reference_state_id=REFERENCE_ID,
+                mechanical_instability=replayed,
+            )
+
+tests\physics\test_damage_law.py:809: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\physics\damage.py:2145: in build_failure_endpoints
+    _validate_identity_match(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def _validate_identity_match(
+        *,
+        profile_id: str,
+        profile_hash: str,
+        reference_state_id: str,
+        expected_profile_id: str,
+        expected_profile_hash: str,
+        expected_reference_state_id: str,
+        context: str,
+    ) -&gt; None:
+        if (
+            profile_id != expected_profile_id
+            or profile_hash != expected_profile_hash
+            or reference_state_id != expected_reference_state_id
+        ):
+&gt;           raise DamageValidationError(
+                f"{context} cannot mix physics profile identity/hash or reference state"
+            )
+E           pgworld.physics.damage.DamageValidationError: failure endpoint cannot mix physics profile identity/hash or reference state
+
+src\pgworld\physics\damage.py:194: DamageValidationError
+
+During handling of the above exception, another exception occurred:
+
+    def test_all_primary_records_round_trip_and_reject_tampered_sources() -&gt; None:
+        law, field, state = _intact_fixture(("bond-a",))
+        assessment = assess_material_rupture(
+            law,
+            field,
+            state,
+            [_observation("bond-a", 11.0)],
+            phase="accepted_equilibrium",
+            control_id="step-1",
+            load_coordinate=0.1,
+            load_coordinate_unit="dimensionless",
+        )
+        transition = accept_next_material_rupture(state, assessment)
+        endpoint = build_failure_endpoints(
+            [transition.event],
+            tested_load_coordinate=0.2,
+            load_coordinate_unit="dimensionless",
+            physics_profile_id=PROFILE_ID,
+            physics_profile_hash=PROFILE_HASH,
+            reference_state_id=REFERENCE_ID,
+        ).damage_initiation
+    
+        assert DamageState.from_record(state.as_record()).as_record() == state.as_record()
+        assert DamageAssessment.from_record(assessment.as_record()).as_record() == assessment.as_record()
+        assert RuptureCandidate.from_record(
+            assessment.candidates[0].as_record()
+        ).as_record() == assessment.candidates[0].as_record()
+        assert MaterialRuptureEvent.from_record(
+            transition.event.as_record()
+        ).as_record() == transition.event.as_record()
+        assert EndpointObservation.from_record(endpoint.as_record()).as_record() == endpoint.as_record()
+    
+        candidate_record = assessment.candidates[0].as_record()
+        candidate_record["event_source"] = "prescribed_intervention"
+        with pytest.raises(DamageValidationError, match="material_rupture"):
+            RuptureCandidate.from_record(candidate_record)
+        event_record = transition.event.as_record()
+        event_record["new_alive"] = True
+        with pytest.raises(DamageValidationError, match="alive-to-dead"):
+            MaterialRuptureEvent.from_record(event_record)
+        endpoint_record = build_failure_endpoints(
+            [],
+            tested_load_coordinate=0.2,
+            load_coordinate_unit="dimensionless",
+            physics_profile_id=PROFILE_ID,
+            physics_profile_hash=PROFILE_HASH,
+            reference_state_id=REFERENCE_ID,
+        ).mechanical_instability.as_record()
+        endpoint_record["physics_profile_id"] = "legacy_python_2026_03_12_v1"
+        endpoint_record["physics_profile_hash"] = (
+            "sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b"
+        )
+        replayed = EndpointObservation.from_record(endpoint_record)
+&gt;       with pytest.raises(DamageValidationError, match="mix profile/reference"):
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'mix profile/reference'
+E        Input: 'failure endpoint cannot mix physics profile identity/hash or reference state'
+
+tests\physics\test_damage_law.py:808: AssertionError</failure></testcase><testcase classname="tests.physics.test_damage_law" name="test_trajectory_failure_endpoint_record_replay_is_strict" time="0.011" /></testsuite></testsuites>

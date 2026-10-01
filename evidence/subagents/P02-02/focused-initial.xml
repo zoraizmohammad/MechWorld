@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="37" time="0.278" timestamp="2026-10-01T19:09:35.229639" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_damage_law" name="test_deterministic_threshold_law_is_explicitly_phenomenological" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_all_reference_criterion_modes_have_exact_units[bond_extension_ratio-dimensionless]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_all_reference_criterion_modes_have_exact_units[bond_tension-pN]" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_all_reference_criterion_modes_have_exact_units[bond_energy-pN nm]" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates0-schema_version]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates1-criterion_unit]" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates2-finite]" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates3-finite]" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates4-physical time]" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates5-material_rupture]" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates6-cannot claim]" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates7-visible or hidden]" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates8-sha256]" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates9-trimmed string]" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_law_record_replay_is_exact_and_unknown_fields_fail_closed" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_heterogeneous_thresholds_are_stable_id_keyed_sample_once_and_immutable" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids0-1-duplicate]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids1-1-trimmed string]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids2-True-nonnegative integer]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids3-1-cannot be empty]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_record_replay_rejects_duplicates_and_tampering" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_initial_threshold_violation_is_flagged_but_never_damage_initiation" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_accepted_crossings_have_deterministic_ties_and_retry_invariant_event" time="0.001"><failure message="pgworld.physics.damage.DamageValidationError: candidate ranks must be contiguous">def test_accepted_crossings_have_deterministic_ties_and_retry_invariant_event() -&gt; None:
+        law, field, state = _intact_fixture()
+        observations = [
+            _observation("bond-c", 11.0),
+            _observation("bond-b", 12.0),
+            _observation("bond-a", 12.0),
+        ]
+&gt;       assessment = assess_material_rupture(
+            law,
+            field,
+            state,
+            observations,
+            phase="accepted_equilibrium",
+            control_id="axial-step-2",
+            load_coordinate=0.04,
+            load_coordinate_unit="dimensionless",
+        )
+
+tests\physics\test_damage_law.py:268: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\physics\damage.py:1227: in assess_material_rupture
+    return DamageAssessment(assessment_id=_sha256_record(body), **body)
+&lt;string&gt;:18: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = DamageAssessment(assessment_id='sha256:568f8ebf9ebfeca445deb628bc305a46387152a41c28281ddd3f386db0683d4a', phase='accep...al-step-2', load_coordinate=0.04, load_coordinate_unit='dimensionless', schema_version='pgworld.quasistatic_damage.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != DAMAGE_SCHEMA_VERSION:
+            raise DamageValidationError("invalid assessment schema_version")
+        if self.phase not in _ASSESSMENT_PHASES:
+            raise DamageValidationError("unsupported assessment phase")
+        _exact_bool(
+            self.eligible_for_material_rupture,
+            "eligible_for_material_rupture",
+        )
+        if self.phase == "accepted_equilibrium":
+            if not self.eligible_for_material_rupture or self.exclusion_reason is not None:
+                raise DamageValidationError(
+                    "accepted equilibrium must be eligible unless invalid reference"
+                )
+        elif self.eligible_for_material_rupture or not isinstance(
+            self.exclusion_reason, str
+        ):
+            raise DamageValidationError(
+                "non-accepted phases must be explicitly excluded"
+            )
+        if _HASH_RE.fullmatch(self.state_id) is None:
+            raise DamageValidationError("invalid assessment state_id")
+        _nonempty_string(self.law_id, "law_id")
+        if _HASH_RE.fullmatch(self.threshold_realization_id) is None:
+            raise DamageValidationError("invalid threshold_realization_id")
+        _nonempty_string(self.physics_profile_id, "physics_profile_id")
+        _profile_hash(self.physics_profile_hash)
+        _nonempty_string(self.reference_state_id, "reference_state_id")
+        _nonempty_string(self.control_id, "control_id")
+        object.__setattr__(
+            self,
+            "load_coordinate",
+            _finite_float(self.load_coordinate, "load_coordinate"),
+        )
+        if self.load_coordinate_unit not in _LOAD_UNITS:
+            raise DamageValidationError("unsupported load_coordinate_unit")
+        if isinstance(self.candidates, (str, bytes)):
+            raise DamageValidationError("candidates must be rupture candidates")
+        candidates = tuple(self.candidates)
+        object.__setattr__(self, "candidates", candidates)
+        if not self.eligible_for_material_rupture and candidates:
+            raise DamageValidationError("excluded assessment cannot have candidates")
+        for index, candidate in enumerate(candidates):
+            if not isinstance(candidate, RuptureCandidate) or candidate.rank != index:
+&gt;               raise DamageValidationError("candidate ranks must be contiguous")
+E               pgworld.physics.damage.DamageValidationError: candidate ranks must be contiguous
+
+src\pgworld\physics\damage.py:1051: DamageValidationError</failure></testcase><testcase classname="tests.physics.test_damage_law" name="test_nonaccepted_phases_cannot_create_material_events[reference_preparation-not_a_damage_event]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_nonaccepted_phases_cannot_create_material_events[rejected_numerical_trial-rejected_trial]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_nonaccepted_phases_cannot_create_material_events[solver_error-solver_error_not_physical_failure]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_observations_require_exact_alive_stable_ids_and_units" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_profile_and_reference_mixing_fail_before_assessment" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_prescribed_removal_is_irreversible_but_not_material_rupture" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_computational_render_and_solver_events_never_mutate_damage[computational_neighbor_change-computational_neighbor_change-True]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_computational_render_and_solver_events_never_mutate_damage[rendering_change-rendering_change-True]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_computational_render_and_solver_events_never_mutate_damage[solver_error-solver_error-False]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_excluded_event_constructor_rejects_source_relabeling_and_physical_mutation" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_no_material_event_is_explicitly_right_censored" time="0.000" /><testcase classname="tests.physics.test_damage_law" name="test_first_accepted_material_event_alone_defines_damage_initiation" time="0.001"><failure message="pgworld.physics.damage.DamageValidationError: candidate ranks must be contiguous">def test_first_accepted_material_event_alone_defines_damage_initiation() -&gt; None:
+&gt;       event = _first_material_event()
+
+tests\physics\test_damage_law.py:507: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\physics\test_damage_law.py:474: in _first_material_event
+    assessment = assess_material_rupture(
+src\pgworld\physics\damage.py:1227: in assess_material_rupture
+    return DamageAssessment(assessment_id=_sha256_record(body), **body)
+&lt;string&gt;:18: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = DamageAssessment(assessment_id='sha256:2d96c068a5be5a70c41a9ecc00ef7f92b5de9f1c421ff84537a2a61d6327307f', phase='accep...id='step-1', load_coordinate=0.1, load_coordinate_unit='dimensionless', schema_version='pgworld.quasistatic_damage.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != DAMAGE_SCHEMA_VERSION:
+            raise DamageValidationError("invalid assessment schema_version")
+        if self.phase not in _ASSESSMENT_PHASES:
+            raise DamageValidationError("unsupported assessment phase")
+        _exact_bool(
+            self.eligible_for_material_rupture,
+            "eligible_for_material_rupture",
+        )
+        if self.phase == "accepted_equilibrium":
+            if not self.eligible_for_material_rupture or self.exclusion_reason is not None:
+                raise DamageValidationError(
+                    "accepted equilibrium must be eligible unless invalid reference"
+                )
+        elif self.eligible_for_material_rupture or not isinstance(
+            self.exclusion_reason, str
+        ):
+            raise DamageValidationError(
+                "non-accepted phases must be explicitly excluded"
+            )
+        if _HASH_RE.fullmatch(self.state_id) is None:
+            raise DamageValidationError("invalid assessment state_id")
+        _nonempty_string(self.law_id, "law_id")
+        if _HASH_RE.fullmatch(self.threshold_realization_id) is None:
+            raise DamageValidationError("invalid threshold_realization_id")
+        _nonempty_string(self.physics_profile_id, "physics_profile_id")
+        _profile_hash(self.physics_profile_hash)
+        _nonempty_string(self.reference_state_id, "reference_state_id")
+        _nonempty_string(self.control_id, "control_id")
+        object.__setattr__(
+            self,
+            "load_coordinate",
+            _finite_float(self.load_coordinate, "load_coordinate"),
+        )
+        if self.load_coordinate_unit not in _LOAD_UNITS:
+            raise DamageValidationError("unsupported load_coordinate_unit")
+        if isinstance(self.candidates, (str, bytes)):
+            raise DamageValidationError("candidates must be rupture candidates")
+        candidates = tuple(self.candidates)
+        object.__setattr__(self, "candidates", candidates)
+        if not self.eligible_for_material_rupture and candidates:
+            raise DamageValidationError("excluded assessment cannot have candidates")
+        for index, candidate in enumerate(candidates):
+            if not isinstance(candidate, RuptureCandidate) or candidate.rank != index:
+&gt;               raise DamageValidationError("candidate ranks must be contiguous")
+E               pgworld.physics.damage.DamageValidationError: candidate ranks must be contiguous
+
+src\pgworld\physics\damage.py:1051: DamageValidationError</failure></testcase><testcase classname="tests.physics.test_damage_law" name="test_connectivity_load_degradation_and_instability_require_distinct_evidence" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_all_primary_records_round_trip_and_reject_tampered_sources" time="0.001"><failure message="pgworld.physics.damage.DamageValidationError: candidate ranks must be contiguous">def test_all_primary_records_round_trip_and_reject_tampered_sources() -&gt; None:
+        law, field, state = _intact_fixture(("bond-a",))
+&gt;       assessment = assess_material_rupture(
+            law,
+            field,
+            state,
+            [_observation("bond-a", 11.0)],
+            phase="accepted_equilibrium",
+            control_id="step-1",
+            load_coordinate=0.1,
+            load_coordinate_unit="dimensionless",
+        )
+
+tests\physics\test_damage_law.py:615: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\physics\damage.py:1227: in assess_material_rupture
+    return DamageAssessment(assessment_id=_sha256_record(body), **body)
+&lt;string&gt;:18: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = DamageAssessment(assessment_id='sha256:2d96c068a5be5a70c41a9ecc00ef7f92b5de9f1c421ff84537a2a61d6327307f', phase='accep...id='step-1', load_coordinate=0.1, load_coordinate_unit='dimensionless', schema_version='pgworld.quasistatic_damage.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != DAMAGE_SCHEMA_VERSION:
+            raise DamageValidationError("invalid assessment schema_version")
+        if self.phase not in _ASSESSMENT_PHASES:
+            raise DamageValidationError("unsupported assessment phase")
+        _exact_bool(
+            self.eligible_for_material_rupture,
+            "eligible_for_material_rupture",
+        )
+        if self.phase == "accepted_equilibrium":
+            if not self.eligible_for_material_rupture or self.exclusion_reason is not None:
+                raise DamageValidationError(
+                    "accepted equilibrium must be eligible unless invalid reference"
+                )
+        elif self.eligible_for_material_rupture or not isinstance(
+            self.exclusion_reason, str
+        ):
+            raise DamageValidationError(
+                "non-accepted phases must be explicitly excluded"
+            )
+        if _HASH_RE.fullmatch(self.state_id) is None:
+            raise DamageValidationError("invalid assessment state_id")
+        _nonempty_string(self.law_id, "law_id")
+        if _HASH_RE.fullmatch(self.threshold_realization_id) is None:
+            raise DamageValidationError("invalid threshold_realization_id")
+        _nonempty_string(self.physics_profile_id, "physics_profile_id")
+        _profile_hash(self.physics_profile_hash)
+        _nonempty_string(self.reference_state_id, "reference_state_id")
+        _nonempty_string(self.control_id, "control_id")
+        object.__setattr__(
+            self,
+            "load_coordinate",
+            _finite_float(self.load_coordinate, "load_coordinate"),
+        )
+        if self.load_coordinate_unit not in _LOAD_UNITS:
+            raise DamageValidationError("unsupported load_coordinate_unit")
+        if isinstance(self.candidates, (str, bytes)):
+            raise DamageValidationError("candidates must be rupture candidates")
+        candidates = tuple(self.candidates)
+        object.__setattr__(self, "candidates", candidates)
+        if not self.eligible_for_material_rupture and candidates:
+            raise DamageValidationError("excluded assessment cannot have candidates")
+        for index, candidate in enumerate(candidates):
+            if not isinstance(candidate, RuptureCandidate) or candidate.rank != index:
+&gt;               raise DamageValidationError("candidate ranks must be contiguous")
+E               pgworld.physics.damage.DamageValidationError: candidate ranks must be contiguous
+
+src\pgworld\physics\damage.py:1051: DamageValidationError</failure></testcase></testsuite></testsuites>

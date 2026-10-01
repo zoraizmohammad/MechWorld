@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="56" time="0.530" timestamp="2026-10-01T19:21:41.953230" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_damage_law" name="test_deterministic_threshold_law_is_explicitly_phenomenological" time="0.006" /><testcase classname="tests.physics.test_damage_law" name="test_all_reference_criterion_modes_have_exact_units[bond_extension_ratio-dimensionless]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_all_reference_criterion_modes_have_exact_units[bond_tension-pN]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_all_reference_criterion_modes_have_exact_units[bond_energy-pN nm]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates0-schema_version]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates1-criterion_unit]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates2-finite]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates3-finite]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates4-physical time]" time="0.003" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates5-material_rupture]" time="0.003" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates6-cannot claim]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates7-visible or hidden]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates8-sha256]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_law_constructor_rejects_forged_semantics[updates9-trimmed string]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_law_record_replay_is_exact_and_unknown_fields_fail_closed" time="0.003" /><testcase classname="tests.physics.test_damage_law" name="test_law_requires_a_registered_profile_id_hash_pair" time="0.003" /><testcase classname="tests.physics.test_damage_law" name="test_heterogeneous_thresholds_are_stable_id_keyed_sample_once_and_immutable" time="0.005" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids0-1-duplicate]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids1-1-trimmed string]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids2-True-nonnegative integer]" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_materialization_rejects_ambiguous_ids_and_seeds[bond_ids3-1-cannot be empty]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_stable_id_collections_fail_closed_on_nonsequences[invalid_ids0]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_stable_id_collections_fail_closed_on_nonsequences[invalid_ids1]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_stable_id_collections_fail_closed_on_nonsequences[17]" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_record_mappings_reject_nonstring_keys_without_raw_sort_errors" time="0.001" /><testcase classname="tests.physics.test_damage_law" name="test_threshold_record_replay_rejects_duplicates_and_tampering" time="0.005" /><testcase classname="tests.physics.test_damage_law" name="test_damage_state_replay_rejects_string_id_collections" time="0.004" /><testcase classname="tests.physics.test_damage_law" name="test_damage_state_rejects_nonhash_material_event_ids" time="0.010" /><testcase classname="tests.physics.test_damage_law" name="test_invalid_reference_flags_cannot_coexist_with_material_rupture_history" time="0.010" /><testcase classname="tests.physics.test_damage_law" name="test_initial_threshold_violation_is_flagged_but_never_damage_initiation" time="0.005" /><testcase classname="tests.physics.test_damage_law" name="test_accepted_crossings_have_deterministic_ties_and_retry_invariant_event" time="0.018" /><testcase classname="tests.physics.test_damage_law" name="test_transition_constructor_binds_event_to_exact_resulting_rupture_mask" time="0.011" /><testcase classname="tests.physics.test_damage_law" name="test_nonaccepted_phases_cannot_create_material_events[reference_preparation-not_a_damage_event]" time="0.005" /><testcase classname="tests.physics.test_damage_law" name="test_nonaccepted_phases_cannot_create_material_events[rejected_numerical_trial-rejected_trial]" time="0.005" /><testcase classname="tests.physics.test_damage_law" name="test_nonaccepted_phases_cannot_create_material_events[solver_error-solver_error_not_physical_failure]" time="0.005" /><testcase classname="tests.physics.test_damage_law" name="test_observations_require_exact_alive_stable_ids_and_units" time="0.004" /><testcase classname="tests.physics.test_damage_law" name="test_profile_and_reference_mixing_fail_before_assessment" time="0.004" /><testcase classname="tests.physics.test_damage_law" name="test_acceptance_rejects_forged_cross_law_assessment_and_unknown_bond" time="0.011" /><testcase classname="tests.physics.test_damage_law" name="test_assessment_replay_rejects_noncanonical_candidate_order" time="0.010" /><testcase classname="tests.physics.test_damage_law" name="test_prescribed_removal_is_irreversible_but_not_material_rupture" time="0.008" /><testcase classname="tests.physics.test_damage_law" name="test_excluded_event_record_replay_is_hash_bound_and_weakening_checks_bond" time="0.007" /><testcase classname="tests.physics.test_damage_law" name="test_computational_render_and_solver_events_never_mutate_damage[computational_neighbor_change-computational_neighbor_change-True]" time="0.006" /><testcase classname="tests.physics.test_damage_law" name="test_computational_render_and_solver_events_never_mutate_damage[rendering_change-rendering_change-True]" time="0.006" /><testcase classname="tests.physics.test_damage_law" name="test_computational_render_and_solver_events_never_mutate_damage[solver_error-solver_error-False]" time="0.005" /><testcase classname="tests.physics.test_damage_law" name="test_initial_violation_flags_are_immutable_across_transitions" time="0.005" /><testcase classname="tests.physics.test_damage_law" name="test_excluded_event_constructor_rejects_source_relabeling_and_physical_mutation" time="0.004" /><testcase classname="tests.physics.test_damage_law" name="test_no_material_event_is_explicitly_right_censored" time="0.006" /><testcase classname="tests.physics.test_damage_law" name="test_cyclic_censor_keeps_terminal_lambda_separate_from_monotone_progress" time="0.008" /><testcase classname="tests.physics.test_damage_law" name="test_first_accepted_material_event_alone_defines_damage_initiation" time="0.016" /><testcase classname="tests.physics.test_damage_law" name="test_material_event_serialization_binds_prestate_assessment_law_and_thresholds" time="0.008" /><testcase classname="tests.physics.test_damage_law" name="test_endpoint_builder_rejects_duplicate_bonds_and_mixed_load_units" time="0.011" /><testcase classname="tests.physics.test_damage_law" name="test_endpoint_builder_rejects_mixed_law_and_threshold_realizations" time="0.022"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'load coordinate unit'&#10; Input: 'excluded origins cannot populate material rupture events'">def test_endpoint_builder_rejects_mixed_law_and_threshold_realizations() -&gt; None:
+        law, field, state = _intact_fixture(("bond-a", "bond-b"))
+        first_assessment = assess_material_rupture(
+            law,
+            field,
+            state,
+            [_observation("bond-a", 12.0), _observation("bond-b", 1.0)],
+            phase="accepted_equilibrium",
+            control_id="step-1",
+            load_coordinate=0.1,
+            load_coordinate_unit="dimensionless",
+            path_progress=0.1,
+        )
+        first = accept_next_material_rupture(state, first_assessment)
+        second_assessment = assess_material_rupture(
+            law,
+            field,
+            first.state,
+            [_observation("bond-b", 12.0)],
+            phase="accepted_equilibrium",
+            control_id="step-2",
+            load_coordinate=0.2,
+            load_coordinate_unit="dimensionless",
+            path_progress=0.2,
+        )
+        second = accept_next_material_rupture(first.state, second_assessment).event
+        foreign_record = second.as_record()
+        foreign_record["law_id"] = "foreign-law"
+        foreign_record["law_fingerprint"] = "sha256:" + "3" * 64
+        foreign_record["threshold_realization_id"] = "sha256:" + "4" * 64
+        foreign_body = dict(foreign_record)
+        foreign_body.pop("event_id")
+        foreign_record["event_id"] = _record_hash(foreign_body)
+        foreign = MaterialRuptureEvent.from_record(foreign_record)
+        with pytest.raises(DamageValidationError, match="mix damage law"):
+            build_failure_endpoints(
+                [first.event, foreign],
+                terminal_load_coordinate=0.25,
+                terminal_path_progress=0.25,
+                load_coordinate_unit="dimensionless",
+                physics_profile_id=PROFILE_ID,
+                physics_profile_hash=PROFILE_HASH,
+                reference_state_id=REFERENCE_ID,
+            )
+        with pytest.raises(DamageValidationError, match="load coordinate unit"):
+&gt;           build_failure_endpoints(
+                [first],
+                terminal_load_coordinate=0.25,
+                terminal_path_progress=0.25,
+                load_coordinate_unit="pN/nm^2",
+                physics_profile_id=PROFILE_ID,
+                physics_profile_hash=PROFILE_HASH,
+                reference_state_id=REFERENCE_ID,
+            )
+
+tests\physics\test_damage_law.py:856: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+material_events = [DamageTransition(previous_state_id='sha256:f5e129125c9163bc291f6cc95e7736b42f6981cd9b9ca8cc764ef89baed85150', state=D...shold_violation=False, physical_time=None, physical_time_valid=False, schema_version='pgworld.quasistatic_damage.v1'))]
+
+    def build_failure_endpoints(
+        material_events: Sequence[MaterialRuptureEvent],
+        *,
+        terminal_load_coordinate: float,
+        terminal_path_progress: float,
+        load_coordinate_unit: str,
+        physics_profile_id: str,
+        physics_profile_hash: str,
+        reference_state_id: str,
+        load_bearing_connectivity_loss: EndpointObservation | None = None,
+        load_or_stiffness_degradation: EndpointObservation | None = None,
+        mechanical_instability: EndpointObservation | None = None,
+    ) -&gt; TrajectoryFailureEndpoints:
+        """Build distinct endpoint labels and explicit no-event censoring."""
+    
+        terminal_load_coordinate = _finite_float(
+            terminal_load_coordinate, "terminal_load_coordinate"
+        )
+        terminal_path_progress = _finite_float(
+            terminal_path_progress, "terminal_path_progress"
+        )
+        if terminal_path_progress &lt; 0.0:
+            raise DamageValidationError("terminal_path_progress must be nonnegative")
+        if load_coordinate_unit not in _LOAD_UNITS:
+            raise DamageValidationError("unsupported load_coordinate_unit")
+        _registered_profile_identity(physics_profile_id, physics_profile_hash)
+        _nonempty_string(reference_state_id, "reference_state_id")
+        if isinstance(material_events, (str, bytes)):
+            raise DamageValidationError("material_events must be event objects")
+        events = tuple(material_events)
+        event_ids: set[str] = set()
+        ruptured_bond_ids: set[str] = set()
+        event_law_identity: tuple[str, str, str] | None = None
+        previous_path_progress = -math.inf
+        for index, event in enumerate(events):
+            if not isinstance(event, MaterialRuptureEvent):
+&gt;               raise DamageValidationError(
+                    "excluded origins cannot populate material rupture events"
+                )
+E               pgworld.physics.damage.DamageValidationError: excluded origins cannot populate material rupture events
+
+src\pgworld\physics\damage.py:2273: DamageValidationError
+
+During handling of the above exception, another exception occurred:
+
+    def test_endpoint_builder_rejects_mixed_law_and_threshold_realizations() -&gt; None:
+        law, field, state = _intact_fixture(("bond-a", "bond-b"))
+        first_assessment = assess_material_rupture(
+            law,
+            field,
+            state,
+            [_observation("bond-a", 12.0), _observation("bond-b", 1.0)],
+            phase="accepted_equilibrium",
+            control_id="step-1",
+            load_coordinate=0.1,
+            load_coordinate_unit="dimensionless",
+            path_progress=0.1,
+        )
+        first = accept_next_material_rupture(state, first_assessment)
+        second_assessment = assess_material_rupture(
+            law,
+            field,
+            first.state,
+            [_observation("bond-b", 12.0)],
+            phase="accepted_equilibrium",
+            control_id="step-2",
+            load_coordinate=0.2,
+            load_coordinate_unit="dimensionless",
+            path_progress=0.2,
+        )
+        second = accept_next_material_rupture(first.state, second_assessment).event
+        foreign_record = second.as_record()
+        foreign_record["law_id"] = "foreign-law"
+        foreign_record["law_fingerprint"] = "sha256:" + "3" * 64
+        foreign_record["threshold_realization_id"] = "sha256:" + "4" * 64
+        foreign_body = dict(foreign_record)
+        foreign_body.pop("event_id")
+        foreign_record["event_id"] = _record_hash(foreign_body)
+        foreign = MaterialRuptureEvent.from_record(foreign_record)
+        with pytest.raises(DamageValidationError, match="mix damage law"):
+            build_failure_endpoints(
+                [first.event, foreign],
+                terminal_load_coordinate=0.25,
+                terminal_path_progress=0.25,
+                load_coordinate_unit="dimensionless",
+                physics_profile_id=PROFILE_ID,
+                physics_profile_hash=PROFILE_HASH,
+                reference_state_id=REFERENCE_ID,
+            )
+&gt;       with pytest.raises(DamageValidationError, match="load coordinate unit"):
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'load coordinate unit'
+E        Input: 'excluded origins cannot populate material rupture events'
+
+tests\physics\test_damage_law.py:855: AssertionError</failure></testcase><testcase classname="tests.physics.test_damage_law" name="test_connectivity_load_degradation_and_instability_require_distinct_evidence" time="0.008" /><testcase classname="tests.physics.test_damage_law" name="test_damage_initiation_endpoint_requires_a_material_event_hash" time="0.002" /><testcase classname="tests.physics.test_damage_law" name="test_all_primary_records_round_trip_and_reject_tampered_sources" time="0.033" /><testcase classname="tests.physics.test_damage_law" name="test_trajectory_failure_endpoint_record_replay_is_strict" time="0.009" /></testsuite></testsuites>

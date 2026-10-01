@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.167" timestamp="2026-10-01T19:23:56.824654" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_damage_law" name="test_assessment_replay_rejects_noncanonical_exclusion_reason" time="0.011"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.physics.damage.DamageValidationError'&gt;">def test_assessment_replay_rejects_noncanonical_exclusion_reason() -&gt; None:
+        law, field, state = _intact_fixture(("bond-a",))
+        assessment = assess_material_rupture(
+            law,
+            field,
+            state,
+            [_observation("bond-a", 100.0)],
+            phase="solver_error",
+            control_id="failed-trial",
+            load_coordinate=0.1,
+            load_coordinate_unit="dimensionless",
+            path_progress=0.1,
+        )
+        record = assessment.as_record()
+        record["exclusion_reason"] = "physical_failure"
+        body = dict(record)
+        body.pop("assessment_id")
+        record["assessment_id"] = _record_hash(body)
+&gt;       with pytest.raises(DamageValidationError, match="canonical exclusion_reason"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.physics.damage.DamageValidationError'&gt;
+
+tests\physics\test_damage_law.py:486: Failed</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.242" timestamp="2026-10-01T19:18:47.129846" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_damage_law" name="test_endpoint_builder_rejects_mixed_law_and_threshold_realizations" time="0.037"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.physics.damage.DamageValidationError'&gt;">def test_endpoint_builder_rejects_mixed_law_and_threshold_realizations() -&gt; None:
+        law, field, state = _intact_fixture(("bond-a", "bond-b"))
+        first_assessment = assess_material_rupture(
+            law,
+            field,
+            state,
+            [_observation("bond-a", 12.0), _observation("bond-b", 1.0)],
+            phase="accepted_equilibrium",
+            control_id="step-1",
+            load_coordinate=0.1,
+            load_coordinate_unit="dimensionless",
+        )
+        first = accept_next_material_rupture(state, first_assessment)
+        second_assessment = assess_material_rupture(
+            law,
+            field,
+            first.state,
+            [_observation("bond-b", 12.0)],
+            phase="accepted_equilibrium",
+            control_id="step-2",
+            load_coordinate=0.2,
+            load_coordinate_unit="dimensionless",
+        )
+        second = accept_next_material_rupture(first.state, second_assessment).event
+        foreign_record = second.as_record()
+        foreign_record["law_id"] = "foreign-law"
+        foreign_record["law_fingerprint"] = "sha256:" + "3" * 64
+        foreign_record["threshold_realization_id"] = "sha256:" + "4" * 64
+        foreign_body = dict(foreign_record)
+        foreign_body.pop("event_id")
+        foreign_record["event_id"] = _record_hash(foreign_body)
+        foreign = MaterialRuptureEvent.from_record(foreign_record)
+&gt;       with pytest.raises(DamageValidationError, match="mix damage law"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.physics.damage.DamageValidationError'&gt;
+
+tests\physics\test_damage_law.py:801: Failed</failure></testcase></testsuite></testsuites>
