@@ -212,3 +212,9 @@ installable wheel, whose exact allowlist intentionally rejects every unnamed
 member. Ownership therefore includes `tests/release/test_wheel_install.py`
 only to add that module and an installed import/contract smoke; no exclusion
 or other P01-11/P02-01 release assertion may be weakened.
+
+Integration state: the immutable return tip `f47dc312` was independently
+accepted and integrated as `15df7b8`, `06889af`, and `343296e`. Final focused
+verification passed 58 tests, the separate fresh-wheel test passed, and
+integrated `main` passed 271 tests. P02-02 edit ownership is cleared; no agent
+owns root ledgers, shared schemas, solver/cascade code, or gate state.
