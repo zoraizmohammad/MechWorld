@@ -18,7 +18,8 @@
 - Repository-local Git identity is set to Mohammad Zoraiz <zoraizmohammad@gmail.com>; effective author and committer values were checked with `git var`.
 - Available local solver: LAMMPS 2 Sep 2026. A bounded library `run 0` completed and the instance closed. Repeatable project doctor/integration evidence is assigned under P00-03.
 - No simulation, training, viewer, or experimental job is running. Historical Hoffman2 job IDs in `status.md` have not been verified remotely because scheduler clients/access are absent.
-- Three native subagents were launched from base `c0ec8aa`. The P01-01 parser and P00-03 environment commits were path-reviewed, independently rerun, and integrated as `912c9cc` and `4faeab1`. The report-only P01-05 physics audit was path-reviewed and integrated as `59ecfdc`. The P01-03 distribution assignment runs from `d4274c1`; remaining P01-01 periodic-identity and P01-08 run-isolation assignments use fresh worktrees from accepted-G0 revision `833273e`. Exact ownership is in `docs/ownership.md`; none owns the root ledger, README, or shared contracts.
+- Three native subagents were launched from base `c0ec8aa`. The P01-01 parser and P00-03 environment commits were path-reviewed, independently rerun, and integrated as `912c9cc` and `4faeab1`. The report-only P01-05 physics audit was path-reviewed and integrated as `59ecfdc`. The P01-03 distribution return from base `d4274c1` was reviewed and integrated as `eef253f`; remaining P01-01 periodic-identity and P01-08 run-isolation assignments use worktrees from accepted-G0 revision `833273e`. Exact ownership is in `docs/ownership.md`; none owns the root ledger, README, or shared contracts.
+- P01-03 replaces expanded million/100-million-entry arrays with a normalized finite `DiscreteDistribution`. It preserves inherited FS number/molar and separate WFS weight laws, retains the inherited integer-grid lognormal definition, validates truncation/input, and documents the intentional seeded-stream change. P01-04 now owns namespaced RNG propagation and achieved-network metrics.
 - The physics audit found that current 2D tension conversion is dimensionally correct, A16 is a definite factor-1000 energy-density label/conversion defect, and A12 cannot be resolved by blindly halving the harmonic coefficient because a two-edge series interpretation reproduces the cited coarse spring. Three legacy parameter routes must remain distinct. Physical time, any 3D thickness, coarse-grain mapping, angle mapping, nonlinear-fit provenance, and reference-state/observable choices remain human-review questions.
 - P01-02 repaired the reproduced A03/A04/A06 control-flow defects: analysis filters now accumulate, one-shot output criteria mutate the caller-owned schedule, and the ensemble wrapper passes the current minimizer API by explicit keywords while preserving requested initial/final dumps and remap selection.
 
@@ -37,6 +38,7 @@
 - Integrated P01-01 parser slice: targeted pytest **3 passed in 7.82s**; full suite **12 passed in 7.90s**. The historical diagnostic now observes correct rectangular/orthogonal bounds and keeps A03/A04 fixed; only A05 remains among the five historical cases. General-triclinic rejection and periodic image/identity semantics remain unverified.
 - P00-05 isolation verification: `git worktree list --porcelain` showed distinct main, parser, environment, physics-audit, and distribution worktrees on separate branches. Each returned commit stayed inside its written ownership boundary; only the integrator changed the ledger, README, contracts, and gate state.
 - G0 accepted: all terminal tasks P00-01 through P00-05 are done, inherited/untracked source remains preserved, the target environment and access limitations are recorded, and the actual LAMMPS smoke passed. Evidence index: `reports/gates/G0.json`.
+- Integrated P01-03 distribution repair: exact red A05 regression failed once before the fix; integration rerun passed **26 targeted tests in 7.68s** and **40 total tests in 7.89s**. `py_compile` and the current five-case source diagnostic exited 0; the diagnostic now accepts `UNI=2=4` as `DiscreteDistribution` and the generator returns without exception. Evidence: `evidence/integration/P01-03/`.
 - Packet archive limitation: no ZIP was present; the historical archive SHA-256 could not be recomputed. Live inventory matches the packet's counts, but byte identity is `[UNVERIFIED]`.
 
 ## 🚫 Constraints & "Do Not Touch" Zones
@@ -50,13 +52,14 @@
 ## ⏭️ Next Concrete Steps
 
 1. [ ] Review P01-01 from `research/p01-01-periodic-identities`: general-triclinic rejection and repeated/large-offset periodic image/identity tests must pass before marking the task complete.
-2. [ ] Review P01-03 from `research/p01-03-distributions`: capture the A05 uniform-distribution failure, replace expanded distributions with a bounded sampler, and document number-versus-weight fractions.
-3. [ ] Review P01-08 from `research/p01-08-run-isolation`: verify unique run directories, cleanup after success/failure, and bounded concurrent smoke runs without scheduler submission.
+2. [ ] Review P01-08 from `research/p01-08-run-isolation`: verify unique run directories, cleanup after success/failure, and bounded concurrent smoke runs without scheduler submission.
+3. [ ] Launch P01-04 namespaced RNG/precision work only after the active P01-01 ownership of `src/lammps_PG_objects.py` clears; then record achieved, not merely requested, network metrics.
 4. [ ] Independently review the subagent diffs and rerun targeted plus inherited tests in the integration worktree before each commit.
-5. [ ] Continue the eligible distribution/RNG repairs after recording their own failing regressions while P00-06/P01-05 and lab inputs remain blocked.
+5. [ ] Continue eligible RNG and run-isolation repairs while P00-06/P01-05 and lab inputs remain blocked.
 6. [ ] Implement the definite A16 conversion regression separately after P01-01 unlocks P01-09; do not mix it with an unapproved parameter-profile change.
-7. [ ] Repair and test the seven inherited Python 3.11 figure-script syntax failures before P01-11 clean-install acceptance.
-8. [ ] Do not begin a main dataset sweep before G1; do not begin model claims before real rupture, schema, split, and pilot gates.
+7. [ ] Complete the current primary-source related-work/novelty matrix; broad fracture-GNN novelty is already contradicted by prior work.
+8. [ ] Repair and test the seven inherited Python 3.11 figure-script syntax failures before P01-11 clean-install acceptance.
+9. [ ] Do not begin a main dataset sweep before G1; do not begin model claims before real rupture, schema, split, and pilot gates.
 
 **Active jobs:** none. **Persistent simulation/training jobs:** none. Inspect `reports/jobs.jsonl` before starting any future job.
 

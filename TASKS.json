@@ -460,7 +460,7 @@
       "id": "P01-03",
       "work_package": "WP1",
       "title": "Replace expanded distributions with documented discrete samplers",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "data",
       "execution_kind": "agent",
       "mandatory": true,
@@ -482,11 +482,22 @@
       "planned_verification_commands": [
         "python -m pytest tests/unit/test_distributions.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_INTEGRATION_2026-10-01; RED_A05_1_FAILED; TARGETED_26_PASSED; FULL_SUITE_40_PASSED; PY_COMPILE_AND_HISTORICAL_DIAGNOSTIC_EXIT_0",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "src/assemble_pg_network.py",
+        "tests/unit/test_distributions.py",
+        "docs/subagents/P01-03-distributions.md",
+        "evidence/subagents/P01-03/red-a05.txt",
+        "evidence/subagents/P01-03/targeted.xml",
+        "evidence/subagents/P01-03/full-suite.xml",
+        "evidence/integration/P01-03/verification.md",
+        "evidence/integration/P01-03/targeted.xml",
+        "evidence/integration/P01-03/full_suite.xml",
+        "evidence/integration/P01-03/source_audit_after/reproduced_issues.json"
+      ],
       "blocked_by": [],
-      "notes": "Do not silently substitute the weight-fraction law for the inherited number-fraction law. Isolated implementation assigned on research/p01-03-distributions at d4274c1 with source, focused tests, subagent evidence, and return report as the only writable paths."
+      "notes": "Integrated as eef253f. The compact sampler preserves normalized FS number/molar fraction separately from WFS weight fraction, retains the inherited integer-grid lognormal convention, and bounds memory by retained support rather than the retired entries count. Exact legacy seeded networks change because CDF sampling replaces floor-rounded expanded-list randrange; RNG namespacing and realized-network metrics remain P01-04."
     },
     {
       "id": "P01-04",

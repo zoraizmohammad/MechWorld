@@ -1,0 +1,4 @@
+Command: .venv\Scripts\python.exe -m pytest tests/unit/test_distributions.py -q --junitxml=evidence/integration/P01-03/targeted.xml
+Date: 2026-10-01
+Exit: 0
+Result: 26 passed in 7.68s

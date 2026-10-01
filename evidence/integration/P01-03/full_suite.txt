@@ -1,0 +1,4 @@
+Command: .venv\Scripts\python.exe -m pytest -q --junitxml=evidence/integration/P01-03/full_suite.xml
+Date: 2026-10-01
+Exit: 0
+Result: 40 passed in 7.89s
