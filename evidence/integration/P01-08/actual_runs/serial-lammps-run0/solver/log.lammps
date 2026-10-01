@@ -1,19 +1,26 @@
 ﻿LAMMPS (2 Sep 2026)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
+
+clear
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
+units nano
+dimension 2
+boundary p p p
+atom_style atomic
+region box block 0 5 0 5 -0.5 0.5 units box
+create_box 1 box
 Created orthogonal box = (0 0 -0.5) to (5 5 0.5)
   1 by 1 by 1 MPI processor grid
+create_atoms 1 single 1 1 0 units box
 Created 1 atoms
   using box units in orthogonal box = (0 0 -0.5) to (5 5 0.5)
   create_atoms CPU = 0.001 seconds
+mass 1 1
+run 0
 WARNING: No fixes with time integration, atoms won't move
 For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
-Setting up Verlet run ...
-  Unit style    : nano
-  Current step  : 0
-  Time step     : 0.00045
 WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2486)
 WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Energies and forces may be wrong and atoms may get lost. (src/comm_brick.cpp:188)
 Per MPI rank memory allocation (min/avg/max) = 0.0392 | 0.0392 | 0.0392 Mbytes
@@ -44,4 +51,5 @@ Total # of neighbors = 0
 Ave neighs/atom = 0
 Neighbor list builds = 0
 Dangerous builds = 0
+
 Total wall time: 0:00:00
