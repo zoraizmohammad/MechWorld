@@ -1,0 +1,199 @@
+{
+  "schema_version": "pgworld.physics_profile.v2",
+  "profile_version": "1.0.0",
+  "profile_id": "legacy_direct_isotropic_pre_unit_fix_v1",
+  "canonical_hash": "sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0",
+  "family": "legacy_reproduction",
+  "route": "direct_IsotropicPrestrain_pre_unit_fix",
+  "intended_use": "forensic reproduction of the retained direct IsotropicPrestrain input only",
+  "review_status": "legacy_unreviewed_reproduction_only",
+  "biological_parameter_certified": false,
+  "final_science_campaign_allowed": false,
+  "coarse_graining_status": "unresolved",
+  "nonlinear_fit_status": "unreproduced",
+  "angle_resolution_status": "unreviewed",
+  "spacing": {
+    "code_edge_rest_length_nm": 1.03,
+    "mapping_status": "one_edge_vs_two_edge_molecular_mapping_unresolved",
+    "candidate_two_edge_hypothesis": "not_applicable_without_reconciling_pre_unit_fix_coefficients",
+    "candidate_angle_scaling": "not_frozen_pending_review"
+  },
+  "mass": {
+    "status": "unverified_data_file_input",
+    "value_ag": null,
+    "physical_time_valid": false
+  },
+  "units": {
+    "lammps_style": "nano",
+    "energy": "pN nm",
+    "force": "pN",
+    "length": "nm",
+    "angle_input": "degree",
+    "angle_internal": "radian",
+    "membrane_tension_internal": "pN/nm",
+    "membrane_tension_summary": "N/m",
+    "pN_per_nm_to_N_per_m": 0.001,
+    "pN_nm_to_J": 1e-21
+  },
+  "potentials": {
+    "harmonic_bond": {
+      "style": "LAMMPS bond_style harmonic",
+      "equation": "E=K*(r-r0)^2",
+      "parameter_units": "K:pN/nm,r0:nm",
+      "parameters": {"K_pN_per_nm": 5.57, "r0_nm": 1.03},
+      "parameter_metadata": {
+        "K_pN_per_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "r0_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null}
+      },
+      "fit_artifact": {"artifact_status": "not_applicable", "path": null, "sha256_status": "not_applicable", "sha256": null},
+      "status": "inherited_exact_pre_unit_fix_reproduction_only"
+    },
+    "nonlinear_bond": {
+      "style": "LAMMPS bond_style nonlinear",
+      "equation": "E=epsilon*(r-r0)^2/(lambda^2-(r-r0)^2)",
+      "parameter_units": "epsilon:pN nm,r0:nm,lambda:nm",
+      "parameters": {
+        "epsilon_pN_nm": 0.185567402281798,
+        "r0_nm": 1.0,
+        "lambda_nm": 4.035190236993014
+      },
+      "parameter_metadata": {
+        "epsilon_pN_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "r0_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "lambda_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null}
+      },
+      "fit_artifact": {"artifact_status": "unavailable", "path": null, "sha256_status": "unavailable", "sha256": null},
+      "status": "inherited_exact_pre_unit_fix_fit_unreproduced"
+    },
+    "harmonic_angle": {
+      "style": "LAMMPS angle_style harmonic",
+      "equation": "E=K*(theta-theta0)^2",
+      "parameter_units": "K:pN nm/rad^2,theta0:degree_input",
+      "parameters": {"K_pN_nm": 0.0418, "theta0_degrees": 180.0},
+      "parameter_metadata": {
+        "K_pN_nm": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null},
+        "theta0_degrees": {"uncertainty_status": "unknown", "range_status": "not_reported", "range": null}
+      },
+      "fit_artifact": {"artifact_status": "not_applicable", "path": null, "sha256_status": "not_applicable", "sha256": null},
+      "status": "inherited_exact_placeholder_label_resolution_unreviewed"
+    }
+  },
+  "reference_state": {
+    "name": "fixed_cell_equilibrated",
+    "cell_policy": "fixed_cell_coordinate_minimization",
+    "zero_tension_claim": false,
+    "coordinates_required": true,
+    "full_cell_matrix_required": true,
+    "achieved_geometry_required": true,
+    "minimization_diagnostics_required": true,
+    "initial_tension_required": true
+  },
+  "historical_execution": {
+    "scope": "historical_execution_provenance_not_new_output_policy",
+    "entry_points": ["src/IsotropicPrestrain"],
+    "loading_or_evaluation": "initial_minimize_then_nve_deform_then_minimize",
+    "pressure_compute": "default_LAMMPS_thermo_pressure",
+    "kinetic_term_semantics": "default_pressure_includes_kinetic_and_virial_terms; the_nve_deform_segment_can_carry_kinetic_pressure",
+    "nve_deform_segment": true,
+    "tangent_output": {
+      "status": "not_applicable",
+      "declared_tangent_unit": null,
+      "tangent_conversion_factor": null,
+      "dimensional_status": "script_does_not_compute_tangent_output"
+    }
+  },
+  "required_new_output_policy": {
+    "scope": "required_for_new_runs_and_reanalysis_not_historical_fact",
+    "source": "configurational_virial",
+    "kinetic_term_included": false,
+    "dimensionality": "2D membrane force_per_length",
+    "sign_convention": "positive_tension_equals_negative_LAMMPS_pressure",
+    "primary": "total",
+    "secondary": "incremental_from_reference"
+  },
+  "axes": {
+    "x": "axial",
+    "y": "hoop",
+    "laboratory_mapping_status": "dataset_specific_unconfirmed"
+  },
+  "dimensional_scope": {
+    "native_quantity": "2D membrane tension and in-plane stiffness",
+    "thickness_nm": null,
+    "stress_3d_allowed": false,
+    "cylinder_display_label": "2D mechanics displayed on a cylindrical surface"
+  },
+  "rupture_law": {
+    "status": "phenomenological_provisional",
+    "primary_endpoint": "damage_initiation",
+    "deterministic_version": "not_configured",
+    "heterogeneous_version": "not_configured",
+    "threshold_visibility": "must_be_recorded_when_configured",
+    "fresh_lottery_per_step": false
+  },
+  "derived_numerical_facts": {
+    "one_edge_harmonic_tangent_pN_per_nm": 11.14,
+    "two_edge_series_tangent_pN_per_nm": 5.57,
+    "two_edge_series_rest_length_nm": 2.06,
+    "nonlinear_local_tangent_pN_per_nm": 0.02279311363026954,
+    "nonlinear_extension_pole_nm": 5.035190236993014,
+    "angle_curvature_pN_nm_per_rad2": 0.0836,
+    "status": "mechanical_derivations_not_biological_certification"
+  },
+  "review_requests": [
+    {
+      "person": "Prof. Christoph Schmidt",
+      "role": "proposed scientific reviewer",
+      "status": "proposed_unconfirmed"
+    },
+    {
+      "person": "Octavio",
+      "role": "proposed inherited implementation and provenance checker",
+      "status": "proposed_unconfirmed"
+    }
+  ],
+  "sources": [
+    {
+      "id": "source_direct_isotropic",
+      "kind": "repository_source",
+      "citation_or_path": "src/IsotropicPrestrain",
+      "claim_scope": "exact retained input values and old unit comments only"
+    },
+    {
+      "id": "lammps_units_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/units.rst",
+      "claim_scope": "installed-release nano base units expose the inherited comment error"
+    },
+    {
+      "id": "lammps_harmonic_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_harmonic.rst",
+      "claim_scope": "installed-release harmonic equation and units only"
+    },
+    {
+      "id": "lammps_nonlinear_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/bond_nonlinear.rst",
+      "claim_scope": "installed-release nonlinear equation and epsilon energy unit only"
+    },
+    {
+      "id": "lammps_angle_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/angle_harmonic.rst",
+      "claim_scope": "installed-release harmonic angle equation and input convention only"
+    },
+    {
+      "id": "lammps_pressure_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://github.com/lammps/lammps/blob/patch_2Sep2026/doc/src/compute_pressure.rst",
+      "claim_scope": "installed-release default pressure includes kinetic and virial terms and uses area in 2D"
+    }
+  ],
+  "provenance": {
+    "source_routes": ["src/IsotropicPrestrain"],
+    "source_revision": "78da30ffd8b374125a34edaacc71ae7650b8f722",
+    "decision_record": "docs/decisions/scope.md",
+    "provisional_base_identity": null,
+    "notes": "Preserves the 1/1000-scale direct route; its old kg/J nano conversion comments are not accepted as correct."
+  }
+}

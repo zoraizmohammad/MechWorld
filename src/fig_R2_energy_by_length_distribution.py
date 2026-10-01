@@ -10,9 +10,9 @@ alpha_FS_str2 = "0.93"
 alpha_FS_str3 = "0.90"
 
 # Settings
-dir_1 = os.path.join(PROJECT_ROOT_DIR,"results",f"{alpha_FS_str1.replace(".","")}-FS");
-dir_2 = os.path.join(PROJECT_ROOT_DIR,"results",f"{alpha_FS_str2.replace(".","")}-FS");
-dir_3 = os.path.join(PROJECT_ROOT_DIR,"results",f"{alpha_FS_str3.replace(".","")}-FS");
+dir_1 = os.path.join(PROJECT_ROOT_DIR,"results",f"{alpha_FS_str1.replace('.','')}-FS");
+dir_2 = os.path.join(PROJECT_ROOT_DIR,"results",f"{alpha_FS_str2.replace('.','')}-FS");
+dir_3 = os.path.join(PROJECT_ROOT_DIR,"results",f"{alpha_FS_str3.replace('.','')}-FS");
 
 def FS_label(alpha_str):
     return r" $\bar{L}_{W} = "+str(round(flory_schulz_mean_length(alpha_str),1))+r"$ $DSU$"

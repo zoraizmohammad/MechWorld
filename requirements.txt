@@ -1,6 +1,4 @@
-numpy
-scipy
-pandas
-pydantic
-matplotlib
-lammps
+# Install the exact Python dependency closure verified for P01-11.
+# LAMMPS 20260902 remains an external installer/PYTHONPATH dependency; see
+# docs/migration.md before assuming this lock is portable to another machine.
+-r requirements.lock

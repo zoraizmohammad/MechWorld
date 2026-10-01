@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools==65.5.0", "wheel==0.45.1"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mechworld-pg"
+version = "0.1.0.dev0"
+description = "Verified mechanics and compatibility adapters for MechWorld-PG"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "h5py>=3.16",
+  "matplotlib>=3.11",
+  "numpy>=2.2",
+  "pandas>=3.0",
+  "pydantic>=2.11",
+  "scipy>=1.16",
+]
+
+[project.scripts]
+pgworld = "pgworld.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+py-modules = [
+  "assemble_pg_network",
+  "import_data_from_dumps",
+  "lammps_PG_objects",
+  "process_elastic_tensor",
+  "process_network_ensembles",
+  "process_orientation",
+  "process_pores",
+  "run_lammps_elastic_tensor",
+  "run_lammps_isotropic_strain",
+  "simulation_constants_settings",
+  "units",
+  "utils_helpers",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pgworld*"]
+namespaces = false
+
+[tool.setuptools.package-data]
+"pgworld.config" = ["profiles/*.json"]

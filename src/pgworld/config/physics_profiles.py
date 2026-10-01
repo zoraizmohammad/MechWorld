@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import hashlib
+from importlib import resources
 import json
 import math
 from pathlib import Path
@@ -19,8 +20,6 @@ from typing import Any, Mapping, Sequence
 
 SCHEMA_VERSION = "pgworld.physics_profile.v2"
 _HASH_PATTERN = re.compile(r"sha256:[0-9a-f]{64}\Z")
-_CONFIG_DIRECTORY = Path(__file__).resolve().parents[3] / "configs" / "physics"
-
 _PROFILE_FILES = {
     "legacy_python_2026_03_12_v1": "legacy_python_2026_03_12_v1.json",
     "legacy_direct_isotropic_pre_unit_fix_v1": (
@@ -1021,9 +1020,23 @@ def load_physics_profile(profile_id: str) -> PhysicsProfile:
 
     if profile_id not in _PROFILE_FILES:
         raise PhysicsProfileError(f"unknown profile ID: {profile_id}")
-    return load_physics_profile_file(
-        _CONFIG_DIRECTORY / _PROFILE_FILES[profile_id], expected_profile_id=profile_id
+    resource = resources.files("pgworld.config").joinpath(
+        "profiles", _PROFILE_FILES[profile_id]
     )
+    try:
+        data = json.loads(
+            resource.read_text(encoding="utf-8"),
+            parse_constant=_reject_nonfinite_constant,
+        )
+    except PhysicsProfileError:
+        raise
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise PhysicsProfileError(
+            f"cannot read packaged physics profile {resource}: {error}"
+        ) from error
+    data = _require_mapping(data, "profile")
+    snapshot_json = _validate_snapshot_data(data, expected_profile_id=profile_id)
+    return PhysicsProfile(data["profile_id"], data["canonical_hash"], snapshot_json)
 
 
 def validate_profile_aggregation(

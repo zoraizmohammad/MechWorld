@@ -9,7 +9,7 @@ alpha_FS = "0.93"
 
 # Settings
 project_root = os.path.join(os.path.dirname(__file__), "..");
-working_dir = os.path.join(project_root,"results",f"{alpha_FS.replace(".","")}-FS");
+working_dir = os.path.join(project_root,"results",f"{alpha_FS.replace('.','')}-FS");
 
 def FS_label(alpha_str):
     #return r", $\alpha_{FS}$ = "+alpha_str+r", $\bar{L}_{W} = "+str(round(flory_schulz_mean_length(alpha_str),1))+r"$ $DSU$"

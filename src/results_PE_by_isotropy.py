@@ -17,9 +17,9 @@ alpha_FS_str3 = "0.90"
 
 # Settings
 project_root = os.path.join(os.path.dirname(__file__), "..");
-dir1 = os.path.join(project_root,"results",f"{alpha_FS_str1.replace(".","")}-FS");
-dir2 = os.path.join(project_root,"results",f"{alpha_FS_str2.replace(".","")}-FS");
-dir3 = os.path.join(project_root,"results",f"{alpha_FS_str3.replace(".","")}-FS");
+dir1 = os.path.join(project_root,"results",f"{alpha_FS_str1.replace('.','')}-FS");
+dir2 = os.path.join(project_root,"results",f"{alpha_FS_str2.replace('.','')}-FS");
+dir3 = os.path.join(project_root,"results",f"{alpha_FS_str3.replace('.','')}-FS");
 
 mean_final_density = 1 / (2.5/(DSU**2))
 tol = 0.05;
