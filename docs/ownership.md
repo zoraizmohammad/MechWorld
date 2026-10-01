@@ -169,7 +169,7 @@ The assignment uses accepted and pushed main revision
 
 | Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
 |---|---|---|---|---|
-| Loading/control protocols/simulation | `research/p02-01-loading-controls`; `C:/Users/mzora/MechWorld-wt-p02-01` | P02-01: exact red-first quasi-static isotropic, axial, hoop, unequal-biaxial, shear, cyclic/unloading, pressure-derived, and stable-ID local-intervention controls with coordinate-covariance and locality checks | `src/pgworld/simulation/controls.py`, `src/pgworld/simulation/__init__.py`, `configs/loads/`, `tests/physics/test_loading.py`, `evidence/subagents/P02-01/`, `docs/subagents/P02-01-loading-controls.md` | No root ledger/README/shared-schema/profile/solver-oracle edits; no rupture-law implementation, shared bond-type weakening, physical-time claim, production simulation, gate decision, public release, private data, or changes outside owned paths |
+| Loading/control protocols/simulation | `research/p02-01-loading-controls`; `C:/Users/mzora/MechWorld-wt-p02-01` | P02-01: exact red-first quasi-static isotropic, axial, hoop, unequal-biaxial, shear, cyclic/unloading, pressure-derived, and stable-ID local-intervention controls with coordinate-covariance and locality checks | `src/pgworld/simulation/controls.py`, `src/pgworld/simulation/__init__.py`, `configs/loads/`, `tests/physics/test_loading.py`, `tests/release/test_wheel_install.py`, `evidence/subagents/P02-01/`, `docs/subagents/P02-01-loading-controls.md` | No root ledger/README/shared-schema/profile/solver-oracle edits; release-test edit is limited to the exact new module member/import while all exclusions remain strict; no rupture-law implementation, shared bond-type weakening, physical-time claim, production simulation, gate decision, public release, private data, or changes outside owned paths |
 
 The return requires exact red/green commands, stable units/axes/loading
 coordinates, tensor transformation fixtures, pressure-shell assumption labels,
@@ -177,3 +177,10 @@ prescribed-intervention semantics distinct from material rupture, per-physical-
 interaction locality proof, sole-author Mohammad commits, path/identity proof,
 and explicit limitations. The integrator independently reviews and reruns the
 return before acceptance.
+
+Scope expansion record: the focused control contract passed 27/27. Its first
+full suite passed 199 tests and failed only at the exact G1 wheel-member
+allowlist, which correctly rejected the new `pgworld/simulation/controls.py`
+until named. Ownership was expanded to `tests/release/test_wheel_install.py`
+only for that expected-member/import assertion; private/generated payload
+exclusions and all other P01-11 release checks remain unchanged.
