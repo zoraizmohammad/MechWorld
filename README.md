@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independently reviewing and accepting P01-11 and mechanics gate G1. P02-01 explicit quasi-static loading/control protocols are next; final biological parameter review remains blocked.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independently reviewing and accepting P01-11/G1, pushing accepted `main`, and assigning P02-01 explicit quasi-static loading/control protocols in an isolated worktree. Final biological parameter review remains blocked.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -16,7 +16,7 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independe
 | Inherited mechanics repair | G1 accepted | P01-01 through P01-11 are integrated or explicitly retained as provisional/blocked; the installable wheel and `pgworld doctor` passed fresh-environment real-LAMMPS checks |
 | Physics/units contract | Immutable provisional profiles verified; biological review pending | Four route-specific hashes separate historical execution from the required new virial-only policy and reject tampered persisted snapshots. Coarse-graining, angle mapping, nonlinear-fit recovery, and the final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
-| Rupture, dataset, models, evaluation, explorer | WP2 next | P02-01 loading/control protocols are dependency-eligible; irreversible topology, datasets, trained models, evaluation, and explorer gates remain unaccepted |
+| Rupture, dataset, models, evaluation, explorer | P02-01 active | Explicit quasi-static loading/control protocols are isolated on `research/p02-01-loading-controls`; irreversible topology, datasets, trained models, evaluation, and explorer gates remain unaccepted |
 | Experimental validation | P08-01 blocked on access | AFM plus matched morphology is the proposed target, but actual lab protocol, custodian, permissions, acquisition, raw files, calibration, and review remain unconfirmed |
 | Release | Foundation and mechanics gates accepted | G0 and numerical/software mechanics gate G1 are accepted; G2-G11 remain unaccepted and no public hosting, data/model release, or paper submission is authorized |
 
@@ -36,7 +36,7 @@ Latest integration verification: P01-11 passed 7 focused and 173 total tests on 
 - P01-06 is done after adversarial correction and independent main verification: analytical, finite-difference, and real-LAMMPS fixtures cover harmonic/nonlinear bonds, noncollinear angles, configurational virials, periodic geometry, native 2D signs/normalization, and fixed-reference total/incremental tension without claiming biological certification.
 - P01-07 is done after independent rejection/correction cycles: the immutable fixed reference is separate from the local tangent base, current-area native-2D conventions are explicit, all nine raw couplings survive, saved stencils replay on readback, branch-changing outputs are directional secants, and the inherited misleading route fails closed by default.
 - P01-11 and G1 are done after two independent review cycles. The package bundles unchanged immutable profile identities, exposes `pgworld doctor`, makes the old elastic task explicitly forensic/fail-closed, compiles all 80 tracked Python files under Python 3.11, and passes a true isolated install against external LAMMPS 20260902.
-- P02-01 is the next eligible task: define explicit isotropic, axial, hoop, unequal-biaxial, shear, cyclic/unloading, pressure-derived, and local-intervention control semantics with tensor covariance and physical-interaction locality tests.
+- P02-01 is active on `research/p02-01-loading-controls`: define explicit isotropic, axial, hoop, unequal-biaxial, shear, cyclic/unloading, pressure-derived, and local-intervention control semantics with tensor covariance and physical-interaction locality tests.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
 - Compatibility follow-up complete: the seven inherited nested-f-string quote failures were repaired without changing plotting semantics, and the tracked-source compilation regression now covers all 80 Python files.
 

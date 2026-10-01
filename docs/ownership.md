@@ -161,3 +161,19 @@ tracked Python files compiled, the fresh exact-lock venv passed `pip check`,
 and installed P01-06/P01-07 real-LAMMPS checks passed with complete solver
 closure. The integrator accepted G1 in `reports/gates/G1.json`. P01-11 edit
 ownership is cleared; no agent owns root ledgers or gate state.
+
+## Ninth wave
+
+The assignment uses accepted and pushed main revision
+`94c175a3c455e1cccecb82ba7bc219494950f7cb`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Loading/control protocols/simulation | `research/p02-01-loading-controls`; `C:/Users/mzora/MechWorld-wt-p02-01` | P02-01: exact red-first quasi-static isotropic, axial, hoop, unequal-biaxial, shear, cyclic/unloading, pressure-derived, and stable-ID local-intervention controls with coordinate-covariance and locality checks | `src/pgworld/simulation/controls.py`, `src/pgworld/simulation/__init__.py`, `configs/loads/`, `tests/physics/test_loading.py`, `evidence/subagents/P02-01/`, `docs/subagents/P02-01-loading-controls.md` | No root ledger/README/shared-schema/profile/solver-oracle edits; no rupture-law implementation, shared bond-type weakening, physical-time claim, production simulation, gate decision, public release, private data, or changes outside owned paths |
+
+The return requires exact red/green commands, stable units/axes/loading
+coordinates, tensor transformation fixtures, pressure-shell assumption labels,
+prescribed-intervention semantics distinct from material rupture, per-physical-
+interaction locality proof, sole-author Mohammad commits, path/identity proof,
+and explicit limitations. The integrator independently reviews and reruns the
+return before acceptance.

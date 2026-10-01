@@ -3,10 +3,10 @@
 ## 🎯 Current Mission & Goals
 
 - **Ultimate goal:** Complete the evidence-gated MechWorld-PG program: verified inherited mechanics, irreversible topology change, reproducible graph trajectories, trained/evaluated physics-structured world models, actual experimental integration, a scientist-facing explorer, and an evidence-linked release candidate.
-- **Current session objective:** Continue the evidence-gated plan after accepting packaged numerical mechanics gate G1; the next dependency-eligible work is P02-01 explicit quasi-static loading/control protocols.
+- **Current session objective:** Implement and independently review P02-01 explicit quasi-static loading/control protocols after accepting and pushing packaged numerical mechanics gate G1.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
-- **Gate state:** G0 and G1 are accepted; G2-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-05A, P01-06 through P01-11, and P10-01 are done. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
+- **Gate state:** G0 and G1 are accepted; G2-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-05A, P01-06 through P01-11, and P10-01 are done. P02-01 is active in an isolated worktree. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
 
 ## 📊 Transient State & What Changed
 
@@ -30,6 +30,7 @@
 - P01-07 is assigned from accepted main `0edcf67` to `research/p01-07-elastic-tangent` at `C:/Users/mzora/MechWorld-wt-p01-07`. Ownership is limited to `src/run_lammps_elastic_tensor.py`, `src/process_elastic_tensor.py`, `tests/physics/test_elastic_tangent.py`, `evidence/subagents/P01-07/`, and `docs/subagents/P01-07-elastic-tangent.md`; root ledgers, profiles, and P01-06 oracle modules are read-only.
 - P01-07 returned five logical commits, integrated as `5990e09`, `8adf0de`, `b1c8fff`, `60cfa09`, and `b265c9e`. Ownership is cleared after repeated adversarial corrections, final independent reviewer acceptance, and main-worktree reruns.
 - P01-11 returned five reviewed commits, integrated as `2143d6c`, `f819c25`, `7e6295a`, `f3746f4`, and `adf9d7d`. The first main full run exposed a Windows CRLF-versus-LF raw-byte assertion defect; the corrected comparison permits only Git checkout newline materialization and otherwise requires exact bytes. Independent review accepted both the package and correction. Ownership is cleared and the integrator accepted G1 in `reports/gates/G1.json`.
+- P02-01 is assigned from accepted/pushed main `94c175a` to `research/p02-01-loading-controls` at `C:/Users/mzora/MechWorld-wt-p02-01`. Its bounded ownership covers the loading-control module/export, `configs/loads/`, focused loading tests, and its own subagent evidence/report. Root ledgers, physics profiles, solver/oracle code, shared trajectory schemas, and gate state remain integrator-only.
 
 ## ✅ Verification & Hard Evidence
 
@@ -75,7 +76,7 @@
 4. [x] Review and integrate P01-07 tangent/coupling validation after independent correction cycles.
 5. [x] Review and integrate P01-11 clean packaging, legacy-wrapper migration, Python 3.11 source compatibility, and corrected cross-platform evidence; accept G1 from integrator-owned evidence.
 6. [ ] Migrate inherited simulation entry points to P01-08 paths in a later owned task and add true restart-resume/suffix-equivalence coverage before claiming restartability.
-7. [ ] Start P02-01 explicit quasi-static loading/control protocols in an isolated worktree while P01-05 biological review and lab inputs remain blocked.
+7. [ ] Implement, independently review, and integrate P02-01 explicit quasi-static loading/control protocols while P01-05 biological review and lab inputs remain blocked.
 8. [ ] Preserve P03-01 ownership of canonical persistent per-edge image offsets and stable edge identity; the P01-01 inferred minimum image is not a trajectory identity substitute.
 9. [ ] Refresh P10-01 after project results and obtain independent claim review before any manuscript priority language; the current audit is targeted through 2026-10-01, not exhaustive.
 10. [ ] Do not begin a main dataset sweep before G2/G3 schema and rupture acceptance; do not begin model claims before real rupture, schema, split, and pilot gates.
