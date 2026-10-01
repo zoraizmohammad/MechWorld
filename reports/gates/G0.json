@@ -1,0 +1,38 @@
+{
+  "gate": "G0",
+  "status": "ACCEPTED",
+  "decision_date": "2026-09-30",
+  "evaluated_revision": "59ecfdc4bbb68789adf6713d69e73c228c748fff",
+  "decision_owner": "integrator",
+  "terminal_tasks": {
+    "P00-01": "DONE",
+    "P00-02": "DONE",
+    "P00-03": "DONE",
+    "P00-04": "DONE",
+    "P00-05": "DONE"
+  },
+  "acceptance_basis": [
+    "Inherited Git history, tracked source, and untracked execution packet were preserved.",
+    "The live workstation, dependencies, resource limits, and unavailable scheduler access were recorded without inventing access.",
+    "LAMMPS 2 Sep 2026 executed a bounded bonded-fixture smoke test and matched independent analytical component energies.",
+    "Native subagents used isolated branches/worktrees and non-overlapping writable ownership; returned changes were reviewed before integration."
+  ],
+  "evidence": [
+    "evidence/gates/G0/verification.md",
+    "docs/provenance.md",
+    "docs/environment.md",
+    "docs/access_and_resources.md",
+    "docs/ownership.md",
+    "docs/subagents/P00-03-environment.md",
+    "evidence/preflight/git_state.txt",
+    "evidence/baseline/pytest_after_dependencies.xml",
+    "evidence/integration/P00-03/doctor.json",
+    "evidence/integration/P00-03/targeted.xml",
+    "evidence/integration/P00-03/full_suite.xml"
+  ],
+  "limitations": [
+    "The historical packet ZIP is absent, so its archive SHA-256 was not recomputed.",
+    "No MPI, GPU, production scheduler, rupture dynamics, biological calibration, or private lab data was validated.",
+    "G0 accepts only source/environment/access/workflow readiness; it does not accept mechanics gate G1 or any scientific/model claim."
+  ]
+}

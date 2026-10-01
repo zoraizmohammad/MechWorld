@@ -24,7 +24,7 @@
   "gates": [
     {
       "id": "G0",
-      "status": "NOT_ACCEPTED",
+      "status": "ACCEPTED",
       "terminal_tasks": [
         "P00-01",
         "P00-02",
@@ -32,7 +32,15 @@
         "P00-04",
         "P00-05"
       ],
-      "evidence": []
+      "evidence": [
+        "reports/gates/G0.json",
+        "evidence/gates/G0/verification.md",
+        "docs/provenance.md",
+        "docs/environment.md",
+        "docs/access_and_resources.md",
+        "docs/ownership.md",
+        "evidence/integration/P00-03/verification.md"
+      ]
     },
     {
       "id": "G1",
@@ -295,7 +303,7 @@
       "id": "P00-05",
       "work_package": "WP0",
       "title": "Establish isolated subagent workflow and role ownership",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "integrator",
       "execution_kind": "agent",
       "mandatory": true,
@@ -317,13 +325,16 @@
       "planned_verification_commands": [
         "git worktree list --porcelain"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_2026-09-30; DISTINCT_NATIVE_SUBAGENT_WORKTREES_AND_BRANCHES_VERIFIED; RETURNED_PATH_SCOPES_REVIEWED",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [
-        "docs/ownership.md"
+        "docs/ownership.md",
+        "docs/subagents/P01-01-parser.md",
+        "docs/subagents/P00-03-environment.md",
+        "docs/subagents/P01-05-physics-audit.md"
       ],
       "blocked_by": [],
-      "notes": "Native subagents and Git worktree isolation are distinct; verify both."
+      "notes": "EXECUTED_2026-09-30; native subagents used with dedicated branches/worktrees and non-overlapping edit scopes; integrator independently reviewed and reran executable returns. Native subagents and Git worktree isolation are distinct; both were verified."
     },
     {
       "id": "P00-06",
@@ -515,7 +526,7 @@
       "id": "P01-05",
       "work_package": "WP1",
       "title": "Resolve the physical parameter and units contract",
-      "status": "TODO",
+      "status": "BLOCKED_HUMAN",
       "owner_role": "physics",
       "execution_kind": "human_review",
       "mandatory": true,
@@ -538,9 +549,15 @@
       "planned_verification_commands": [],
       "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
-      "blocked_by": [],
-      "notes": "Source reading/derivation is agent work; a parameter decision requiring lab knowledge cannot be self-approved by an agent."
+      "evidence": [
+        "docs/subagents/P01-05-physics-audit.md"
+      ],
+      "blocked_by": [
+        "P00-06 human approval of coarse-grain DSU/mass and one-edge versus two-edge stiffness mapping",
+        "Lab review of angle-resolution mapping and nonlinear-fit provenance",
+        "Human choice of reference state, total versus incremental observables, physical-time scope, and any wall thickness"
+      ],
+      "notes": "Source audit completed 2026-09-30. It found correct current 2D tension conversion, no validated physical-time or 3D-thickness interpretation, an unresolved A12 coarse-grain mapping that must not be corrected blindly, three incompatible legacy parameter routes, and a definite A16 factor-1000 energy-density label/conversion defect. Source reading/derivation is agent work; a parameter decision requiring lab knowledge cannot be self-approved by an agent."
     },
     {
       "id": "P01-06",
