@@ -198,7 +198,7 @@ The assignment uses accepted and pushed main revision
 
 | Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
 |---|---|---|---|---|
-| Damage law/physics | `research/p02-02-damage-law`; `C:/Users/mzora/MechWorld-wt-p02-02` | P02-02: exact red-first phenomenological deterministic and sample-once heterogeneous thresholds, irreversible masks, damage-initiation/censoring records, and distinct connectivity/degradation/instability endpoints | `docs/decisions/fracture_model.md`, `src/pgworld/physics/damage.py`, `tests/physics/test_damage_law.py`, `evidence/subagents/P02-02/`, `docs/subagents/P02-02-damage-law.md` | No root ledger/README/shared-schema/profile/loading-control/solver-cascade edits; no LAMMPS mutation, molecular-cleavage certification, physical-time/3D claim, production simulation, gate decision, public release, private data, or changes outside owned paths |
+| Damage law/physics | `research/p02-02-damage-law`; `C:/Users/mzora/MechWorld-wt-p02-02` | P02-02: exact red-first phenomenological deterministic and sample-once heterogeneous thresholds, irreversible masks, damage-initiation/censoring records, and distinct connectivity/degradation/instability endpoints | `docs/decisions/fracture_model.md`, `src/pgworld/physics/damage.py`, `tests/physics/test_damage_law.py`, `tests/release/test_wheel_install.py`, `evidence/subagents/P02-02/`, `docs/subagents/P02-02-damage-law.md` | No root ledger/README/shared-schema/profile/loading-control/solver-cascade edits; release-test edit is limited to the exact new module member/import smoke while all exclusions remain strict; no LAMMPS mutation, molecular-cleavage certification, physical-time/3D claim, production simulation, gate decision, public release, private data, or changes outside owned paths |
 
 The return requires the first exact failing regression, stable-ID and
 retry/order-invariant threshold fixtures, fail-closed units/profile/reference
@@ -206,3 +206,9 @@ checks, explicit predictor-visibility metadata, prescribed-intervention
 exclusion, right-censored no-event outcomes, distinct endpoint semantics,
 sole-author Mohammad commits, path/identity proof, and limitations. A separate
 read-only reviewer audits the immutable return before integration.
+
+Scope expansion record: the public damage module must be present in the
+installable wheel, whose exact allowlist intentionally rejects every unnamed
+member. Ownership therefore includes `tests/release/test_wheel_install.py`
+only to add that module and an installed import/contract smoke; no exclusion
+or other P01-11/P02-01 release assertion may be weakened.
