@@ -1,0 +1,5 @@
+PASS: required files and exact handoff headings
+PASS: 73 unique tasks, 72 mandatory, dependency graph acyclic
+PASS: gates G0-G11, task states, contract fields, and evidence requirements
+PASS: local Markdown links, source identifiers S01-S20, helper syntax, baseline hash
+Scope: planning integrity only. No implementation task, LAMMPS result, trained model, experiment, or scientific claim validated by this check.

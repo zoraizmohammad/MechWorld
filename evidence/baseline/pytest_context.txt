@@ -1,0 +1,5 @@
+﻿started=2026-09-30T23:13:31.9332217-04:00
+cwd=C:\Users\mzora\MechWorld
+command=python -m pytest -q --junitxml=evidence/baseline/pytest.xml
+exit_code=2
+finished=2026-09-30T23:14:00.3910820-04:00

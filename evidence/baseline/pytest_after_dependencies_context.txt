@@ -1,0 +1,5 @@
+﻿started=2026-09-30T23:17:57.7271032-04:00
+cwd=C:\Users\mzora\MechWorld
+command=.venv/Scripts/python.exe -m pytest -q --junitxml=evidence/baseline/pytest_after_dependencies.xml
+exit_code=0
+finished=2026-09-30T23:18:13.2117100-04:00

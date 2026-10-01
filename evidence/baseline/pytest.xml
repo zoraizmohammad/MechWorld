@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="2" failures="0" skipped="0" tests="2" time="24.366" timestamp="2026-09-30T23:13:35.604577" hostname="MZoraiz_P15"><testcase classname="" name="test.test_glycan_orientation" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld\test\test_glycan_orientation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+test\test_glycan_orientation.py:9: in &lt;module&gt;
+    from lammps_PG_objects import *
+src\lammps_PG_objects.py:6: in &lt;module&gt;
+    from utils_helpers import get_angle_between_vectors;
+src\utils_helpers.py:2: in &lt;module&gt;
+    import pandas as pd
+E   ModuleNotFoundError: No module named 'pandas'</error></testcase><testcase classname="" name="test.test_nonlinear_inverse" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld\test\test_nonlinear_inverse.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+test\test_nonlinear_inverse.py:8: in &lt;module&gt;
+    from lammps_PG_objects import inv_peptide_energy_lammps, peptide_energy_lammps
+src\lammps_PG_objects.py:6: in &lt;module&gt;
+    from utils_helpers import get_angle_between_vectors;
+src\utils_helpers.py:2: in &lt;module&gt;
+    import pandas as pd
+E   ModuleNotFoundError: No module named 'pandas'</error></testcase></testsuite></testsuites>

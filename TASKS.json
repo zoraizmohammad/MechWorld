@@ -1,0 +1,2560 @@
+{
+  "schema_version": "1.0",
+  "project": "MechWorld-PG",
+  "planning_date": "2026-09-30",
+  "baseline_archive_sha256": "3feee886c6f68de500de04f823d21d94ae8218b85d7df62322491bdd32a9f3d3",
+  "new_commit_identity": {
+    "name": "Mohammad Zoraiz",
+    "email": "zoraizmohammad@gmail.com"
+  },
+  "note": "Planning queue only. All tasks start TODO. Future proposed commands and file paths must be implemented/reconciled before execution. Historical review tests do not complete implementation tasks. Reconcile dependencies as actual data/access appear without deleting mandatory scope.",
+  "allowed_statuses": [
+    "TODO",
+    "IN_PROGRESS",
+    "BLOCKED_ACCESS",
+    "BLOCKED_DATA",
+    "BLOCKED_HUMAN",
+    "READY_FOR_REVIEW",
+    "DONE",
+    "FAILED",
+    "DEFERRED_EXTENSION"
+  ],
+  "default_subagent_concurrency": 3,
+  "shared_path_ownership": "Only integrator updates root README.md, handoff.md, TASKS.json, shared schemas, dependency lockfiles, and merges; others request changes. Every handoff update includes a matching README status/task refresh. Task owned_paths are assignments to reconcile, not permission for concurrent overlap.",
+  "gates": [
+    {
+      "id": "G0",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P00-01",
+        "P00-02",
+        "P00-03",
+        "P00-04",
+        "P00-05"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G1",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P01-11"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G2",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P02-06"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G3",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P03-06"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G4",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P04-05"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G5",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P05-04"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G6",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P06-07"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G7",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P07-06"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G8",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P08-07"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G9",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P09-08"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G10",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P10-04"
+      ],
+      "evidence": []
+    },
+    {
+      "id": "G11",
+      "status": "NOT_ACCEPTED",
+      "terminal_tasks": [
+        "P11-02"
+      ],
+      "evidence": []
+    }
+  ],
+  "tasks": [
+    {
+      "id": "P00-01",
+      "work_package": "WP0",
+      "title": "Preserve source, inspect live state, and reproduce the baseline",
+      "status": "DONE",
+      "owner_role": "integrator",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [],
+      "owned_paths": [
+        "docs/provenance.md",
+        "evidence/baseline/"
+      ],
+      "expected_outputs": [
+        "source inventory and archive hash",
+        "Git/uncommitted-work inventory",
+        "untouched baseline logs"
+      ],
+      "acceptance_criteria": [
+        "No inherited file, notice, history, or uncommitted user change is lost.",
+        "Baseline command, cwd, Python version, exit status, and limitations are recorded."
+      ],
+      "planned_verification_commands": [
+        "git status --short",
+        "git log -5 --oneline",
+        "python -m pytest -q"
+      ],
+      "verification_commands_status": "EXECUTED_2026-09-30; INITIAL_SYSTEM_ENV_EXIT_2_MISSING_DECLARED_DEPENDENCY; LOCAL_VENV_EXIT_0_5_PASSED",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [
+        "docs/provenance.md",
+        "evidence/preflight/git_state.txt",
+        "evidence/preflight/tracked_file_sha256.tsv",
+        "evidence/baseline/pytest.txt",
+        "evidence/baseline/pytest.xml",
+        "evidence/baseline/pytest_after_dependencies.txt",
+        "evidence/baseline/pytest_after_dependencies.xml",
+        "evidence/source_audit_live/reproduced_issues.json"
+      ],
+      "blocked_by": [],
+      "notes": "Git commands only in a real checkout; a ZIP without .git requires an explicit source-import record, not invented history."
+    },
+    {
+      "id": "P00-02",
+      "work_package": "WP0",
+      "title": "Integrate planning instructions and set new local commit identity",
+      "status": "DONE",
+      "owner_role": "integrator",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P00-01"
+      ],
+      "owned_paths": [
+        "README.md",
+        "AGENTS.md",
+        "handoff.md",
+        "TASKS.json",
+        "docs/sessions/"
+      ],
+      "expected_outputs": [
+        "safely reconciled instructions and ledger",
+        "verified author and committer identity"
+      ],
+      "acceptance_criteria": [
+        "Existing project instructions/ledger are merged, not overwritten.",
+        "Root README status and remaining tasks are reconciled with handoff.md and TASKS.json and are required to be refreshed with every handoff.",
+        "Effective new author and committer are Mohammad Zoraiz <zoraizmohammad@gmail.com>; inherited credit is retained."
+      ],
+      "planned_verification_commands": [
+        "git config --local user.name \"Mohammad Zoraiz\"",
+        "git config --local user.email \"zoraizmohammad@gmail.com\"",
+        "git var GIT_AUTHOR_IDENT",
+        "git var GIT_COMMITTER_IDENT"
+      ],
+      "verification_commands_status": "EXECUTED_2026-09-30; LOCAL_CONFIG_AND_EFFECTIVE_AUTHOR_COMMITTER_MATCH_REQUESTED_IDENTITY",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [
+        "README.md",
+        "AGENTS.md",
+        "handoff.md",
+        "docs/sessions/2026-09-30-bootstrap.md",
+        "docs/provenance.md"
+      ],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P00-03",
+      "work_package": "WP0",
+      "title": "Verify target environment and an actual LAMMPS smoke run",
+      "status": "IN_PROGRESS",
+      "owner_role": "simulation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P00-01"
+      ],
+      "owned_paths": [
+        "docs/environment.md",
+        "tools/doctor.py",
+        "tests/integration/test_lammps_smoke.py"
+      ],
+      "expected_outputs": [
+        "interpreter/dependency/LAMMPS version record",
+        "small actual solver log and styles report"
+      ],
+      "acceptance_criteria": [
+        "LAMMPS library instantiates and runs a known small model; imported module alone is insufficient.",
+        "Missing styles, MPI/library problems, and skipped integrations are explicit blockers."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/integration/test_lammps_smoke.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [
+        "docs/environment.md",
+        "evidence/preflight/environment_summary.txt"
+      ],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P00-04",
+      "work_package": "WP0",
+      "title": "Inventory available data, authorized access, jobs, and resource limits",
+      "status": "DONE",
+      "owner_role": "integrator",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P00-01"
+      ],
+      "owned_paths": [
+        "docs/access_and_resources.md",
+        "reports/jobs.jsonl"
+      ],
+      "expected_outputs": [
+        "historical artifact availability table",
+        "actual access checks and budget/approval fields"
+      ],
+      "acceptance_criteria": [
+        "Credentials are never printed or committed.",
+        "Available data/jobs are identified from actual authorized reads; unknown paths or scheduler status remain unverified."
+      ],
+      "planned_verification_commands": [
+        "python tools/check_access.py --read-only"
+      ],
+      "verification_commands_status": "EXECUTED_READ_ONLY_LOCAL_INVENTORY_2026-09-30; PROPOSED_CHECK_ACCESS_TOOL_REPLACED_BY_RECORDED_NATIVE_CHECKS",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [
+        "docs/access_and_resources.md",
+        "reports/jobs.jsonl",
+        "evidence/preflight/environment_summary.txt"
+      ],
+      "blocked_by": [],
+      "notes": "Implement or replace this proposed diagnostic with actual available clients; do not search unrelated personal accounts."
+    },
+    {
+      "id": "P00-05",
+      "work_package": "WP0",
+      "title": "Establish isolated subagent workflow and role ownership",
+      "status": "IN_PROGRESS",
+      "owner_role": "integrator",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P00-02"
+      ],
+      "owned_paths": [
+        "docs/subagents/",
+        "docs/ownership.md"
+      ],
+      "expected_outputs": [
+        "verified client capabilities",
+        "task/worktree/branch assignment records"
+      ],
+      "acceptance_criteria": [
+        "Actual native subagents are used where supported; sequential fallback is honestly documented otherwise.",
+        "No simultaneous writes to shared contract, ledger, lockfile, raw output, or user work."
+      ],
+      "planned_verification_commands": [
+        "git worktree list --porcelain"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [
+        "docs/ownership.md"
+      ],
+      "blocked_by": [],
+      "notes": "Native subagents and Git worktree isolation are distinct; verify both."
+    },
+    {
+      "id": "P00-06",
+      "work_package": "WP0",
+      "title": "Approve study scope, lab dependencies, parameter-review owners, and compute policy",
+      "status": "BLOCKED_HUMAN",
+      "owner_role": "Mohammad/lab",
+      "execution_kind": "human",
+      "mandatory": true,
+      "depends_on": [
+        "P00-01",
+        "P00-04"
+      ],
+      "owned_paths": [
+        "docs/decisions/scope.md",
+        "docs/access_and_resources.md"
+      ],
+      "expected_outputs": [
+        "dated human decisions or explicit unanswered questions"
+      ],
+      "acceptance_criteria": [
+        "Quasi-static versus time-dependent claims, specimen/measurement access, and primary failure definition have owners.",
+        "No budget, biosafety approval, data license, or authorship permission is fabricated."
+      ],
+      "planned_verification_commands": [],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [
+        "Mohammad/lab decision on quasi-static versus physical-time claims",
+        "Lab-approved specimen and measurement scope plus data/access owner",
+        "Primary failure endpoint and parameter-review owner",
+        "Production compute/storage policy and release/authorship boundaries"
+      ],
+      "notes": "Independent software repairs may proceed while unresolved human decisions block only affected science tasks. Blockers are recorded in docs/access_and_resources.md and do not authorize the agent to fabricate decisions."
+    },
+    {
+      "id": "P01-01",
+      "work_package": "WP1",
+      "title": "Repair orthogonal/triclinic dump geometry and periodic identities",
+      "status": "TODO",
+      "owner_role": "data",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P00-01"
+      ],
+      "owned_paths": [
+        "src/import_data_from_dumps.py",
+        "src/lammps_PG_objects.py",
+        "tests/unit/test_periodic_geometry.py"
+      ],
+      "expected_outputs": [
+        "minimal legacy-compatible parser fix",
+        "non-square and signed-shear fixtures"
+      ],
+      "acceptance_criteria": [
+        "Reproductions A01/A02 fail before and pass after the fix.",
+        "True tilted-cell bounds, wrapping, image shifts, non-square cells, and large-offset round trips are tested."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/unit/test_periodic_geometry.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P01-02",
+      "work_package": "WP1",
+      "title": "Fix multi-filter analysis, one-shot outputs, and stale function calls",
+      "status": "TODO",
+      "owner_role": "simulation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P00-01"
+      ],
+      "owned_paths": [
+        "src/utils_helpers.py",
+        "src/run_lammps_isotropic_strain.py",
+        "src/process_network_ensembles.py",
+        "tests/unit/test_legacy_control_flow.py"
+      ],
+      "expected_outputs": [
+        "A03/A04/A06 regression tests and fixes"
+      ],
+      "acceptance_criteria": [
+        "Every requested filter is applied; ONCE is consumed persistently.",
+        "Simulation wrappers pass intended keyword arguments and retain old supported use cases."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/unit/test_legacy_control_flow.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P01-03",
+      "work_package": "WP1",
+      "title": "Replace expanded distributions with documented discrete samplers",
+      "status": "TODO",
+      "owner_role": "data",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P00-01"
+      ],
+      "owned_paths": [
+        "src/assemble_pg_network.py",
+        "tests/unit/test_distributions.py"
+      ],
+      "expected_outputs": [
+        "bounded-memory sampler",
+        "legacy migration and distribution definition note"
+      ],
+      "acceptance_criteria": [
+        "Uniform, number-fraction, weight-fraction, truncation, and invalid inputs are tested.",
+        "Achieved moments match the declared discrete probability law within predeclared sampling uncertainty."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/unit/test_distributions.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": "Do not silently substitute the weight-fraction law for the inherited number-fraction law."
+    },
+    {
+      "id": "P01-04",
+      "work_package": "WP1",
+      "title": "Make geometry generation reproducible and serialization precise",
+      "status": "TODO",
+      "owner_role": "data",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P01-03"
+      ],
+      "owned_paths": [
+        "src/assemble_pg_network.py",
+        "src/lammps_PG_objects.py",
+        "tests/unit/test_generator_reproducibility.py"
+      ],
+      "expected_outputs": [
+        "namespaced RNG design",
+        "achieved-network metrics",
+        "high-precision data export"
+      ],
+      "acceptance_criteria": [
+        "Same config/seed/backend produces the documented reproducible graph.",
+        "Separate seeds control geometry, material disorder, events, and model training; realized parameters and export error are measured."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/unit/test_generator_reproducibility.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P01-05",
+      "work_package": "WP1",
+      "title": "Resolve the physical parameter and units contract",
+      "status": "TODO",
+      "owner_role": "physics",
+      "execution_kind": "human_review",
+      "mandatory": true,
+      "depends_on": [
+        "P00-01",
+        "P00-06"
+      ],
+      "owned_paths": [
+        "docs/physics_parameters.md",
+        "configs/physics/"
+      ],
+      "expected_outputs": [
+        "reviewed parameter table",
+        "separate legacy/reviewed profiles if needed"
+      ],
+      "acceptance_criteria": [
+        "DSU/mass representation, harmonic factor, nonlinear epsilon energy units, angle units, 2D tension and reference state are traceable.",
+        "Lab reviewer decisions or unresolved provisional assumptions are explicit; no blind numeric correction."
+      ],
+      "planned_verification_commands": [],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": "Source reading/derivation is agent work; a parameter decision requiring lab knowledge cannot be self-approved by an agent."
+    },
+    {
+      "id": "P01-06",
+      "work_package": "WP1",
+      "title": "Implement independent small-network energy, force, and virial checks",
+      "status": "TODO",
+      "owner_role": "physics",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P00-03",
+        "P01-01",
+        "P01-05"
+      ],
+      "owned_paths": [
+        "src/pgworld/physics/",
+        "tests/physics/test_energy_force_virial.py"
+      ],
+      "expected_outputs": [
+        "analytic/finite-difference oracle",
+        "LAMMPS comparison report"
+      ],
+      "acceptance_criteria": [
+        "Bond and angle derivatives agree under consistent conventions on nondegenerate fixtures.",
+        "Internal balance and local-to-global virial agreement are tested with explicit tolerances and units."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/physics/test_energy_force_virial.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P01-07",
+      "work_package": "WP1",
+      "title": "Validate tangent stiffness, finite-strain conventions, and coupling",
+      "status": "TODO",
+      "owner_role": "physics",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P01-06"
+      ],
+      "owned_paths": [
+        "src/run_lammps_elastic_tensor.py",
+        "src/process_elastic_tensor.py",
+        "tests/physics/test_elastic_tangent.py"
+      ],
+      "expected_outputs": [
+        "raw tangent matrix export",
+        "step-size convergence and constitutive-convention report"
+      ],
+      "acceptance_criteria": [
+        "Smooth fixed-topology analytical tests pass across perturbation sizes.",
+        "Unsymmetrized diagnostics and normal-shear coupling are preserved; one-sided irreversible tangents are labeled."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/physics/test_elastic_tangent.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P01-08",
+      "work_package": "WP1",
+      "title": "Make runs isolated, portable, restartable, and resource-safe",
+      "status": "TODO",
+      "owner_role": "simulation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P00-03",
+        "P01-02"
+      ],
+      "owned_paths": [
+        "src/pgworld/simulation/run_manager.py",
+        "configs/compute/",
+        "tests/integration/test_run_isolation.py"
+      ],
+      "expected_outputs": [
+        "isolated run directories",
+        "typed configuration and failure cleanup",
+        "scheduler templates without inherited account paths"
+      ],
+      "acceptance_criteria": [
+        "Concurrent smoke runs do not share logs/images/restarts.",
+        "Interrupted/failed runs close solver handles and never overwrite accepted raw results."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/integration/test_run_isolation.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P01-09",
+      "work_package": "WP1",
+      "title": "Repair non-destructive grouped analysis and dimensional labels",
+      "status": "TODO",
+      "owner_role": "evaluation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P01-01",
+        "P01-02"
+      ],
+      "owned_paths": [
+        "src/process_network_ensembles.py",
+        "src/process_elastic_tensor.py",
+        "tests/unit/test_analysis_regression.py"
+      ],
+      "expected_outputs": [
+        "idempotent grouped aggregation",
+        "correct dimensional output labels"
+      ],
+      "acceptance_criteria": [
+        "Repeated processing does not append duplicates or delete raw evidence.",
+        "Interpolation respects independent networks and monotonic axes; energy/tension labels match converted values."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/unit/test_analysis_regression.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P01-10",
+      "work_package": "WP1",
+      "title": "Validate pore, orientation, and connectivity observables",
+      "status": "TODO",
+      "owner_role": "physics",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P01-01",
+        "P01-04"
+      ],
+      "owned_paths": [
+        "src/process_pores.py",
+        "src/process_orientation.py",
+        "tests/physics/test_structural_observables.py"
+      ],
+      "expected_outputs": [
+        "observable definitions",
+        "rendering-resolution/PBC/crossing-line sensitivity tests"
+      ],
+      "acceptance_criteria": [
+        "Visual line crossings do not invent chemical crosslinks.",
+        "Pore/image metrics and orientation conventions are tested on known structures and resolution changes."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/physics/test_structural_observables.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P01-11",
+      "work_package": "WP1",
+      "title": "Package the repaired simulator and accept gate G1",
+      "status": "TODO",
+      "owner_role": "integrator",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P01-04",
+        "P01-06",
+        "P01-07",
+        "P01-08",
+        "P01-09",
+        "P01-10"
+      ],
+      "owned_paths": [
+        "pyproject.toml",
+        "dependency lockfile",
+        "tests/",
+        "reports/gates/G1.json",
+        "docs/migration.md"
+      ],
+      "expected_outputs": [
+        "installable package preserving legacy adapters",
+        "reviewed G1 report"
+      ],
+      "acceptance_criteria": [
+        "Clean installation runs analytical and actual LAMMPS fixtures.",
+        "Source/parameter migrations and unresolved limitations are documented; no major sweep before acceptance."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest -q",
+        "pgworld doctor"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P02-01",
+      "work_package": "WP2",
+      "title": "Implement explicit loading/control protocols",
+      "status": "TODO",
+      "owner_role": "simulation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P01-11"
+      ],
+      "owned_paths": [
+        "src/pgworld/simulation/controls.py",
+        "configs/loads/",
+        "tests/physics/test_loading.py"
+      ],
+      "expected_outputs": [
+        "isotropic, axial, hoop, biaxial, shear, cyclic and local controls"
+      ],
+      "acceptance_criteria": [
+        "Boundary/control tensors transform consistently under coordinate changes.",
+        "Pressure-derived tension controls state shell assumptions; prescribed weakening/removal has separate event semantics.",
+        "Local weakening changes only the selected physical interactions; changing a shared LAMMPS type coefficient cannot silently weaken all bonds of that type."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/physics/test_loading.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P02-02",
+      "work_package": "WP2",
+      "title": "Define damage, irreversible events, and failure endpoints",
+      "status": "TODO",
+      "owner_role": "physics",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P01-05",
+        "P02-01"
+      ],
+      "owned_paths": [
+        "docs/decisions/fracture_model.md",
+        "src/pgworld/physics/damage.py",
+        "tests/physics/test_damage_law.py"
+      ],
+      "expected_outputs": [
+        "phenomenological rupture reference law",
+        "failure endpoint definitions"
+      ],
+      "acceptance_criteria": [
+        "First rupture, connectivity loss, instability and load drop are distinct labels.",
+        "Threshold law is not claimed as an experimentally confirmed molecular cleavage mechanism."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/physics/test_damage_law.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P02-03",
+      "work_package": "WP2",
+      "title": "Implement the quasi-static rupture and relaxation cascade",
+      "status": "TODO",
+      "owner_role": "simulation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P02-02"
+      ],
+      "owned_paths": [
+        "src/pgworld/simulation/fracture.py",
+        "tests/integration/test_fracture_cascade.py"
+      ],
+      "expected_outputs": [
+        "actual topology-changing LAMMPS adapter",
+        "pre/event/post accepted state sequence"
+      ],
+      "acceptance_criteria": [
+        "Controls, equilibrium, bond deletion, dependent-angle removal, and re-equilibration are tested.",
+        "Edge IDs persist, no healing occurs, and events do not repeat or erase disconnected components."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/integration/test_fracture_cascade.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P02-04",
+      "work_package": "WP2",
+      "title": "Add stable event localization, budgets, and energy accounting",
+      "status": "TODO",
+      "owner_role": "physics",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P02-03"
+      ],
+      "owned_paths": [
+        "src/pgworld/simulation/fracture.py",
+        "tests/physics/test_fracture_accounting.py"
+      ],
+      "expected_outputs": [
+        "near-pole rejection and load refinement",
+        "event/work/relaxation energy records"
+      ],
+      "acceptance_criteria": [
+        "Nonlinear-pole violations and unconverged trials never become physical training labels.",
+        "Cascades terminate or return explicit diagnostic status; deletion energy and external work are not conflated."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/physics/test_fracture_accounting.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P02-05",
+      "work_package": "WP2",
+      "title": "Model material disorder and conditional stochastic events reproducibly",
+      "status": "TODO",
+      "owner_role": "physics",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P02-04",
+        "P01-04"
+      ],
+      "owned_paths": [
+        "src/pgworld/physics/stochasticity.py",
+        "tests/physics/test_stochastic_events.py"
+      ],
+      "expected_outputs": [
+        "persistent threshold fields or justified hazard model",
+        "conditional replicate configs"
+      ],
+      "acceptance_criteria": [
+        "Retrying rejected numerical steps does not resample an extra rupture opportunity.",
+        "Replicates distinguish geometry disorder, hidden material variation, and event-process randomness with recorded units."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/physics/test_stochastic_events.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P02-06",
+      "work_package": "WP2",
+      "title": "Accept fracture convergence, restart, and topology gate G2",
+      "status": "TODO",
+      "owner_role": "evaluation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P02-05",
+        "P01-08"
+      ],
+      "owned_paths": [
+        "reports/gates/G2.json",
+        "tests/integration/test_fracture_resume.py"
+      ],
+      "expected_outputs": [
+        "load-step/refinement/convergence study",
+        "interrupted-run equivalence evidence"
+      ],
+      "acceptance_criteria": [
+        "Small actual solver cases include genuine rupture and post-break mechanical response.",
+        "Resume preserves event RNG, load progress, masks, dependent angles, and diagnostics."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/integration/test_fracture_resume.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P02-07",
+      "work_package": "WP2",
+      "title": "Add physical-time dynamics only when required by the final claims",
+      "status": "TODO",
+      "owner_role": "simulation",
+      "execution_kind": "agent",
+      "mandatory": false,
+      "depends_on": [
+        "P02-06",
+        "P00-06"
+      ],
+      "owned_paths": [
+        "src/pgworld/simulation/dynamics.py",
+        "configs/dynamics/",
+        "tests/physics/test_dynamics.py"
+      ],
+      "expected_outputs": [
+        "calibrated physical-time adapter and convergence report, when activated"
+      ],
+      "acceptance_criteria": [
+        "Required for relaxation-time, rate, or time-to-failure claims.",
+        "Mass/mobility/damping/noise/timestep/physical-time mapping are justified; minimizer iterations are never labeled time."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/physics/test_dynamics.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": "Conditional extension; change to mandatory if scope or manuscript claims require physical-time prediction. Cannot silently defer while retaining those claims."
+    },
+    {
+      "id": "P03-01",
+      "work_package": "WP3",
+      "title": "Freeze versioned graph, control, and event schemas",
+      "status": "TODO",
+      "owner_role": "integrator",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P02-02"
+      ],
+      "owned_paths": [
+        "src/pgworld/data/schema.py",
+        "docs/DATA_AND_MODEL_CONTRACTS.md",
+        "tests/unit/test_schema.py"
+      ],
+      "expected_outputs": [
+        "typed manifest and schema versions",
+        "static/dynamic/hidden-metadata separation"
+      ],
+      "acceptance_criteria": [
+        "Stable IDs, cell H, image offsets, angles, controls, phases, status, provenance and units are explicit.",
+        "Observed features and reference-only hidden targets have distinct access paths.",
+        "Current effective per-edge coefficients and any declared damage state remain reconstructible after persistent weakening; immutable reference parameters are separate."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/unit/test_schema.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P03-02",
+      "work_package": "WP3",
+      "title": "Export dense accepted states and event substeps from LAMMPS",
+      "status": "TODO",
+      "owner_role": "data",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P03-01",
+        "P02-06"
+      ],
+      "owned_paths": [
+        "src/pgworld/data/export_lammps.py",
+        "tests/integration/test_trajectory_export.py"
+      ],
+      "expected_outputs": [
+        "real small rupture trajectory shards and manifest"
+      ],
+      "acceptance_criteria": [
+        "Accepted load states and every topology cascade event are retained.",
+        "Exported quantities/IDs agree with source solver regardless of dump row ordering."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/integration/test_trajectory_export.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P03-03",
+      "work_package": "WP3",
+      "title": "Implement local stress/coarse-graining and physical graph reconstruction",
+      "status": "TODO",
+      "owner_role": "data",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P03-02",
+        "P01-06"
+      ],
+      "owned_paths": [
+        "src/pgworld/data/observables.py",
+        "tests/physics/test_exported_observables.py"
+      ],
+      "expected_outputs": [
+        "declared local stress/tension mapping",
+        "physical-edge and angle loaders"
+      ],
+      "acceptance_criteria": [
+        "Per-atom virial is not mislabeled as already normalized stress.",
+        "Aggregate values recover global results under the same area/kinetic/angle conventions."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/physics/test_exported_observables.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P03-04",
+      "work_package": "WP3",
+      "title": "Add immutable shards, checksums, validation, and atomic completion",
+      "status": "TODO",
+      "owner_role": "data",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P03-02"
+      ],
+      "owned_paths": [
+        "src/pgworld/data/storage.py",
+        "tests/unit/test_storage.py"
+      ],
+      "expected_outputs": [
+        "versioned HDF5/manifest storage",
+        "partial-file recovery and integrity checker"
+      ],
+      "acceptance_criteria": [
+        "Crashes cannot expose an incomplete shard as accepted.",
+        "Repeated reads preserve geometry, topology, phase, units, provenance and checksums."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/unit/test_storage.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P03-05",
+      "work_package": "WP3",
+      "title": "Create grouped train/validation/test cohorts and leakage guards",
+      "status": "TODO",
+      "owner_role": "data",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P03-04"
+      ],
+      "owned_paths": [
+        "src/pgworld/data/splits.py",
+        "tests/unit/test_no_leakage.py"
+      ],
+      "expected_outputs": [
+        "parent-network split manifest",
+        "train-only normalizer fitting"
+      ],
+      "acceptance_criteria": [
+        "All trajectories/replicates from one parent network stay in one split.",
+        "No hidden rupture realization, future reference state, or test-derived statistic is exposed during inference."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/unit/test_no_leakage.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P03-06",
+      "work_package": "WP3",
+      "title": "Accept canonical fixtures, loader round trips, and gate G3",
+      "status": "TODO",
+      "owner_role": "evaluation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P03-03",
+        "P03-04",
+        "P03-05"
+      ],
+      "owned_paths": [
+        "tests/fixtures/",
+        "reports/gates/G3.json"
+      ],
+      "expected_outputs": [
+        "boundary-crossing, irregular-step, two-event and stochastic-resume fixtures"
+      ],
+      "acceptance_criteria": [
+        "Independent reader reproduces state/event topology from the canonical dataset.",
+        "Test fixtures, actual solver results, and synthetic demonstrations have different source-kind labels."
+      ],
+      "planned_verification_commands": [
+        "pgworld validate-data --manifest artifacts/smoke/manifest.json",
+        "python -m pytest tests/integration/test_dataset_roundtrip.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P04-01",
+      "work_package": "WP4",
+      "title": "Predeclare feasible parameter design and frozen evaluation cohorts",
+      "status": "TODO",
+      "owner_role": "evaluation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P01-11",
+        "P03-06",
+        "P00-06"
+      ],
+      "owned_paths": [
+        "configs/study/",
+        "docs/study_design.md"
+      ],
+      "expected_outputs": [
+        "space-filling/stratified study design",
+        "primary metrics and failure endpoint"
+      ],
+      "acceptance_criteria": [
+        "Achieved density/crosslink coupling and max-strand-size restriction are respected.",
+        "Architecture, load, size, defect, and combined OOD cohorts are distinct; size test holds strand law fixed."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/unit/test_study_design.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P04-02",
+      "work_package": "WP4",
+      "title": "Run an authorized small pilot and measure actual cost/failure rates",
+      "status": "TODO",
+      "owner_role": "simulation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P04-01",
+        "P00-04"
+      ],
+      "owned_paths": [
+        "reports/pilot/",
+        "artifacts/pilot/manifest.json"
+      ],
+      "expected_outputs": [
+        "real pilot trajectories, timing, memory, disk and accepted/rejected counts"
+      ],
+      "acceptance_criteria": [
+        "A bounded pilot, not the whole parameter grid, runs first.",
+        "No solver crash is converted to a rupture label; every accepted run has provenance."
+      ],
+      "planned_verification_commands": [
+        "pgworld simulate --config configs/study/pilot.yaml",
+        "pgworld validate-data --manifest artifacts/pilot/manifest.json"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P04-03",
+      "work_package": "WP4",
+      "title": "Determine and approve production sample/compute/storage budget",
+      "status": "TODO",
+      "owner_role": "Mohammad/evaluation",
+      "execution_kind": "human_review",
+      "mandatory": true,
+      "depends_on": [
+        "P04-02"
+      ],
+      "owned_paths": [
+        "docs/production_budget.md",
+        "configs/study/production.yaml"
+      ],
+      "expected_outputs": [
+        "pilot-informed precision/coverage/cost argument",
+        "recorded authorization"
+      ],
+      "acceptance_criteria": [
+        "Counts target independent networks and stochastic replication, not misleading frame totals.",
+        "Compute, storage, concurrency, retry and stop limits fit actual authorization."
+      ],
+      "planned_verification_commands": [],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P04-04",
+      "work_package": "WP4",
+      "title": "Execute the approved campaign with resumable isolated jobs",
+      "status": "TODO",
+      "owner_role": "simulation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P04-03",
+        "P01-08"
+      ],
+      "owned_paths": [
+        "reports/jobs.jsonl",
+        "artifacts/production/manifest.json"
+      ],
+      "expected_outputs": [
+        "actual immutable accepted/rejected simulation artifacts"
+      ],
+      "acceptance_criteria": [
+        "Jobs have verified IDs, config hashes, limits and resume commands.",
+        "Resumption does not duplicate completed graphs or overwrite raw results."
+      ],
+      "planned_verification_commands": [
+        "pgworld simulate --config configs/study/production.yaml",
+        "pgworld validate-data --manifest artifacts/production/manifest.json"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P04-05",
+      "work_package": "WP4",
+      "title": "Audit cohorts and accept dataset gate G4",
+      "status": "TODO",
+      "owner_role": "evaluation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P04-04",
+        "P03-05"
+      ],
+      "owned_paths": [
+        "reports/gates/G4.json",
+        "reports/dataset_audit/"
+      ],
+      "expected_outputs": [
+        "hash-frozen cohorts",
+        "distribution, coverage, leakage and failure-diagnostic report"
+      ],
+      "acceptance_criteria": [
+        "Independent audit finds no parent-network leakage or test-directed data selection.",
+        "Historical reproduction disagreements and parameter migrations are documented."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/integration/test_campaign_integrity.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P05-01",
+      "work_package": "WP5",
+      "title": "Implement a common prediction/runtime evaluation adapter",
+      "status": "TODO",
+      "owner_role": "ML",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P03-06"
+      ],
+      "owned_paths": [
+        "src/pgworld/models/interfaces.py",
+        "tests/unit/test_prediction_interface.py"
+      ],
+      "expected_outputs": [
+        "common input/output contract and timer"
+      ],
+      "acceptance_criteria": [
+        "Methods receive equivalent allowed state/control information.",
+        "Runtime includes preprocessing, physical correction, topology update and fallback as declared."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/unit/test_prediction_interface.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P05-02",
+      "work_package": "WP5",
+      "title": "Implement reference, cheap mechanics, affine and simple-rule baselines",
+      "status": "TODO",
+      "owner_role": "simulation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P05-01",
+        "P02-06"
+      ],
+      "owned_paths": [
+        "src/pgworld/models/baselines/mechanics.py",
+        "tests/integration/test_mechanics_baselines.py"
+      ],
+      "expected_outputs": [
+        "actual baseline configs and smoke predictions"
+      ],
+      "acceptance_criteria": [
+        "Exact teacher fidelity is not presented as beatable on its own reference labels.",
+        "Reduced solver and affine baselines are evaluated at stated cost/accuracy, not artificially crippled."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/integration/test_mechanics_baselines.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P05-03",
+      "work_package": "WP5",
+      "title": "Train the unconstrained graph and fixed-topology baselines",
+      "status": "TODO",
+      "owner_role": "ML",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P05-01",
+        "P04-05"
+      ],
+      "owned_paths": [
+        "src/pgworld/models/baselines/graph.py",
+        "configs/models/",
+        "artifacts/models/baselines/"
+      ],
+      "expected_outputs": [
+        "trained checkpoints and tiny-fit/unseen-graph rollout evidence"
+      ],
+      "acceptance_criteria": [
+        "Training gradients and checkpoint restore pass tests.",
+        "Reference and predicted topology modes are separate; training loss alone does not count as validation."
+      ],
+      "planned_verification_commands": [
+        "pgworld train --config configs/models/baseline.yaml",
+        "pgworld evaluate --config configs/study/baseline_validation.yaml"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P05-04",
+      "work_package": "WP5",
+      "title": "Train the uncoupled event baseline and accept gate G5",
+      "status": "TODO",
+      "owner_role": "evaluation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P05-02",
+        "P05-03"
+      ],
+      "owned_paths": [
+        "src/pgworld/models/baselines/events.py",
+        "reports/gates/G5.json"
+      ],
+      "expected_outputs": [
+        "event/mechanics decoupled baseline",
+        "fairness and baseline validation report"
+      ],
+      "acceptance_criteria": [
+        "Comparable data/tuning budgets and all allowed privileged inputs are documented.",
+        "Actual checkpoints and out-of-sample predictions exist for claimed trained baselines."
+      ],
+      "planned_verification_commands": [
+        "pgworld train --config configs/models/uncoupled.yaml",
+        "pgworld evaluate --config configs/study/baseline_validation.yaml"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P06-01",
+      "work_package": "WP6",
+      "title": "Implement controlled graph encoding with angular mechanics and covariance tests",
+      "status": "TODO",
+      "owner_role": "ML",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P05-01",
+        "P01-06"
+      ],
+      "owned_paths": [
+        "src/pgworld/models/encoder.py",
+        "tests/models/test_equivariance.py"
+      ],
+      "expected_outputs": [
+        "node/physical-edge/angle/control encoder"
+      ],
+      "acceptance_criteria": [
+        "Rotation/translation tests include controls, cell and tensor outputs, not just coordinates.",
+        "Computational communication edges cannot be interpreted as force-bearing chemical bonds."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/models/test_equivariance.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P06-02",
+      "work_package": "WP6",
+      "title": "Build learned nonaffine update and fixed-budget physical correction",
+      "status": "TODO",
+      "owner_role": "ML",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P06-01",
+        "P05-02"
+      ],
+      "owned_paths": [
+        "src/pgworld/models/mechanics.py",
+        "tests/models/test_corrector.py"
+      ],
+      "expected_outputs": [
+        "learned update/corrector with explicit runtime budget"
+      ],
+      "acceptance_criteria": [
+        "Forces/angles/units and mask dependencies are consistent with the approved oracle.",
+        "Every corrector step/fallback is counted; hidden full reference solves do not create artificial speed claims."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/models/test_corrector.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P06-03",
+      "work_package": "WP6",
+      "title": "Implement irreversible conditional stochastic topology prediction",
+      "status": "TODO",
+      "owner_role": "ML",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P06-01",
+        "P02-05"
+      ],
+      "owned_paths": [
+        "src/pgworld/models/topology.py",
+        "tests/models/test_topology.py"
+      ],
+      "expected_outputs": [
+        "hazard/threshold decoder",
+        "calibration-ready event distributions"
+      ],
+      "acceptance_criteria": [
+        "Deleted edges stay deleted and dependent angular interactions are masked.",
+        "Loss respects exposure, censoring, sampling weights and the declared source of randomness."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/models/test_topology.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P06-04",
+      "work_package": "WP6",
+      "title": "Couple mechanics, event cascades, and latent/history state",
+      "status": "TODO",
+      "owner_role": "ML",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P06-02",
+        "P06-03"
+      ],
+      "owned_paths": [
+        "src/pgworld/models/world_model.py",
+        "tests/models/test_joint_rollout.py"
+      ],
+      "expected_outputs": [
+        "closed-loop transition and rollout interface"
+      ],
+      "acceptance_criteria": [
+        "Predicted events alter subsequent mechanics and components.",
+        "No future reference states/topology enter ordinary rollout; stable termination/status handling is enforced."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/models/test_joint_rollout.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P06-05",
+      "work_package": "WP6",
+      "title": "Implement multi-step training, checkpointing, and interruption recovery",
+      "status": "TODO",
+      "owner_role": "ML",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P06-04",
+        "P03-05"
+      ],
+      "owned_paths": [
+        "src/pgworld/training/",
+        "tests/models/test_training_resume.py"
+      ],
+      "expected_outputs": [
+        "training curriculum",
+        "complete resume state and feature/split hashes"
+      ],
+      "acceptance_criteria": [
+        "One-step gradients, masked event loss, tiny-set fit, and multistep rollout are tested.",
+        "Resume restores parameters, optimizer, scheduler, random streams and data iteration as documented."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/models/test_training_resume.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P06-06",
+      "work_package": "WP6",
+      "title": "Train full models on approved production cohorts",
+      "status": "TODO",
+      "owner_role": "ML",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P06-05",
+        "P05-04",
+        "P04-05"
+      ],
+      "owned_paths": [
+        "configs/models/hybrid.yaml",
+        "artifacts/models/hybrid/",
+        "reports/training/"
+      ],
+      "expected_outputs": [
+        "actual trained model checkpoints and validation predictions"
+      ],
+      "acceptance_criteria": [
+        "Hyperparameters/loss weights are selected on validation data only.",
+        "Training seeds, resources and all failed or truncated runs are recorded."
+      ],
+      "planned_verification_commands": [
+        "pgworld train --config configs/models/hybrid.yaml",
+        "pgworld evaluate --config configs/study/hybrid_validation.yaml"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P06-07",
+      "work_package": "WP6",
+      "title": "Package inference and accept joint world-model gate G6",
+      "status": "TODO",
+      "owner_role": "evaluation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P06-06"
+      ],
+      "owned_paths": [
+        "src/pgworld/inference/",
+        "reports/gates/G6.json",
+        "tests/integration/test_model_bundle.py"
+      ],
+      "expected_outputs": [
+        "reloadable model bundle",
+        "independent held-out autoregressive evidence"
+      ],
+      "acceptance_criteria": [
+        "A clean process reproduces a prediction from the saved checkpoint without training data access.",
+        "Calibrated/uncalibrated uncertainty and physical validity are measured and honestly labeled."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/integration/test_model_bundle.py -q",
+        "pgworld rollout --checkpoint ARTIFACT --initial-state FIXTURE --controls FIXTURE"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P07-01",
+      "work_package": "WP7",
+      "title": "Freeze final protocol, metrics, and preregistered comparison choices",
+      "status": "TODO",
+      "owner_role": "evaluation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P05-04",
+        "P06-07",
+        "P04-05"
+      ],
+      "owned_paths": [
+        "configs/study/frozen_evaluation.yaml",
+        "docs/final_evaluation_protocol.md"
+      ],
+      "expected_outputs": [
+        "signed/hash-frozen evaluation plan"
+      ],
+      "acceptance_criteria": [
+        "Final test data were not used for architecture or threshold selection.",
+        "Primary metrics, uncertainty intervals, runtime boundary and failure definitions are fixed before final scoring."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/evaluation/test_protocol_integrity.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P07-02",
+      "work_package": "WP7",
+      "title": "Run final long-rollout, failure, hotspot and stochastic metrics",
+      "status": "TODO",
+      "owner_role": "evaluation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P07-01"
+      ],
+      "owned_paths": [
+        "src/pgworld/evaluation/",
+        "artifacts/predictions/",
+        "reports/evaluation/"
+      ],
+      "expected_outputs": [
+        "raw immutable predictions and per-network scores"
+      ],
+      "acceptance_criteria": [
+        "Predictions include actual autoregressive topology and own-state input.",
+        "Rare-event PR metrics, failure distributions, calibration, validity and matched-cost comparisons are reported, not just no-break accuracy."
+      ],
+      "planned_verification_commands": [
+        "pgworld evaluate --config configs/study/frozen_evaluation.yaml"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P07-03",
+      "work_package": "WP7",
+      "title": "Evaluate each OOD regime and coupled stress cases",
+      "status": "TODO",
+      "owner_role": "evaluation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P07-02"
+      ],
+      "owned_paths": [
+        "reports/ood/",
+        "configs/study/ood/"
+      ],
+      "expected_outputs": [
+        "architecture/load/size/defect/joint-OOD tables"
+      ],
+      "acceptance_criteria": [
+        "Graph size is not confounded by different length-law truncation.",
+        "Zero-shot, fine-tuned and retrained experiments have separate labels."
+      ],
+      "planned_verification_commands": [
+        "pgworld evaluate --config configs/study/ood.yaml"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P07-04",
+      "work_package": "WP7",
+      "title": "Run approved ablations and independent training-seed comparisons",
+      "status": "TODO",
+      "owner_role": "ML",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P07-01",
+        "P00-04"
+      ],
+      "owned_paths": [
+        "configs/ablations/",
+        "reports/ablations/"
+      ],
+      "expected_outputs": [
+        "physics/angles/topology/history/stochasticity/multistep/hierarchy tests as implemented"
+      ],
+      "acceptance_criteria": [
+        "Ablations hold other resources/inputs comparable and include null outcomes.",
+        "Seed count and budget constraints are reported; no cherry-picked best seed."
+      ],
+      "planned_verification_commands": [
+        "pgworld evaluate --config configs/study/ablations.yaml"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P07-05",
+      "work_package": "WP7",
+      "title": "Benchmark the method on a genuine generic spring/fracture domain",
+      "status": "TODO",
+      "owner_role": "physics/ML",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P06-07",
+        "P07-01"
+      ],
+      "owned_paths": [
+        "src/pgworld/benchmarks/generic_fracture.py",
+        "configs/benchmarks/",
+        "reports/generic/"
+      ],
+      "expected_outputs": [
+        "non-PG physical-domain fixtures and evaluation"
+      ],
+      "acceptance_criteria": [
+        "Benchmark is not the same PG graph with labels renamed.",
+        "Architecture reuse versus true zero-shot transfer versus retraining is explicit."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/physics/test_generic_fracture.py -q",
+        "pgworld evaluate --config configs/benchmarks/generic.yaml"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P07-06",
+      "work_package": "WP7",
+      "title": "Reproduce statistical tables and accept gate G7 independently",
+      "status": "TODO",
+      "owner_role": "reviewer",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P07-02",
+        "P07-03",
+        "P07-04",
+        "P07-05"
+      ],
+      "owned_paths": [
+        "reports/gates/G7.json",
+        "reports/statistics/",
+        "reports/worst_cases/"
+      ],
+      "expected_outputs": [
+        "paired/clustered uncertainty estimates",
+        "worst-case audit and regenerable tables"
+      ],
+      "acceptance_criteria": [
+        "Independent network is the clustering unit for related rollouts.",
+        "An independent script reproduces tables from predictions; positive, null and negative results remain visible."
+      ],
+      "planned_verification_commands": [
+        "python tools/reproduce_tables.py --manifest artifacts/predictions/manifest.json"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P08-01",
+      "work_package": "WP8",
+      "title": "Confirm real lab protocol, data access, training, and acquisition schedule",
+      "status": "TODO",
+      "owner_role": "Mohammad/lab",
+      "execution_kind": "human",
+      "mandatory": true,
+      "depends_on": [
+        "P00-06"
+      ],
+      "owned_paths": [
+        "docs/experiment_access.md",
+        "docs/experiment_protocol.md"
+      ],
+      "expected_outputs": [
+        "approved workflow/version and metadata checklist",
+        "actual acquisition/training owners"
+      ],
+      "acceptance_criteria": [
+        "Established lab protocols govern biological work; agent invents no assay, operating settings, or approvals.",
+        "New measurements and independent preparation/session units are explicitly planned."
+      ],
+      "planned_verification_commands": [],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P08-02",
+      "work_package": "WP8",
+      "title": "Implement import/QC against actual AFM and microscopy file examples",
+      "status": "TODO",
+      "owner_role": "experimental/data",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P08-01",
+        "P03-01"
+      ],
+      "owned_paths": [
+        "src/pgworld/experiments/importers/",
+        "tests/experiments/test_import_qc.py"
+      ],
+      "expected_outputs": [
+        "actual-format adapters",
+        "calibration/metadata/QC preservation"
+      ],
+      "acceptance_criteria": [
+        "Raw files remain immutable with units/calibration/contact-point metadata.",
+        "Synthetic fixtures test software only and never count as acquired experiments."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/experiments/test_import_qc.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": "Block unsupported real-format validation when no example bytes are authorized/available; continue format-independent schema work."
+    },
+    {
+      "id": "P08-03",
+      "work_package": "WP8",
+      "title": "Collect the standardized pilot with lab supervision",
+      "status": "TODO",
+      "owner_role": "Mohammad/lab",
+      "execution_kind": "human",
+      "mandatory": true,
+      "depends_on": [
+        "P08-01"
+      ],
+      "owned_paths": [
+        "private experimental raw storage",
+        "reports/experiments/acquisition_ledger.json"
+      ],
+      "expected_outputs": [
+        "real new pilot AFM/microscopy files and preparation metadata"
+      ],
+      "acceptance_criteria": [
+        "Each sample/session/curve has provenance and records relevant calibration/QC.",
+        "Preparation and cell counts refer to actual measurements, not generated example data."
+      ],
+      "planned_verification_commands": [],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": "Use approved lab procedures; this task cannot be completed by code alone."
+    },
+    {
+      "id": "P08-04",
+      "work_package": "WP8",
+      "title": "Build the macro-scale shell/contact observation operator",
+      "status": "TODO",
+      "owner_role": "physics/experimental",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P01-07",
+        "P08-01"
+      ],
+      "owned_paths": [
+        "src/pgworld/experiments/observation/",
+        "tests/experiments/test_observation_operator.py"
+      ],
+      "expected_outputs": [
+        "in-plane PG to curved-shell/contact AFM bridge",
+        "geometry/turgor/bending/tip/substrate sensitivity report"
+      ],
+      "acceptance_criteria": [
+        "Analytical/independent reference checks validate observation mechanics.",
+        "Actual native 3D shell fields are kept distinct from illustrative cylindrical PG embeddings."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/experiments/test_observation_operator.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": "Do not infer unique out-of-plane bending from in-plane glycan angle stiffness. Realistic independent operator needed for whole-cell AFM."
+    },
+    {
+      "id": "P08-05",
+      "work_package": "WP8",
+      "title": "Estimate identifiability/precision and approve the final acquisition design",
+      "status": "TODO",
+      "owner_role": "Mohammad/experimental",
+      "execution_kind": "human_review",
+      "mandatory": true,
+      "depends_on": [
+        "P08-02",
+        "P08-03",
+        "P08-04"
+      ],
+      "owned_paths": [
+        "reports/experiments/pilot_analysis/",
+        "docs/experiment_final_design.md"
+      ],
+      "expected_outputs": [
+        "nested pilot analysis",
+        "parameter identifiability/uncertainty",
+        "human-approved final sampling design"
+      ],
+      "acceptance_criteria": [
+        "Calibration and validation batches/cells are separated; repeated curves are not independent biological samples.",
+        "Final sample counts follow precision and practical constraints rather than a fabricated power claim."
+      ],
+      "planned_verification_commands": [],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P08-06",
+      "work_package": "WP8",
+      "title": "Collect final new measurements and freeze held-out experimental units",
+      "status": "TODO",
+      "owner_role": "Mohammad/lab",
+      "execution_kind": "human",
+      "mandatory": true,
+      "depends_on": [
+        "P08-05"
+      ],
+      "owned_paths": [
+        "private experimental raw storage",
+        "reports/experiments/acquisition_ledger.json",
+        "configs/experiments/splits.json"
+      ],
+      "expected_outputs": [
+        "actual final dataset with calibration/QC and validation holdout"
+      ],
+      "acceptance_criteria": [
+        "Required new data genuinely exist and have verified acquisition records.",
+        "Validation cells/batches remain held out; failed QC is retained with reasons."
+      ],
+      "planned_verification_commands": [],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P08-07",
+      "work_package": "WP8",
+      "title": "Compare both reference and learned predictions to held-out experiments; accept G8",
+      "status": "TODO",
+      "owner_role": "experimental/evaluation",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P08-06",
+        "P08-04",
+        "P06-07"
+      ],
+      "owned_paths": [
+        "reports/experiments/validation/",
+        "reports/gates/G8.json"
+      ],
+      "expected_outputs": [
+        "quantitative observation-space comparisons and uncertainty"
+      ],
+      "acceptance_criteria": [
+        "Prediction uses the declared calibrated observation operator without fitting to held-out outputs.",
+        "Bulk AFM/morphology evidence is not exaggerated as direct molecular rupture verification."
+      ],
+      "planned_verification_commands": [
+        "pgworld evaluate --config configs/experiments/held_out.yaml"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P09-01",
+      "work_package": "WP9",
+      "title": "Build canonical scientific scene export from actual solver data",
+      "status": "TODO",
+      "owner_role": "visualization",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P03-06"
+      ],
+      "owned_paths": [
+        "src/pgworld/visualization/export.py",
+        "tests/visualization/test_scene_fidelity.py"
+      ],
+      "expected_outputs": [
+        "viewer scene schema",
+        "actual LAMMPS fixture and metadata"
+      ],
+      "acceptance_criteria": [
+        "Positions, persistent edges, event masks, units/cell and source provenance round-trip exactly within chosen tolerance.",
+        "Generated, solver, predicted and experimental files cannot be confused."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/visualization/test_scene_fidelity.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P09-02",
+      "work_package": "WP9",
+      "title": "Implement browser playback in native coordinates with inspection",
+      "status": "TODO",
+      "owner_role": "visualization",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P09-01"
+      ],
+      "owned_paths": [
+        "viewer/src/",
+        "viewer/tests/playback.spec.ts"
+      ],
+      "expected_outputs": [
+        "local browser viewer with timeline, load/event inspector and numeric fields"
+      ],
+      "acceptance_criteria": [
+        "Actual LAMMPS frames play correctly at variable progress and with discrete event timing.",
+        "No smoothing invents physical samples; units, precision and selection match exported data."
+      ],
+      "planned_verification_commands": [
+        "npm --prefix viewer run test",
+        "npm --prefix viewer run build"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P09-03",
+      "work_package": "WP9",
+      "title": "Add correctly labeled cylinder embedding and native-3D shell scenes",
+      "status": "TODO",
+      "owner_role": "visualization",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P09-02",
+        "P08-04"
+      ],
+      "owned_paths": [
+        "viewer/src/geometry/",
+        "viewer/tests/geometry.spec.ts"
+      ],
+      "expected_outputs": [
+        "native planar, cylindrical display, and actual shell/contact scene modes"
+      ],
+      "acceptance_criteria": [
+        "x is axial and y hoop; declared radius and arc coverage preserve physical meaning.",
+        "Periodic bonds/curved seams are correct; native 3D solver coordinates are not replaced by a visually convenient embedding."
+      ],
+      "planned_verification_commands": [
+        "npm --prefix viewer run test -- geometry"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P09-04",
+      "work_package": "WP9",
+      "title": "Add synchronized model/reference comparison and uncertainty fields",
+      "status": "TODO",
+      "owner_role": "visualization",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P09-02",
+        "P06-07"
+      ],
+      "owned_paths": [
+        "viewer/src/compare/",
+        "viewer/tests/comparison.spec.ts"
+      ],
+      "expected_outputs": [
+        "shared camera/timeline, stress and error overlays, uncertainty and rupture inspection"
+      ],
+      "acceptance_criteria": [
+        "Both views share units, bounds, scales and loading coordinates; events remain matched by IDs.",
+        "Teacher-forced diagnostics and actual autoregressive forecasts have explicit labels."
+      ],
+      "planned_verification_commands": [
+        "npm --prefix viewer run test -- comparison"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P09-05",
+      "work_package": "WP9",
+      "title": "Expose actual saved-model inference through local CLI and bounded API",
+      "status": "TODO",
+      "owner_role": "ML/visualization",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P06-07",
+        "P09-01"
+      ],
+      "owned_paths": [
+        "src/pgworld/api/",
+        "tests/integration/test_local_api.py"
+      ],
+      "expected_outputs": [
+        "local checkpoint registry",
+        "bounded rollout jobs/status/result/cancel API"
+      ],
+      "acceptance_criteria": [
+        "API returns real inference with model/config hashes, not reference playback labeled prediction.",
+        "Local-first handling, validated shapes/limits, safe checkpoint policy, and no arbitrary shell/path execution."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/integration/test_local_api.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P09-06",
+      "work_package": "WP9",
+      "title": "Implement scientist counterfactual workflow and portable exports",
+      "status": "TODO",
+      "owner_role": "visualization",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P09-04",
+        "P09-05"
+      ],
+      "owned_paths": [
+        "viewer/src/inference/",
+        "viewer/src/export/",
+        "tests/visualization/test_exports.py"
+      ],
+      "expected_outputs": [
+        "change-load/weakening control UI",
+        "offline example, GLB+metadata, numeric export, OVITO-compatible checks"
+      ],
+      "acceptance_criteria": [
+        "Counterfactuals use allowed inputs, applicability warnings, and true model job outputs.",
+        "Display export cannot replace canonical physics data; privacy and provenance survive export."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/visualization/test_exports.py -q",
+        "npm --prefix viewer run test -- inference"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P09-07",
+      "work_package": "WP9",
+      "title": "Test scientific accuracy, offline use, performance, and accessibility",
+      "status": "TODO",
+      "owner_role": "reviewer/visualization",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P09-03",
+        "P09-06"
+      ],
+      "owned_paths": [
+        "reports/viewer/",
+        "viewer/tests/acceptance.spec.ts"
+      ],
+      "expected_outputs": [
+        "measured reference-hardware performance",
+        "offline and browser end-to-end report"
+      ],
+      "acceptance_criteria": [
+        "Provisional performance targets are measured, not claimed from architecture choice.",
+        "Seam handling, deleted bonds, colorbar units, shared scales, keyboard navigation, readable labels and no-secret browser data are checked."
+      ],
+      "planned_verification_commands": [
+        "npm --prefix viewer run test:e2e",
+        "npm --prefix viewer run build"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P09-08",
+      "work_package": "WP9",
+      "title": "Complete scientist usability review and accept gate G9",
+      "status": "TODO",
+      "owner_role": "Mohammad/lab",
+      "execution_kind": "human_review",
+      "mandatory": true,
+      "depends_on": [
+        "P09-07"
+      ],
+      "owned_paths": [
+        "reports/gates/G9.json",
+        "reports/viewer/usability.md"
+      ],
+      "expected_outputs": [
+        "real scientist task-based usability record",
+        "documented corrections/limits"
+      ],
+      "acceptance_criteria": [
+        "Scientist can inspect rupture/stress, compare reference/model, run a local counterfactual, and export interpretable results.",
+        "Offline/local release and actual model access work without imaginary hosted infrastructure."
+      ],
+      "planned_verification_commands": [],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P10-01",
+      "work_package": "WP10",
+      "title": "Complete current primary-source related-work and novelty assessment",
+      "status": "TODO",
+      "owner_role": "research/integrator",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P00-01"
+      ],
+      "owned_paths": [
+        "docs/related_work.md",
+        "paper/references.bib"
+      ],
+      "expected_outputs": [
+        "verified related-work matrix and contribution statement"
+      ],
+      "acceptance_criteria": [
+        "Overlapping GNN/material-fracture/stochastic/PG work is included, not suppressed.",
+        "Citations and priority claims are verified; older foundational reading is not called exhaustive."
+      ],
+      "planned_verification_commands": [
+        "python tools/check_references.py --bibliography paper/references.bib"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": "Begin early, revisit after results. Implement a real reference validator before treating this proposed command as evidence."
+    },
+    {
+      "id": "P10-02",
+      "work_package": "WP10",
+      "title": "Build the evidence-linked manuscript, figures, and claim ledger",
+      "status": "TODO",
+      "owner_role": "research/integrator",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P07-06",
+        "P08-07",
+        "P10-01"
+      ],
+      "owned_paths": [
+        "paper/",
+        "reports/claim_ledger.jsonl",
+        "tools/reproduce_figures.py"
+      ],
+      "expected_outputs": [
+        "full manuscript draft, methods and limitations",
+        "regenerable final figures and result tables"
+      ],
+      "acceptance_criteria": [
+        "Every numerical/result claim maps to a measured artifact; no filled-in fictional results.",
+        "Full experimental scope and actual contribution limits are honestly represented."
+      ],
+      "planned_verification_commands": [
+        "python tools/reproduce_figures.py --manifest artifacts/release/manifest.json"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P10-03",
+      "work_package": "WP10",
+      "title": "Package reproducible data, model, software, and viewer release candidate",
+      "status": "TODO",
+      "owner_role": "integrator",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P10-02",
+        "P09-08"
+      ],
+      "owned_paths": [
+        "docs/model_card.md",
+        "docs/data_card.md",
+        "docs/reproduce.md",
+        "artifacts/release/"
+      ],
+      "expected_outputs": [
+        "inference weights, configs, hashes and licensed shareable fixtures",
+        "install/reproduce/local demo instructions"
+      ],
+      "acceptance_criteria": [
+        "Private/raw restricted data and secrets are excluded; licensed/provenance-aware release boundaries are documented.",
+        "Clean-machine setup loads model, runs an approved small evaluation and opens viewer."
+      ],
+      "planned_verification_commands": [
+        "pgworld reproduce --manifest artifacts/release/manifest.json"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P10-04",
+      "work_package": "WP10",
+      "title": "Approve scientific attribution, data rights, and release candidate; accept G10",
+      "status": "TODO",
+      "owner_role": "Mohammad/lab",
+      "execution_kind": "human_review",
+      "mandatory": true,
+      "depends_on": [
+        "P10-03"
+      ],
+      "owned_paths": [
+        "reports/gates/G10.json",
+        "docs/release_permissions.md"
+      ],
+      "expected_outputs": [
+        "actual scientific/provenance/data-rights review"
+      ],
+      "acceptance_criteria": [
+        "New local commits use requested identity; inherited contribution/AI disclosures are not erased.",
+        "Manuscript authorship and any publication rights are confirmed by humans; no unsolicited public upload/submission."
+      ],
+      "planned_verification_commands": [],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P11-01",
+      "work_package": "WP11",
+      "title": "Perform independent clean-environment reproduction and claims audit",
+      "status": "TODO",
+      "owner_role": "reviewer",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P10-04"
+      ],
+      "owned_paths": [
+        "reports/final_audit/",
+        "tests/release/"
+      ],
+      "expected_outputs": [
+        "fresh replay of required computational artifacts",
+        "claim, split, seed, uncertainty, limitation and viewer fidelity audit"
+      ],
+      "acceptance_criteria": [
+        "Independent reproduction checks actual small workflows, not just import/build success.",
+        "Software completion and experimental completion are both tested against proposal traceability."
+      ],
+      "planned_verification_commands": [
+        "pgworld reproduce --manifest artifacts/release/manifest.json",
+        "python -m pytest tests/release -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": ""
+    },
+    {
+      "id": "P11-02",
+      "work_package": "WP11",
+      "title": "Close required gaps and issue the evidence-backed final handoff G11",
+      "status": "TODO",
+      "owner_role": "integrator",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P11-01"
+      ],
+      "owned_paths": [
+        "README.md",
+        "handoff.md",
+        "TASKS.json",
+        "reports/gates/G11.json",
+        "docs/final_research_summary.md"
+      ],
+      "expected_outputs": [
+        "complete deliverable manifest or explicit remaining mandatory blockers",
+        "reports/completion_report.md with category-by-category status and evidence"
+      ],
+      "acceptance_criteria": [
+        "Every mandatory gate is accepted with evidence before claiming full completion.",
+        "The final README and every preceding handoff-era README status agree with the evidence-backed ledger and remaining-task state.",
+        "Final scientific results may be null/negative; submission/acceptance or unauthorized hosting is not invented."
+      ],
+      "planned_verification_commands": [
+        "python tools/check_project_completion.py --tasks TASKS.json --gates reports/gates"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": "The packet validator only checks planning integrity. Implement a project-completion checker against actual evidence; do not confuse the two."
+    }
+  ]
+}

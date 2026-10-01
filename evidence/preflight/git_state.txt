@@ -1,0 +1,13 @@
+observed_at=2026-09-30T23:12:48-04:00
+cwd=C:/Users/mzora/MechWorld
+branch=main
+head=248644000c34dbb93c85976b3bf433bb2f7344c5
+tree=5245d459c426d3e0a1c78a0fd1eee985d13f741e
+origin_main=248644000c34dbb93c85976b3bf433bb2f7344c5
+upstream_main=248644000c34dbb93c85976b3bf433bb2f7344c5
+initial_status=untracked PG_WORLD_MODEL_EXECUTION_PACKET/ only
+tracked_files=101
+tracked_python_files=49
+tracked_src_python_files=47
+tracked_src_python_lines=5097
+archive_zip_present=false
