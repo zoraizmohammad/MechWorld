@@ -1,5 +1,6 @@
 from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule;
 from simulation_constants_settings import *;
+import numpy as np
 import os;
 
 def import_2D_triclinic_box_bounds_from_dump(filename : str) -> tuple[float, float, float, float, float]:
@@ -24,28 +25,41 @@ def import_2D_triclinic_box_bounds_from_dump(filename : str) -> tuple[float, flo
     if not lines[i].startswith("ITEM: BOX BOUNDS"):
         raise ValueError("Unexpected format: BOX BOUNDS missing")
     box_bounds_header = lines[i].split()
+    box_bounds_fields = box_bounds_header[3:]
+    if "abc" in box_bounds_fields or "origin" in box_bounds_fields:
+        raise ValueError(
+            "Unsupported general triclinic BOX BOUNDS header; "
+            "this 2D reader accepts orthogonal or restricted triclinic dumps"
+        )
+
+    tilt_fields = {"xy", "xz", "yz"}.intersection(box_bounds_fields)
+    if tilt_fields and box_bounds_fields[:3] != ["xy", "xz", "yz"]:
+        raise ValueError("Malformed restricted triclinic BOX BOUNDS header")
+
     i += 1;
     box_bounds = []
     for j in range(3):
         parts = list(map(float, lines[i+j].split()))
         box_bounds.append(parts)
 
-    is_restricted_triclinic = {"xy", "xz", "yz"}.issubset(box_bounds_header)
+    is_restricted_triclinic = box_bounds_fields[:3] == ["xy", "xz", "yz"]
     if is_restricted_triclinic:
         xy = box_bounds[0][2]
         xz = box_bounds[1][2]
         yz = box_bounds[2][2]
+        if xz != 0.0 or yz != 0.0:
+            raise ValueError(
+                "Unsupported 2D restricted triclinic BOX BOUNDS with nonzero xz/yz"
+            )
     else:
         xy = 0.0
-        xz = 0.0
-        yz = 0.0
 
     # LAMMPS writes restricted-triclinic bounding extents to dump files. Convert
     # them back to the true box bounds used by the existing 2D return contract.
-    xlo = box_bounds[0][0] - min(0.0, xy, xz, xy + xz)
-    xhi = box_bounds[0][1] - max(0.0, xy, xz, xy + xz)
-    ylo = box_bounds[1][0] - min(0.0, yz)
-    yhi = box_bounds[1][1] - max(0.0, yz)
+    xlo = box_bounds[0][0] - min(0.0, xy)
+    xhi = box_bounds[0][1] - max(0.0, xy)
+    ylo = box_bounds[1][0]
+    yhi = box_bounds[1][1]
 
     return (xlo, xhi, xy, ylo, yhi)
 
@@ -79,16 +93,56 @@ def import_atoms_from_dump(filename : str, triclinic_bounds = None) -> dict[int,
     n_atoms = int(lines[i+1]);
 
     i = 8; # 9th line
-    verify = "ITEM: ATOMS id mol type x y";
-    if not lines[i].startswith(verify):
-        raise ValueError(f"Expected at line {i+1}: {verify}");
+    atom_header = lines[i].split()
+    if atom_header[:2] != ["ITEM:", "ATOMS"]:
+        raise ValueError(f"Expected at line {i+1}: ITEM: ATOMS <columns...>");
+
+    atom_columns = atom_header[2:]
+    required_columns = {"id", "mol", "type", "x", "y"}
+    missing_columns = required_columns.difference(atom_columns)
+    if missing_columns:
+        raise ValueError(
+            f"Missing required atom dump columns: {', '.join(sorted(missing_columns))}"
+        )
+    if ("ix" in atom_columns) != ("iy" in atom_columns):
+        raise ValueError("Atom dump must provide both ix and iy image columns or neither")
+
+    column_index = {name: index for index, name in enumerate(atom_columns)}
+
+    def parse_integer(column_name: str, values: list[str]) -> int:
+        token = values[column_index[column_name]]
+        try:
+            return int(token)
+        except ValueError:
+            numeric_value = float(token)
+            if not numeric_value.is_integer():
+                raise ValueError(
+                    f"Atom column {column_name} must contain an integer, got {token}"
+                )
+            return int(numeric_value)
 
     atoms : dict[int,Atom] = dict();
     for ai in range(n_atoms):
-        atom_data = list(map(float, lines[i+1+ai].split()));
-        a = Atom(id=int(atom_data[0]), mol_id=int(atom_data[1]), atom_type=int(atom_data[2]), x=atom_data[3], y=atom_data[4], z=0);
+        atom_data = lines[i+1+ai].split();
+        atom_id = parse_integer("id", atom_data)
+        if atom_id in atoms:
+            raise ValueError(f"Duplicate atom ID {atom_id} in {filename}")
+
+        a = Atom(
+            id=atom_id,
+            mol_id=parse_integer("mol", atom_data),
+            atom_type=parse_integer("type", atom_data),
+            x=float(atom_data[column_index["x"]]),
+            y=float(atom_data[column_index["y"]]),
+            z=0,
+        );
+        if "ix" in column_index:
+            a.image_shift = np.array(
+                [parse_integer("ix", atom_data), parse_integer("iy", atom_data)],
+                dtype=np.int64,
+            )
         a.correct_triclinic_PCB(xlo, xhi, xy, ylo, yhi);
-        atoms[atom_data[0]] = a;
+        atoms[a.id] = a;
 
     return atoms
 

@@ -48,6 +48,77 @@ class TriclinicBounds:
     ylo : float
     yhi : float
 
+def _validate_2d_cell(xlo, xhi, xy, ylo, yhi):
+    cell_values = np.array([xlo, xhi, xy, ylo, yhi], dtype=float)
+    if not np.all(np.isfinite(cell_values)):
+        raise ValueError("Periodic cell bounds and tilt must be finite")
+    if xhi <= xlo or yhi <= ylo:
+        raise ValueError("Periodic cell lengths must be positive")
+
+def _wrap_position_2d(x, y, xlo, xhi, xy, ylo, yhi):
+    """Wrap a Cartesian point and return its LAMMPS-style lattice image shift.
+
+    The returned integer shift ``n`` follows ``unwrapped = wrapped + H @ n``,
+    where ``H = [[xhi - xlo, xy], [0, yhi - ylo]]``.
+    """
+    _validate_2d_cell(xlo, xhi, xy, ylo, yhi)
+    lx = xhi - xlo
+    ly = yhi - ylo
+    fractional_y = (y - ylo) / ly
+    fractional_x = (x - xlo - xy * fractional_y) / lx
+    image_x = floor(fractional_x)
+    image_y = floor(fractional_y)
+    wrapped_x = x - lx * image_x - xy * image_y
+    wrapped_y = y - ly * image_y
+    return (wrapped_x, wrapped_y), (image_x, image_y)
+
+def minimum_image_displacement_2d(a1, a2, triclinic_bounds):
+    """Return the shortest ``a1 -> a2`` vector and its lattice image offset.
+
+    The offset ``n_12`` follows ``r_12 = x_2 - x_1 + H @ n_12``. For each
+    candidate y image, the best x image is solved exactly; the finite y range
+    is bounded by the best distance already found, avoiding fractional-rounding
+    assumptions for skew or non-square cells.
+    """
+    (xlo, xhi, xy, ylo, yhi) = triclinic_bounds
+    _validate_2d_cell(xlo, xhi, xy, ylo, yhi)
+    lx = xhi - xlo
+    ly = yhi - ylo
+    dx = a2.x - a1.x
+    dy = a2.y - a1.y
+
+    image_y = int(round(-dy / ly))
+    image_x = int(round(-(dx + xy * image_y) / lx))
+    best_offset = (image_x, image_y)
+    best_vector = np.array(
+        [dx + lx * image_x + xy * image_y, dy + ly * image_y],
+        dtype=float,
+    )
+    best_distance_squared = float(np.dot(best_vector, best_vector))
+
+    vertical_limit = np.sqrt(best_distance_squared)
+    image_y_min = ceil((-vertical_limit - dy) / ly)
+    image_y_max = floor((vertical_limit - dy) / ly)
+    for candidate_y in range(image_y_min, image_y_max + 1):
+        ideal_x = -(dx + xy * candidate_y) / lx
+        for candidate_x in {floor(ideal_x), ceil(ideal_x)}:
+            candidate_vector = np.array(
+                [
+                    dx + lx * candidate_x + xy * candidate_y,
+                    dy + ly * candidate_y,
+                ],
+                dtype=float,
+            )
+            candidate_distance_squared = float(
+                np.dot(candidate_vector, candidate_vector)
+            )
+            if candidate_distance_squared < best_distance_squared:
+                best_distance_squared = candidate_distance_squared
+                best_vector = candidate_vector
+                best_offset = (candidate_x, candidate_y)
+
+    return best_vector, np.array(best_offset, dtype=np.int64)
+
 class Atom:
     def __init__(self, id : int, mol_id : int, atom_type : int, x : float, y : float, z : float):
         self.id = id;
@@ -56,6 +127,7 @@ class Atom:
         self.x = x;
         self.y = y;
         self.z = z;
+        self.image_shift = np.zeros(2, dtype=np.int64)
         self.is_inclined_to_peptide = True;
         self.has_peptide = False;
 
@@ -96,39 +168,15 @@ class Atom:
             return False;
 
     def correct_triclinic_PCB(self, xlo, xhi, xy, ylo, yhi):
-        # Transforms the atom's position to be within the boundary of the original periodic box
-        w = (xhi-xlo);
-        h = (yhi-ylo);
-
-        if self.y > yhi:
-            self.y -= h;
-        elif self.y < ylo:
-            self.y += h;
-        
-        if (xy == 0):
-            if self.x < xlo:
-                self.x += w;
-            elif self.x > xhi:
-                self.x -= w;
-        else:
-            triclinic_slope = (h) / (xy);
-            if self.x < xlo + (self.y - ylo)/triclinic_slope:
-                self.x += w;
-            elif self.x > xhi + (self.y - ylo)/triclinic_slope:
-                self.x -= w;
+        # Keep the mutation used by legacy callers while exposing image changes.
+        (self.x, self.y), applied_shift = _wrap_position_2d(
+            self.x, self.y, xlo, xhi, xy, ylo, yhi
+        )
+        self.image_shift += np.array(applied_shift, dtype=np.int64)
+        return applied_shift
 
     def correct_orthogonal_PCB(self, xlo, xhi, ylo, yhi):
-        while (self.x < xlo):
-            self.x += (xhi - xlo);
-        
-        while (self.x > xhi):
-            self.x -= (xhi - xlo);
-
-        while (self.y < ylo):
-            self.y += (yhi - ylo);
-    
-        while (self.y > yhi):
-            self.y -= (yhi - ylo);
+        return self.correct_triclinic_PCB(xlo, xhi, 0.0, ylo, yhi)
 
 ### PCB HANDLING
 def shortest_path_is_periodic_x(a1 : Atom, a2 : Atom, simbox_lx : float):
@@ -236,27 +284,9 @@ class GlycanMolecule:
     def get_orientation_vector(self, atoms : dict[int,Atom], triclinic_bounds):
         a0 = atoms[min(self.atom_ids)] # First atom placed. It is 'top' of glycan before rotation.
         af = atoms[max(self.atom_ids)] # It is 'bottom' glycan before rotation.
-
-        dx = af.x - a0.x; # Runs from 'top' -> 'bottom'.
-        dy = af.y - a0.y; # Runs from 'top' -> 'bottom'.
-
-        (xlo, xhi, xy, ylo, yhi) = triclinic_bounds;
-        lx = xhi - xlo;
-        ly = yhi - ylo;
-
-        if shortest_path_is_periodic_x(a0, af, lx):
-            if a0.x > af.x:
-                dx += lx;
-            else:
-                dx -= lx;
-        
-        if shortest_path_is_periodic_y(a0, af, ly):
-            if a0.y > af.y:
-                dy += ly;
-            else:
-                dy -= ly;
-
-        glycan_vector = np.array([dx,dy])
+        glycan_vector, _ = minimum_image_displacement_2d(
+            a0, af, triclinic_bounds
+        )
         return glycan_vector;
 
     def get_orientation_with_respect_to_hoop(self, atoms : dict[int,Atom], triclinic_bounds) -> float:

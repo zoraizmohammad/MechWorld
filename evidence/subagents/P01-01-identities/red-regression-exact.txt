@@ -1,0 +1,79 @@
+Command:
+  $env:PYTHONDONTWRITEBYTECODE='1'; & C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest -q --tb=short tests/unit/test_periodic_geometry.py
+Working directory:
+  C:\Users\mzora\MechWorld-wt-p01-01-identities
+Exit status: 1
+Captured 2026-10-01 before editing either owned source file.
+
+...FFFFFFFFF                                                             [100%]
+================================== FAILURES ===================================
+______________ test_rejects_unsupported_general_triclinic_header ______________
+tests\unit\test_periodic_geometry.py:114: in test_rejects_unsupported_general_triclinic_header
+    with pytest.raises(ValueError, match="general triclinic"):
+E   Failed: DID NOT RAISE <class 'ValueError'>
+_ test_wraps_large_signed_offsets_and_reports_image_shift[0.0-unwrapped0-expected_wrapped0-expected_shift0] _
+tests\unit\test_periodic_geometry.py:136: in test_wraps_large_signed_offsets_and_reports_image_shift
+    np.testing.assert_allclose((atom.x, atom.y), expected_wrapped, atol=1e-12)
+E   AssertionError:
+E   Not equal to tolerance rtol=1e-07, atol=1e-12
+E
+E   Mismatched elements: 2 / 2 (100%)
+E   Max absolute difference among violations: 40.
+E   Max relative difference among violations: 3.80952381
+E    ACTUAL: array([ 25.25, -27.5 ])
+E    DESIRED: array([ 5.25, 12.5 ])
+_ test_wraps_large_signed_offsets_and_reports_image_shift[3.0-unwrapped1-expected_wrapped1-expected_shift1] _
+tests\unit\test_periodic_geometry.py:136: in test_wraps_large_signed_offsets_and_reports_image_shift
+    np.testing.assert_allclose((atom.x, atom.y), expected_wrapped, atol=1e-12)
+E   AssertionError:
+E   Not equal to tolerance rtol=1e-07, atol=1e-12
+E
+E   Mismatched elements: 2 / 2 (100%)
+E   Max absolute difference among violations: 60.
+E   Max relative difference among violations: 28.23529412
+E    ACTUAL: array([ 49.7, -57. ])
+E    DESIRED: array([1.7, 3. ])
+_ test_wraps_large_signed_offsets_and_reports_image_shift[-3.0-unwrapped2-expected_wrapped2-expected_shift2] _
+tests\unit\test_periodic_geometry.py:136: in test_wraps_large_signed_offsets_and_reports_image_shift
+    np.testing.assert_allclose((atom.x, atom.y), expected_wrapped, atol=1e-12)
+E   AssertionError:
+E   Not equal to tolerance rtol=1e-07, atol=1e-12
+E
+E   Mismatched elements: 2 / 2 (100%)
+E   Max absolute difference among violations: 80.
+E   Max relative difference among violations: 92.85714286
+E    ACTUAL: array([-65.7,  83. ])
+E    DESIRED: array([-0.7,  3. ])
+___________ test_accumulates_image_shifts_across_repeated_wrapping ____________
+tests\unit\test_periodic_geometry.py:153: in test_accumulates_image_shifts_across_repeated_wrapping
+    assert first_shift == (4, -3)
+E   assert None == (4, -3)
+_ test_minimum_image_in_non_square_and_restricted_triclinic_cells[0.0-position_i0-position_j0-expected_displacement0] _
+tests\unit\test_periodic_geometry.py:176: in test_minimum_image_in_non_square_and_restricted_triclinic_cells
+    displacement, image_offset = pg_objects.minimum_image_displacement_2d(
+E   AttributeError: module 'lammps_PG_objects' has no attribute 'minimum_image_displacement_2d'
+_ test_minimum_image_in_non_square_and_restricted_triclinic_cells[3.0-position_i1-position_j1-expected_displacement1] _
+tests\unit\test_periodic_geometry.py:176: in test_minimum_image_in_non_square_and_restricted_triclinic_cells
+    displacement, image_offset = pg_objects.minimum_image_displacement_2d(
+E   AttributeError: module 'lammps_PG_objects' has no attribute 'minimum_image_displacement_2d'
+_ test_minimum_image_in_non_square_and_restricted_triclinic_cells[-3.0-position_i2-position_j2-expected_displacement2] _
+tests\unit\test_periodic_geometry.py:176: in test_minimum_image_in_non_square_and_restricted_triclinic_cells
+    displacement, image_offset = pg_objects.minimum_image_displacement_2d(
+E   AttributeError: module 'lammps_PG_objects' has no attribute 'minimum_image_displacement_2d'
+______ test_atom_import_preserves_ids_across_reordered_columns_and_rows _______
+tests\unit\test_periodic_geometry.py:209: in test_atom_import_preserves_ids_across_reordered_columns_and_rows
+    first_atoms = import_atoms_from_dump(str(first_dump))
+src\import_data_from_dumps.py:84: in import_atoms_from_dump
+    raise ValueError(f"Expected at line {i+1}: {verify}");
+E   ValueError: Expected at line 9: ITEM: ATOMS id mol type x y
+=========================== short test summary info ===========================
+FAILED tests/unit/test_periodic_geometry.py::test_rejects_unsupported_general_triclinic_header
+FAILED tests/unit/test_periodic_geometry.py::test_wraps_large_signed_offsets_and_reports_image_shift[0.0-unwrapped0-expected_wrapped0-expected_shift0]
+FAILED tests/unit/test_periodic_geometry.py::test_wraps_large_signed_offsets_and_reports_image_shift[3.0-unwrapped1-expected_wrapped1-expected_shift1]
+FAILED tests/unit/test_periodic_geometry.py::test_wraps_large_signed_offsets_and_reports_image_shift[-3.0-unwrapped2-expected_wrapped2-expected_shift2]
+FAILED tests/unit/test_periodic_geometry.py::test_accumulates_image_shifts_across_repeated_wrapping
+FAILED tests/unit/test_periodic_geometry.py::test_minimum_image_in_non_square_and_restricted_triclinic_cells[0.0-position_i0-position_j0-expected_displacement0]
+FAILED tests/unit/test_periodic_geometry.py::test_minimum_image_in_non_square_and_restricted_triclinic_cells[3.0-position_i1-position_j1-expected_displacement1]
+FAILED tests/unit/test_periodic_geometry.py::test_minimum_image_in_non_square_and_restricted_triclinic_cells[-3.0-position_i2-position_j2-expected_displacement2]
+FAILED tests/unit/test_periodic_geometry.py::test_atom_import_preserves_ids_across_reordered_columns_and_rows
+9 failed, 3 passed in 4.07s

@@ -1,0 +1,16 @@
+Command:
+  $env:PYTHONDONTWRITEBYTECODE='1'; & C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest -q --tb=short tests/unit/test_periodic_geometry.py::test_rejects_nonzero_out_of_plane_restricted_triclinic_tilts
+Working directory:
+  C:\Users\mzora\MechWorld-wt-p01-01-identities
+Exit status: 1
+Captured 2026-10-01 before rejecting unsupported nonzero out-of-plane tilt.
+
+F                                                                        [100%]
+================================== FAILURES ===================================
+________ test_rejects_nonzero_out_of_plane_restricted_triclinic_tilts _________
+tests\unit\test_periodic_geometry.py:131: in test_rejects_nonzero_out_of_plane_restricted_triclinic_tilts
+    with pytest.raises(ValueError, match="nonzero xz/yz"):
+E   Failed: DID NOT RAISE <class 'ValueError'>
+=========================== short test summary info ===========================
+FAILED tests/unit/test_periodic_geometry.py::test_rejects_nonzero_out_of_plane_restricted_triclinic_tilts
+1 failed in 7.30s
