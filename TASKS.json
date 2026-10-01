@@ -932,7 +932,7 @@
       "id": "P02-01",
       "work_package": "WP2",
       "title": "Implement explicit loading/control protocols",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "simulation",
       "execution_kind": "agent",
       "mandatory": true,
@@ -959,11 +959,19 @@
       "planned_verification_commands": [
         "python -m pytest tests/physics/test_loading.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_PASS",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "docs/subagents/P02-01-loading-controls.md",
+        "evidence/subagents/P02-01/verification.md",
+        "evidence/subagents/P02-01/semantic-replay-green.xml",
+        "evidence/subagents/P02-01/wheel-verification-final.json",
+        "evidence/subagents/P02-01/full-final.xml",
+        "evidence/integration/P02-01/main-full.xml",
+        "evidence/integration/P02-01/verification.md"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from accepted G1 main revision 94c175a3c455e1cccecb82ba7bc219494950f7cb to research/p02-01-loading-controls in isolated worktree C:/Users/mzora/MechWorld-wt-p02-01. The implementation agent owns only the expanded loading-control module/export, load configs, focused tests, one exact wheel-member/import compatibility test, and its own report/evidence paths listed here; root README, handoff, TASKS, ownership ledger, shared data schemas, physics profiles, solver/oracle modules, and gate state remain integrator-only. The contract is quasi-static and uses x=axial, y=hoop. Deformation-gradient/boundary controls must transform covariantly and distinguish increments from absolute loading coordinates. Pressure-derived targets must encode N_hoop=pR and N_axial=pR/2 with closed-thin-cylinder assumptions and must not relabel isotropic strain as pressure. Prescribed removal/weakening is an intervention, never material rupture/damage initiation. Local effects require stable physical interaction IDs and per-interaction effective parameters; shared LAMMPS-type mutation is prohibited. Begin with exact red regressions, reject ambiguous units/nonfinite/singular controls, preserve profile/reference semantics, use no physical-time claims, and run no production simulation. Focused controls reached 27 passed; the first full run reached 199 passed and one expected compatibility failure because the exact G1 wheel allowlist did not yet include the new controls module. Ownership was explicitly expanded only to tests/release/test_wheel_install.py to add that member/import assertion without weakening private/generated payload exclusions."
+      "notes": "Accepted after isolated implementation and independent adversarial review. The accepted subagent tip 2b77d5989d4668ffd23b0e1ca40933805f96fb76 was integrated as c4e71c0, 5c4907c, 1999149, and 736fe51; all are sole-author/committer Mohammad Zoraiz changes within the assigned 35-path boundary. Exact red evidence captured the missing module and later constructor/replay/locality defects. Final focused verification passed 40 tests; a fresh installed-wheel run passed 1 test in 128.540 seconds with strict allowlist, pip check, and no checkout-path leakage; the subagent full suite passed 213 tests in 155.742 seconds. The integrated main checkout independently passed 213 tests in 150.22 seconds. Controls are quasi-static with x=axial, y=hoop, immutable fixed-reference semantics, replayed absolute/increment tensors, cumulative path progress, and exact closed-thin-cylinder pR/pR/2 assumptions. Prescribed stable-ID interventions are not material rupture/damage initiation and cannot mutate a shared LAMMPS type coefficient. This task does not implement solver relaxation, rupture/topology evolution, cascades, restart equivalence, trajectories, physical time, biological certification, or production simulation."
     },
     {
       "id": "P02-02",

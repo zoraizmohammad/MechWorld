@@ -184,3 +184,9 @@ allowlist, which correctly rejected the new `pgworld/simulation/controls.py`
 until named. Ownership was expanded to `tests/release/test_wheel_install.py`
 only for that expected-member/import assertion; private/generated payload
 exclusions and all other P01-11 release checks remain unchanged.
+
+Integration state: the immutable return tip `2b77d598` was independently
+accepted and integrated as `c4e71c0`, `5c4907c`, `1999149`, and `736fe51`.
+The final focused suite passed 40 tests, the separate fresh-wheel test passed,
+and integrated `main` passed 213 tests. P02-01 edit ownership is cleared; no
+agent owns root ledgers, shared contracts, or gate state.

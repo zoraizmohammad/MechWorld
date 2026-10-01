@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independently reviewing and accepting P01-11/G1, pushing accepted `main`, and assigning P02-01 explicit quasi-static loading/control protocols in an isolated worktree. Final biological parameter review remains blocked.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independently reviewing, integrating, and verifying P02-01 explicit quasi-static loading/control protocols. P02-02 damage/event definitions are the next eligible task; final biological parameter review remains blocked.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -16,13 +16,13 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independe
 | Inherited mechanics repair | G1 accepted | P01-01 through P01-11 are integrated or explicitly retained as provisional/blocked; the installable wheel and `pgworld doctor` passed fresh-environment real-LAMMPS checks |
 | Physics/units contract | Immutable provisional profiles verified; biological review pending | Four route-specific hashes separate historical execution from the required new virial-only policy and reject tampered persisted snapshots. Coarse-graining, angle mapping, nonlinear-fit recovery, and the final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
-| Rupture, dataset, models, evaluation, explorer | P02-01 active | Explicit quasi-static loading/control protocols are isolated on `research/p02-01-loading-controls`; irreversible topology, datasets, trained models, evaluation, and explorer gates remain unaccepted |
+| Rupture, dataset, models, evaluation, explorer | P02-01 done; P02-02 next | Explicit quasi-static controls are accepted; the rupture law, irreversible topology, datasets, trained models, evaluation, and explorer gates remain unaccepted |
 | Experimental validation | P08-01 blocked on access | AFM plus matched morphology is the proposed target, but actual lab protocol, custodian, permissions, acquisition, raw files, calibration, and review remain unconfirmed |
 | Release | Foundation and mechanics gates accepted | G0 and numerical/software mechanics gate G1 are accepted; G2-G11 remain unaccepted and no public hosting, data/model release, or paper submission is authorized |
 
 No persistent simulation, training, viewer, or experimental job is running. Further mechanics work remains limited to bounded serial analytical/LAMMPS fixtures under the recorded smoke-test limits.
 
-Latest integration verification: P01-11 passed 7 focused and 173 total tests on integrated `main`, plus a separate isolated-wheel rerun. The fresh exact-lock venv passed `pip check`; installed P01-06 bounded harmonic-fixture energy/force/virial errors were all `0.0`, installed P01-07 closed 7/7 real LAMMPS 20260902 instances, and all immutable profile hashes survived packaging. Exact evidence is under `evidence/integration/P01-11/` and `reports/gates/G1.json`.
+Latest integration verification: P02-01 passed 213 total tests on integrated `main` in 150.22 seconds, including 40 strict loading-control cases and a fresh installed-wheel check. Its separate clean-wheel evidence passed the strict allowlist and `pip check`, imported controls only from fresh site-packages, and retained the accepted external-LAMMPS checks. Exact evidence is under `evidence/integration/P02-01/` and `evidence/subagents/P02-01/`.
 
 ## Current work and blockers
 
@@ -36,7 +36,7 @@ Latest integration verification: P01-11 passed 7 focused and 173 total tests on 
 - P01-06 is done after adversarial correction and independent main verification: analytical, finite-difference, and real-LAMMPS fixtures cover harmonic/nonlinear bonds, noncollinear angles, configurational virials, periodic geometry, native 2D signs/normalization, and fixed-reference total/incremental tension without claiming biological certification.
 - P01-07 is done after independent rejection/correction cycles: the immutable fixed reference is separate from the local tangent base, current-area native-2D conventions are explicit, all nine raw couplings survive, saved stencils replay on readback, branch-changing outputs are directional secants, and the inherited misleading route fails closed by default.
 - P01-11 and G1 are done after two independent review cycles. The package bundles unchanged immutable profile identities, exposes `pgworld doctor`, makes the old elastic task explicitly forensic/fail-closed, compiles all 80 tracked Python files under Python 3.11, and passes a true isolated install against external LAMMPS 20260902.
-- P02-01 is active on `research/p02-01-loading-controls`: the control contract is 27/27 focused-green; its first full run passed 199 tests and exposed one exact-package-allowlist compatibility failure for the new controls module. Ownership now includes only that release-test update, with sensitive/generated payload exclusions unchanged.
+- P02-01 is done after independent adversarial review. Forty focused cases enforce absolute/increment replay, coordinate covariance, cyclic path progress, closed-cylinder pressure assumptions, stable-ID intervention locality, and the separation of prescribed interventions from material rupture. Integrated `main` passed 213/213 tests; P02-02 is now eligible to define the phenomenological damage law and distinct failure endpoints.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
 - Compatibility follow-up complete: the seven inherited nested-f-string quote failures were repaired without changing plotting semantics, and the tracked-source compilation regression now covers all 80 Python files.
 
@@ -53,4 +53,4 @@ cd C:\Users\mzora\MechWorld
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Current verified result after the integrated control-flow, parser/periodic-identity, environment, distribution, run-isolation, analysis-regression, reference-validation, reproducibility, structural-observable, immutable-profile, energy/force/virial, tangent, packaging, legacy-safety, and tracked-compilation tests: 173 passed. The untouched bootstrap result was 5 passed after dependency repair. This accepts G1 numerical/software consistency, not biological parameters, irreversible rupture, a trained model, experiments, or public-release readiness.
+Current verified result after the integrated control-flow, parser/periodic-identity, environment, distribution, run-isolation, analysis-regression, reference-validation, reproducibility, structural-observable, immutable-profile, energy/force/virial, tangent, packaging, quasi-static-control, legacy-safety, and tracked-compilation tests: 213 passed. The untouched bootstrap result was 5 passed after dependency repair. This accepts P02-01 controls, not the rupture law, irreversible topology, biological parameters, a trained model, experiments, or public-release readiness.
