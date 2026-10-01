@@ -1,4 +1,4 @@
-from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule;
+from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule, minimum_image_displacement_2d;
 from simulation_constants_settings import *;
 import numpy as np;
 import pandas as pd;
@@ -8,6 +8,49 @@ import os;
 from utils_helpers import get_angle_between_vectors, bucket_round, get_confidence_intervals;
 from import_data_from_dumps import import_all_from_dump;
 
+
+def _angle_between_vectors_degrees(vector_1, vector_2):
+    vector_1 = np.asarray(vector_1, dtype=float)
+    vector_2 = np.asarray(vector_2, dtype=float)
+    if vector_1.shape != (2,) or vector_2.shape != (2,):
+        raise ValueError("orientation vectors must have exactly two components")
+    norm_1 = float(np.linalg.norm(vector_1))
+    norm_2 = float(np.linalg.norm(vector_2))
+    if (
+        not np.all(np.isfinite(vector_1))
+        or not np.all(np.isfinite(vector_2))
+        or norm_1 == 0.0
+        or norm_2 == 0.0
+    ):
+        raise ValueError("orientation vectors must be nonzero finite vectors")
+    cosine = float(np.dot(vector_1, vector_2) / (norm_1 * norm_2))
+    return float(np.rad2deg(np.arccos(np.clip(cosine, -1.0, 1.0))))
+
+
+def signed_glycan_orientation_degrees(glycan_vector):
+    """Return signed 2D nematic deviation from the positive hoop (y) axis.
+
+    The code convention is x=axial and y=hoop. Positive axial displacement
+    tilts toward -90 degrees; negative axial displacement tilts toward +90
+    degrees. Reversing a strand changes the raw direction by 180 degrees but
+    leaves its nematic orientation unchanged, apart from the equivalent
+    +/-90-degree axial boundary representation.
+    """
+
+    vector = np.asarray(glycan_vector, dtype=float)
+    if (
+        vector.shape != (2,)
+        or not np.all(np.isfinite(vector))
+        or float(np.linalg.norm(vector)) == 0.0
+    ):
+        raise ValueError("glycan orientation requires a nonzero finite 2D vector")
+    orientation = float(np.rad2deg(np.arctan2(-vector[0], vector[1])))
+    if orientation > 90.0:
+        orientation -= 180.0
+    elif orientation < -90.0:
+        orientation += 180.0
+    return orientation
+
 def calculate_length_of_glycan_molecules(molecules : dict[int,GlycanMolecule]):
     list_lengths = list();
     for m in molecules.values():
@@ -16,7 +59,12 @@ def calculate_length_of_glycan_molecules(molecules : dict[int,GlycanMolecule]):
     return list_lengths;
 
 def calculate_absolute_orientation_of_glycan_molecules(atoms, molecules : dict[int,GlycanMolecule], triclinic_bounds):
-    return [m.get_orientation_with_respect_to_hoop(atoms, triclinic_bounds) for m in molecules.values()];
+    return [
+        signed_glycan_orientation_degrees(
+            molecule.get_orientation_vector(atoms, triclinic_bounds)
+        )
+        for molecule in molecules.values()
+    ];
 
 def calculate_tension_of_glycan_molecules(bonds : dict[int,Bond], molecules : dict[int,GlycanMolecule]):
     return [m.get_tension(bonds) for m in molecules.values()];
@@ -36,7 +84,7 @@ def calculate_strain_and_relative_glycan_orientation(atoms : dict[int,Atom], bon
         o1 = m1.get_orientation_vector(atoms, triclinic_bounds);
         o2 = m2.get_orientation_vector(atoms, triclinic_bounds);
 
-        relative_orientation = get_angle_between_vectors(o1, o2);
+        relative_orientation = _angle_between_vectors_degrees(o1, o2);
         list_rel_orientation.append(relative_orientation);
         list_peptide_strain.append(b.get_strain());
 
@@ -54,12 +102,14 @@ def calculate_strain_and_attachment_orientation(atoms : dict[int,Atom], bonds : 
         a1 = atoms[b.atom_id_1];
         a2 = atoms[b.atom_id_2];
 
-        peptide_vector = np.array([a2.x - a1.x, a2.y - a1.y])
+        peptide_vector, _ = minimum_image_displacement_2d(
+            a1, a2, triclinic_bounds
+        )
         o1 = molecules[a1.mol_id].get_orientation_vector(atoms, triclinic_bounds);
         o2 = molecules[a2.mol_id].get_orientation_vector(atoms, triclinic_bounds);
 
-        list_rel_orientation.append(get_angle_between_vectors(peptide_vector, o1));
-        list_rel_orientation.append(get_angle_between_vectors(peptide_vector, o2));
+        list_rel_orientation.append(_angle_between_vectors_degrees(peptide_vector, o1));
+        list_rel_orientation.append(_angle_between_vectors_degrees(peptide_vector, o2));
         list_peptide_strain.append(b.get_strain());
         list_peptide_strain.append(b.get_strain());
     

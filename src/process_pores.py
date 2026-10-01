@@ -1,6 +1,7 @@
+from collections import deque
+from dataclasses import dataclass
 from import_data_from_dumps import import_2D_triclinic_box_bounds_from_dump, import_atoms_from_dump, import_bonds_from_dump, reconstruct_molecule_objects
-from assemble_pg_network import shortest_path_is_periodic_x, shortest_path_is_periodic_y
-from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule
+from lammps_PG_objects import Atom, Bond, Angle, GlycanMolecule, minimum_image_displacement_2d
 from os.path import splitext
 import os.path
 from simulation_constants_settings import DSU
@@ -10,112 +11,350 @@ import re
 import matplotlib.pyplot as plt
 from matplotlib.image import imread
 
-def save_monochrome_png_of_network(atoms, bonds, triclinic_bounds, save_to_filepath):
+
+@dataclass(frozen=True)
+class PoreImageMetrics:
+    """Pixel-derived pore observables for one declared periodic raster.
+
+    These values describe the complement of a rendered bond image. They are
+    not chemical connectivity or a resolution-independent geometric pore
+    ground truth. ``cell_area`` and ``pore_areas`` use the squared units of the
+    input coordinates.
+    """
+
+    pixel_shape: tuple[int, int]
+    cell_area: float
+    pixel_area: float
+    line_width_pixels: int
+    occupied_pixel_count: int
+    occupied_fraction: float
+    pore_pixel_counts: tuple[int, ...]
+    pore_areas: tuple[float, ...]
+
+
+def _validated_cell(triclinic_bounds):
+    try:
+        xlo, xhi, xy, ylo, yhi = (float(value) for value in triclinic_bounds)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("triclinic_bounds must contain five finite values") from exc
+    values = np.array([xlo, xhi, xy, ylo, yhi], dtype=float)
+    if not np.all(np.isfinite(values)):
+        raise ValueError("triclinic_bounds must contain five finite values")
+    if xhi <= xlo or yhi <= ylo:
+        raise ValueError("periodic cell lengths must be positive")
+    cell = np.array([[xhi - xlo, xy], [0.0, yhi - ylo]], dtype=float)
+    return np.array([xlo, ylo], dtype=float), cell
+
+
+def _validated_raster_parameters(image_shape, line_width_pixels):
+    try:
+        rows, columns = image_shape
+    except (TypeError, ValueError) as exc:
+        raise ValueError("image_shape must be a two-integer (rows, columns) tuple") from exc
+    if (
+        isinstance(rows, bool)
+        or isinstance(columns, bool)
+        or not isinstance(rows, (int, np.integer))
+        or not isinstance(columns, (int, np.integer))
+        or rows <= 0
+        or columns <= 0
+    ):
+        raise ValueError("image_shape must contain two positive integers")
+    if (
+        isinstance(line_width_pixels, bool)
+        or not isinstance(line_width_pixels, (int, np.integer))
+        or line_width_pixels <= 0
+    ):
+        raise ValueError("line_width_pixels must be a positive integer")
+    return int(rows), int(columns), int(line_width_pixels)
+
+
+def chemical_connected_components(atoms, bonds):
+    """Return components of the declared chemical bond graph.
+
+    Geometry, rendered intersections, and pixel adjacency are deliberately
+    ignored. Every atom is included, including isolated atoms. Missing bond
+    endpoints are rejected rather than silently manufacturing or dropping
+    connectivity.
+    """
+
+    atom_ids = set(atoms)
+    for atom_id, atom in atoms.items():
+        if type(atom_id) is not int or atom.id != atom_id:
+            raise ValueError("atom keys must be persistent integer atom IDs")
+
+    adjacency = {atom_id: set() for atom_id in atom_ids}
+    for bond in bonds.values():
+        for endpoint in (bond.atom_id_1, bond.atom_id_2):
+            if endpoint not in adjacency:
+                raise ValueError(
+                    f"bond {bond.id} references unknown atom ID {endpoint}"
+                )
+        adjacency[bond.atom_id_1].add(bond.atom_id_2)
+        adjacency[bond.atom_id_2].add(bond.atom_id_1)
+
+    components = []
+    unvisited = set(atom_ids)
+    while unvisited:
+        seed = min(unvisited)
+        component = set()
+        queue = [seed]
+        while queue:
+            atom_id = queue.pop()
+            if atom_id not in unvisited:
+                continue
+            unvisited.remove(atom_id)
+            component.add(atom_id)
+            queue.extend(adjacency[atom_id] & unvisited)
+        components.append(frozenset(component))
+    components.sort(key=lambda component: min(component))
+    return tuple(components)
+
+
+def rasterize_periodic_network(
+    atoms,
+    bonds,
+    triclinic_bounds,
+    *,
+    image_shape,
+    line_width_pixels=1,
+):
+    """Rasterize declared bonds on a periodic restricted-triclinic cell.
+
+    Array rows follow the second lattice coordinate and columns the first.
+    Each bond follows its exact 2D minimum image and is painted with a declared
+    square pixel brush. The returned mask is a visual observable only;
+    coincident painted pixels do not alter chemical topology.
+    """
+
+    rows, columns, line_width_pixels = _validated_raster_parameters(
+        image_shape, line_width_pixels
+    )
+    origin, cell = _validated_cell(triclinic_bounds)
+    inverse_cell = np.linalg.inv(cell)
+    chemical_connected_components(atoms, bonds)  # validates endpoint identity
+    occupied = np.zeros((rows, columns), dtype=bool)
+    first_offset = -(line_width_pixels // 2)
+    paint_offsets = [
+        (row_offset, column_offset)
+        for row_offset in range(first_offset, first_offset + line_width_pixels)
+        for column_offset in range(first_offset, first_offset + line_width_pixels)
+    ]
+
+    for bond in bonds.values():
+        atom_1 = atoms[bond.atom_id_1]
+        atom_2 = atoms[bond.atom_id_2]
+        start = np.array([atom_1.x, atom_1.y], dtype=float)
+        if not np.all(np.isfinite(start)):
+            raise ValueError(f"bond {bond.id} has nonfinite endpoint coordinates")
+        displacement, _ = minimum_image_displacement_2d(
+            atom_1, atom_2, triclinic_bounds
+        )
+        if not np.all(np.isfinite(displacement)):
+            raise ValueError(f"bond {bond.id} has nonfinite endpoint coordinates")
+        start_fractional = inverse_cell @ (start - origin)
+        displacement_fractional = inverse_cell @ displacement
+        displacement_pixels = displacement_fractional * np.array(
+            [columns, rows], dtype=float
+        )
+        sample_count = max(
+            2, int(np.ceil(4.0 * np.max(np.abs(displacement_pixels)))) + 1
+        )
+        for progress in np.linspace(0.0, 1.0, sample_count):
+            fractional = (start_fractional + progress * displacement_fractional) % 1.0
+            column = int(np.floor(fractional[0] * columns)) % columns
+            row = int(np.floor(fractional[1] * rows)) % rows
+            for row_offset, column_offset in paint_offsets:
+                occupied[
+                    (row + row_offset) % rows,
+                    (column + column_offset) % columns,
+                ] = True
+    return occupied
+
+
+def periodic_pore_components(boolean_image_data):
+    """Label four-neighbor components of unoccupied pixels on a 2D torus."""
+
+    occupied = np.asarray(boolean_image_data, dtype=bool)
+    if occupied.ndim != 2 or 0 in occupied.shape:
+        raise ValueError("periodic pore masks must be nonempty and two-dimensional")
+    rows, columns = occupied.shape
+    unclaimed = set(map(tuple, np.argwhere(~occupied)))
+    pores = []
+    while unclaimed:
+        seed = min(unclaimed)
+        component = set()
+        queue = deque([seed])
+        unclaimed.remove(seed)
+        while queue:
+            row, column = queue.popleft()
+            component.add((row, column))
+            neighbors = (
+                ((row - 1) % rows, column),
+                ((row + 1) % rows, column),
+                (row, (column - 1) % columns),
+                (row, (column + 1) % columns),
+            )
+            for neighbor in neighbors:
+                if neighbor in unclaimed:
+                    unclaimed.remove(neighbor)
+                    queue.append(neighbor)
+        pores.append(frozenset(component))
+    pores.sort(key=lambda pore: (-len(pore), min(pore)))
+    return tuple(pores)
+
+
+def analyze_periodic_pore_mask(
+    boolean_image_data, *, cell_area, line_width_pixels
+):
+    """Measure periodic image-complement components with explicit pixel scale."""
+
+    occupied = np.asarray(boolean_image_data, dtype=bool)
+    _, _, line_width_pixels = _validated_raster_parameters(
+        occupied.shape, line_width_pixels
+    )
+    cell_area = float(cell_area)
+    if not np.isfinite(cell_area) or cell_area <= 0.0:
+        raise ValueError("cell_area must be positive and finite")
+    pores = periodic_pore_components(occupied)
+    pixel_area = cell_area / occupied.size
+    counts = tuple(len(pore) for pore in pores)
+    return PoreImageMetrics(
+        pixel_shape=occupied.shape,
+        cell_area=cell_area,
+        pixel_area=pixel_area,
+        line_width_pixels=line_width_pixels,
+        occupied_pixel_count=int(np.count_nonzero(occupied)),
+        occupied_fraction=float(np.mean(occupied)),
+        pore_pixel_counts=counts,
+        pore_areas=tuple(count * pixel_area for count in counts),
+    )
+
+
+def analyze_periodic_network_image(
+    atoms,
+    bonds,
+    triclinic_bounds,
+    *,
+    image_shape,
+    line_width_pixels=1,
+):
+    """Rasterize and measure image pores under one declared raster setting."""
+
+    _, cell = _validated_cell(triclinic_bounds)
+    occupied = rasterize_periodic_network(
+        atoms,
+        bonds,
+        triclinic_bounds,
+        image_shape=image_shape,
+        line_width_pixels=line_width_pixels,
+    )
+    return analyze_periodic_pore_mask(
+        occupied,
+        cell_area=float(cell[0, 0] * cell[1, 1]),
+        line_width_pixels=line_width_pixels,
+    )
+
+
+def save_monochrome_png_of_network(
+    atoms,
+    bonds,
+    triclinic_bounds,
+    save_to_filepath,
+    *,
+    pixels_per_DSU=1.0,
+    line_width_pixels=2,
+):
     print(f"Exporting monochrome network image to file: {save_to_filepath}")
-    (xlo, xhi, xy, ylo, yhi) = triclinic_bounds;
-    
-    fig, ax = plt.subplots(frameon=False)
-
-    linewidth = 2;
-    
-    for b in bonds.values():
-            
-        a1 = atoms[b.atom_id_1];
-        a2 = atoms[b.atom_id_2];
-
-        x1 = a1.x; y1 = a1.y;
-        x2 = a2.x; y2 = a2.y;
-
-        #if shortest_path_is_periodic_x(a1, a2, xhi-xlo) or shortest_path_is_periodic_y(a1, a2, yhi-ylo):
-        #    continue
-
-        #ax.plot([x1,x2],[y1,y2], color="black", linewidth=linewidth);
-
-        if shortest_path_is_periodic_x(a1, a2, xhi-xlo):
-            if x1 > x2:
-                x1 = (x1-(xhi-xlo), x1);
-                x2 = (x2, x2+(xhi-xlo));
-            else:
-                x1 = (x1, x1+(xhi-xlo));
-                x2 = (x2-(xhi-xlo), x2);
-        
-        if shortest_path_is_periodic_y(a1, a2, yhi-ylo):
-            if y1 > y2:
-                y1 = (y1-(yhi-ylo), y1);
-                y2 = (y2, y2+(yhi-ylo));
-            else:
-                y1 = (y1, y1+(yhi-ylo));
-                y2 = (y2-(yhi-ylo), y2);
-
-        # Big ol'd bonds
-        if (type(x1) == float) & (type(y1) == float):
-            ax.plot([x1,x2],[y1,y2], color="black", linewidth=linewidth);
-    
-        if (type(x1) == tuple) & (type(y1) == float):
-            ax.plot([x1[0],x2[0]],[y1,y2], color="black", linewidth=linewidth);
-            ax.plot([x1[1],x2[1]],[y1,y2], color="black", linewidth=linewidth);
-        
-        if (type(x1) == float) & (type(y1) == tuple):
-            ax.plot([x1,x2],[y1[0],y2[0]], color="black", linewidth=linewidth);
-            ax.plot([x1,x2],[y1[1],y2[1]], color="black", linewidth=linewidth);
-    
-        if (type(x1) == tuple) & (type(y1) == tuple):
-            ax.plot([x1[0],x2[0]],[y1[0],y2[0]], color="black", linewidth=linewidth);
-            ax.plot([x1[1],x2[1]],[y1[1],y2[1]], color="black", linewidth=linewidth);
-    
-    ax.set_xlim(xlo,xhi);
-    ax.set_ylim(ylo,yhi);
-
-    DSU_x = (xhi - xlo)/DSU;
-    DSU_y = (yhi - ylo)/DSU;
-
-    fig.set_size_inches(DSU_x/10,DSU_y/10)
-    fig.set_dpi(10);
-
-    dpi = fig.get_dpi();
-    inches_x, inches_y = fig.get_size_inches();
-    
-    ratio_x = (dpi * inches_x) / DSU_x;
-    ratio_y = (dpi * inches_y) / DSU_y;
-
-    output = save_to_filepath;
-    fig.savefig(output, bbox_inches='tight', pad_inches=0)
-    print(f"Saved image to {output}. Resolution: {ratio_x}, {ratio_y} px / DSU")
-
-    return output
+    origin, cell = _validated_cell(triclinic_bounds)
+    del origin
+    pixels_per_DSU = float(pixels_per_DSU)
+    if not np.isfinite(pixels_per_DSU) or pixels_per_DSU <= 0.0:
+        raise ValueError("pixels_per_DSU must be positive and finite")
+    columns = max(1, int(np.ceil(cell[0, 0] / DSU * pixels_per_DSU)))
+    rows = max(1, int(np.ceil(cell[1, 1] / DSU * pixels_per_DSU)))
+    occupied = rasterize_periodic_network(
+        atoms,
+        bonds,
+        triclinic_bounds,
+        image_shape=(rows, columns),
+        line_width_pixels=line_width_pixels,
+    )
+    image = np.where(occupied, 0.0, 1.0)
+    plt.imsave(
+        save_to_filepath,
+        image,
+        cmap="gray",
+        vmin=0.0,
+        vmax=1.0,
+        origin="lower",
+    )
+    print(
+        f"Saved image to {save_to_filepath}. Resolution: "
+        f"{columns / (cell[0, 0] / DSU)}, {rows / (cell[1, 1] / DSU)} px / DSU; "
+        f"line width: {line_width_pixels} px"
+    )
+    return save_to_filepath
 
 def pizza_boy(filename, disregard_tail_of_fraction = 0.01) -> list[set[tuple[int,int]]]:
-    # I'll have a Coke
     image_data = imread(filename);
     boolean_image_data = bool_me(image_data);
     gossamer, unclaimed = establish_gossamer_and_unclaimed_sets(boolean_image_data)
     print(len(gossamer), len(unclaimed))
 
-    # I'll have a Pepsi now
-    pores : list[set[tuple[int,int]]] = list();
-
-    # You are afraid
-    cutoff = len(unclaimed) * max(disregard_tail_of_fraction, 0)
-    while len(unclaimed) > cutoff:
-       whatever_pixel_idc = next(iter(unclaimed))
-       newest_freshness_pore = set();
-       flood_fill_PBC_less_recursion(newest_freshness_pore, whatever_pixel_idc, boolean_image_data);
-       pores.append(newest_freshness_pore)
-       [unclaimed.remove(bro) for bro in newest_freshness_pore]
-       print(f"Found Pore with Area: {len(newest_freshness_pore)}. Remaining unclaimed pixels: {len(unclaimed)}")
-
-    # That you're a Pizza Boy
-    return pores
+    disregard_tail_of_fraction = float(disregard_tail_of_fraction)
+    if (
+        not np.isfinite(disregard_tail_of_fraction)
+        or disregard_tail_of_fraction < 0.0
+        or disregard_tail_of_fraction >= 1.0
+    ):
+        raise ValueError("disregard_tail_of_fraction must be in [0, 1)")
+    pores = list(periodic_pore_components(boolean_image_data))
+    cutoff = len(unclaimed) * disregard_tail_of_fraction
+    discarded_pixels = 0
+    while pores and discarded_pixels + len(pores[-1]) <= cutoff:
+        discarded_pixels += len(pores.pop())
+    print(
+        f"Found {len(pores)} periodic image pores; discarded "
+        f"{discarded_pixels} pixels from the smallest-component tail"
+    )
+    return [set(pore) for pore in pores]
 
 def bool_me(img_data : np.typing.NDArray):
-    nx, ny, nz = np.shape(img_data);
+    """Convert grayscale/RGB/RGBA image data to an occupied-pixel mask.
 
-    not_pore_img_data = np.array((nx,ny),dtype=bool);
-    completely_white_img = ((img_data[:,:,1] == 1) & (img_data[:,:,2] == 1) & (img_data[:,:,3] == 1));
-    completely_opaque_img = (img_data[:,:,3] == 1);
-    not_pore_img_data = ~(completely_white_img) | ~(completely_opaque_img);
+    Opaque non-white pixels are occupied. Transparent pixels are background.
+    Integer images are normalized by their dtype maximum; floating images must
+    already use the conventional [0, 1] image range.
+    """
 
-    return not_pore_img_data;
+    image = np.asarray(img_data)
+    if image.ndim not in (2, 3) or 0 in image.shape[:2]:
+        raise ValueError("image data must be a nonempty grayscale, RGB, or RGBA array")
+    if np.issubdtype(image.dtype, np.integer):
+        image = image.astype(float) / np.iinfo(image.dtype).max
+    else:
+        image = image.astype(float)
+    if not np.all(np.isfinite(image)) or np.any((image < 0.0) | (image > 1.0)):
+        raise ValueError("image intensities must be finite and within [0, 1]")
+
+    if image.ndim == 2:
+        intensity = image
+        alpha = np.ones_like(intensity)
+    else:
+        channels = image.shape[2]
+        if channels == 1:
+            intensity = image[:, :, 0]
+            alpha = np.ones_like(intensity)
+        elif channels == 2:
+            intensity = image[:, :, 0]
+            alpha = image[:, :, 1]
+        elif channels in (3, 4):
+            intensity = np.mean(image[:, :, :3], axis=2)
+            alpha = image[:, :, 3] if channels == 4 else np.ones(image.shape[:2])
+        else:
+            raise ValueError("image data must have one to four channels")
+    return (alpha > 1e-12) & (intensity < 1.0 - 1e-12)
 
 def establish_gossamer_and_unclaimed_sets(boolean_image_data : np.typing.NDArray):
     gossamer_pixels = set();
@@ -159,36 +398,35 @@ def get_lpx(px, nx, ny) -> tuple[int,int]:
     else:
         return (px[0]-1, px[1])
 
-# Same idea as https://en.wikipedia.org/wiki/Flood_fill#Span_filling
 def flood_fill_PBC_less_recursion(pixels_in_pore : set[tuple[int,int]], r0 : tuple[int,int], boolean_image_data : np.typing.NDArray) -> set[tuple[int,int]]:
-    upward_seeds = set();
-    downward_seeds = set();
-    nx, ny = np.shape(boolean_image_data);
-    
-    pixels_in_pore.add(r0);
-    upward_seeds.add(get_apx(r0, nx, ny));
-    downward_seeds.add(get_bpx(r0, nx, ny));
+    """Compatibility wrapper around the bounded iterative periodic fill."""
 
-    # Span right
-    rpx = get_rpx(r0, nx, ny);
-    while (not boolean_image_data[rpx]):
-        pixels_in_pore.add(rpx);
-        upward_seeds.add(get_apx(rpx, nx, ny));
-        downward_seeds.add(get_bpx(rpx, nx, ny));
-        rpx = get_rpx(rpx, nx, ny);
-    
-    # Span left
-    lpx = get_lpx(r0, nx, ny);
-    while (not boolean_image_data[lpx]):
-        pixels_in_pore.add(lpx);
-        upward_seeds.add(get_apx(lpx, nx, ny));
-        downward_seeds.add(get_bpx(lpx, nx, ny));
-        lpx = get_lpx(lpx, nx, ny);
-    
-    # Seeds
-    for px in upward_seeds.union(downward_seeds):
-        if (px not in pixels_in_pore) and (not boolean_image_data[px]):
-            flood_fill_PBC_less_recursion(pixels_in_pore, px, boolean_image_data);      
+    occupied = np.asarray(boolean_image_data, dtype=bool)
+    if occupied.ndim != 2 or 0 in occupied.shape:
+        raise ValueError("periodic pore masks must be nonempty and two-dimensional")
+    rows, columns = occupied.shape
+    try:
+        row, column = r0
+    except (TypeError, ValueError) as exc:
+        raise ValueError("r0 must be a two-index pixel") from exc
+    if not (0 <= row < rows and 0 <= column < columns):
+        raise ValueError("r0 is outside the image")
+    if occupied[row, column]:
+        raise ValueError("r0 must identify an unoccupied pore pixel")
+    queue = deque([(row, column)])
+    pixels_in_pore.add((row, column))
+    while queue:
+        current_row, current_column = queue.popleft()
+        for neighbor in (
+            ((current_row - 1) % rows, current_column),
+            ((current_row + 1) % rows, current_column),
+            (current_row, (current_column - 1) % columns),
+            (current_row, (current_column + 1) % columns),
+        ):
+            if neighbor not in pixels_in_pore and not occupied[neighbor]:
+                pixels_in_pore.add(neighbor)
+                queue.append(neighbor)
+    return pixels_in_pore
 
 def disregard_pores_based_on_pixel_area_criteria(pores : list[set[tuple[int,int]]], Amin = None, Amax = None) -> list[set[tuple[int,int]]]:
     filtered_pores = list();
@@ -251,7 +489,11 @@ def calculate_pixel_scale(filename, triclinic_bounds):
     img_data = imread(filename);
 
     xDSU = triclinic_bounds[1] - triclinic_bounds[0];
-    xPX, _, _ = np.shape(img_data);
+    if xDSU <= 0:
+        raise ValueError("x cell length must be positive")
+    if img_data.ndim not in (2, 3):
+        raise ValueError("image must be a grayscale, RGB, or RGBA array")
+    xPX = np.shape(img_data)[1];
 
     return (xPX / xDSU);
 

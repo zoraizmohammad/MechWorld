@@ -1,0 +1,4 @@
+PY_COMPILE_EXIT_CODE=0
+warning: in the working copy of 'src/process_orientation.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/process_pores.py', LF will be replaced by CRLF the next time Git touches it
+GIT_DIFF_CHECK_EXIT_CODE=0
