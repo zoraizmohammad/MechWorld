@@ -95,4 +95,3 @@ identity, cells/areas, forces, and closure records are in
   labeled forensic reproduction.
 - No rupture, physical time, effective thickness/3D modulus, production run,
   experimental validation, public release, or gate acceptance is claimed.
-

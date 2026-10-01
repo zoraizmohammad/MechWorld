@@ -134,4 +134,3 @@ Limitations:
   migration to the validated raw engine.
 - No rupture, irreversible-event physics, physical time, 3D modulus/thickness,
   production compute, experiment, public release, or G1 acceptance is claimed.
-
