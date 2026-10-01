@@ -1,0 +1,29 @@
+P01-08 verification context
+Date: 2026-10-01 America/New_York
+CWD: C:\Users\mzora\MechWorld-wt-p01-08
+Interpreter: C:\Users\mzora\MechWorld\.venv\Scripts\python.exe
+Python: 3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]
+Platform: Windows-10-10.0.26200-SP0
+Base commit: 833273ea7560f4caa1d5e3d715b7c4e460c5a284
+Base tree: 1947d691857c50a782e20844a6d995b6ed33935a
+Effective author: Mohammad Zoraiz <zoraizmohammad@gmail.com>
+Effective committer: Mohammad Zoraiz <zoraizmohammad@gmail.com>
+
+Owned-file SHA-256 values before the final documentation/evidence commit:
+104438100d842705bbdb92522d31957b80060890be8e3199bba7a0145171cbcf  src/pgworld/simulation/run_manager.py
+5de02720c2f6fbc1a6fd51ea8d80a28a11ca4acb90c1262e3bb3ea25d7df0423  configs/compute/local_smoke.json
+55d44ea21b7ec6fe8e41fc029bee57d0a0287eff755294e0625f461af8c02bf2  configs/compute/scheduler_disabled.json
+9b17045a6477baee83eedab462c0c34ced15b8489a0ca14809a74297432b1dff  configs/compute/README.md
+c6944b72b6187cf768944d702ee9a8e1d1cd574d23b9268262f36bfdfd481c59  tests/integration/test_run_isolation.py
+
+Sanitization command:
+  rg -n -i "jrrm|/u/home|c:\\users|qsub|sbatch|@" configs/compute -g '*.json'
+Result: no matches; wrapper exited 0 and printed SANITIZATION_CHECK=PASS.
+
+Failed command record:
+  git rev-parse HEAD^{tree}
+PowerShell interpreted the unquoted braces instead of passing the revision
+expression literally, and Git received an encoded token (`dAByAGUAZQA=`), so
+the combined context command emitted a fatal ambiguous-argument error. The
+quoted retry `git rev-parse 'HEAD^{tree}'` exited 0 and returned the base tree
+recorded above. No repository state was changed by either read-only command.

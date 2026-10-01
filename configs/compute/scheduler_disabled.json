@@ -1,0 +1,13 @@
+{
+  "account": null,
+  "backend": "unconfigured_scheduler",
+  "memory_mb": 1024,
+  "queue": null,
+  "schema_version": "pgworld.compute.scheduler-template.v1",
+  "submission_enabled": false,
+  "submit_command": null,
+  "tasks": 1,
+  "threads_per_task": 1,
+  "walltime_seconds": 60,
+  "working_directory": null
+}

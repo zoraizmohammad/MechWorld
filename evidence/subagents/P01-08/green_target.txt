@@ -1,0 +1,8 @@
+P01-08 targeted verification
+Date: 2026-10-01 America/New_York
+CWD: C:\Users\mzora\MechWorld-wt-p01-08
+Command: C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest tests/integration/test_run_isolation.py -q
+Exit status: 0
+
+..........                                                               [100%]
+10 passed in 0.87s

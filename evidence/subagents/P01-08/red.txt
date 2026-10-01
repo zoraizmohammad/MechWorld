@@ -1,0 +1,23 @@
+P01-08 pre-implementation regression
+Date: 2026-10-01 America/New_York
+CWD: C:\Users\mzora\MechWorld-wt-p01-08
+Base commit: 833273ea7560f4caa1d5e3d715b7c4e460c5a284
+Command: C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest tests/integration/test_run_isolation.py -q
+Exit status: 1
+
+=================================== ERRORS ====================================
+__________ ERROR collecting tests/integration/test_run_isolation.py ___________
+ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p01-08\tests\integration\test_run_isolation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\integration\test_run_isolation.py:18: in <module>
+    from pgworld.simulation.run_manager import (  # noqa: E402
+E   ModuleNotFoundError: No module named 'pgworld'
+=========================== short test summary info ===========================
+ERROR tests/integration/test_run_isolation.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.59s
+
+Expected red condition: the assigned pgworld simulation run manager did not exist.

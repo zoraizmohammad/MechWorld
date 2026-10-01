@@ -1,0 +1,8 @@
+P01-08 compile verification
+Date: 2026-10-01 America/New_York
+CWD: C:\Users\mzora\MechWorld-wt-p01-08
+Commands:
+  C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m compileall -q src\pgworld
+  C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m py_compile tests\integration\test_run_isolation.py
+Exit status: 0
+Output: none

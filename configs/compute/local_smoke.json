@@ -1,0 +1,11 @@
+{
+  "allow_gpu": false,
+  "allow_mpi": false,
+  "allow_scheduler_submission": false,
+  "backend": "local",
+  "max_concurrent_runs": 1,
+  "memory_mb": 1024,
+  "schema_version": "pgworld.compute.local.v1",
+  "threads_per_run": 1,
+  "walltime_seconds": 60
+}
