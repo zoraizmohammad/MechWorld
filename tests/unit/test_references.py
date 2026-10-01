@@ -122,6 +122,18 @@ def test_check_references_rejects_unknown_citation_key(tmp_path: Path) -> None:
     assert any("citation key 'missing2025' is not in the bibliography" in error for error in errors)
 
 
+def test_check_references_rejects_uncited_bibliography_entry(tmp_path: Path) -> None:
+    bibliography_path, related_work_path = _write_inputs(
+        tmp_path,
+        VALID_BIBLIOGRAPHY,
+        "A claim with no citation.\n",
+    )
+
+    errors = check_references(bibliography_path, related_work_path)
+
+    assert any("bibliography key 'example2025' is not cited" in error for error in errors)
+
+
 def test_cli_reports_repository_documents_as_valid() -> None:
     result = subprocess.run(
         [

@@ -1,0 +1,37 @@
+P10-01 integrator-review follow-up red regression
+Date: 2026-10-01
+CWD: C:\Users\mzora\MechWorld-wt-p10-01
+Starting commit: 34506a139a2a5de5ab64c09a4686c1fe7a9590e6
+
+Command:
+C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest tests\unit\test_references.py -q -k uncited
+
+Exit status: 1
+
+Output:
+F                                                                        [100%]
+================================== FAILURES ===================================
+__________ test_check_references_rejects_uncited_bibliography_entry ___________
+
+tmp_path = WindowsPath('C:/Users/mzora/AppData/Local/Temp/pytest-of-mzora/pytest-121/test_check_references_rejects_0')
+
+    def test_check_references_rejects_uncited_bibliography_entry(tmp_path: Path) -> None:
+        bibliography_path, related_work_path = _write_inputs(
+            tmp_path,
+            VALID_BIBLIOGRAPHY,
+            "A claim with no citation.\n",
+        )
+
+        errors = check_references(bibliography_path, related_work_path)
+
+>       assert any("bibliography key 'example2025' is not cited" in error for error in errors)
+E       assert False
+E        +  where False = any(<generator object test_check_references_rejects_uncited_bibliography_entry.<locals>.<genexpr> at 0x000001C4AA36ACF0>)
+
+tests\unit\test_references.py:134: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/unit/test_references.py::test_check_references_rejects_uncited_bibliography_entry
+1 failed, 10 deselected in 0.39s
+
+Interpretation: the original validator ensured every citation resolved but did not reject an orphaned
+bibliography entry. The follow-up test fails before the new reverse-consistency check is implemented.

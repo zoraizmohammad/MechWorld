@@ -220,8 +220,11 @@ def check_references(bibliography_path: Path, related_work_path: Path) -> list[s
         markdown = related_work_path.read_text(encoding="utf-8")
     except (OSError, UnicodeError) as error:
         return errors + [f"related-work read error: {error}"]
-    for key in sorted(citation_keys(markdown) - entries.keys()):
+    citations = citation_keys(markdown)
+    for key in sorted(citations - entries.keys()):
         errors.append(f"citation key '{key}' is not in the bibliography")
+    for key in sorted(entries.keys() - citations):
+        errors.append(f"bibliography key '{key}' is not cited in the related-work document")
 
     return errors
 

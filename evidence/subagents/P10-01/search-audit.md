@@ -20,6 +20,10 @@ Representative executed queries (including exact-title and DOI follow-ups):
 8. `primary paper peptidoglycan fracture mechanics bacterial cell wall rupture atomic force microscopy`
 9. `peptidoglycan sacculus fracture mechanics molecular dynamics primary research`
 10. Exact-title and DOI searches for every required seed in P10-01.
+11. `"A generalized machine learning framework for brittle crack problems using transfer learning and graph neural networks"`
+12. `"Multiscale graph neural networks with adaptive mesh refinement for accelerating mesh-based simulations"`
+13. `site:nature.com/articles/s41529-021-00151-y StressNet`
+14. `site:nature.com/articles/s41467-022-30530-1 silica glasses failure`
 
 ## Primary records used
 
@@ -36,8 +40,13 @@ Representative executed queries (including exact-title and DOI follow-ups):
 ### Fracture and topology-changing learned mechanics
 
 - Schwarzer et al. 2019: https://doi.org/10.1016/j.commatsci.2019.02.046
+- Wang et al. StressNet 2021: https://doi.org/10.1038/s41529-021-00151-y
 - Perera, Guzzetti, Agrawal 2022: https://doi.org/10.1016/j.cma.2022.115021 and https://arxiv.org/abs/2107.05142
+- Font-Clos et al. 2022: https://doi.org/10.1038/s41467-022-30530-1
+- Associated public code and data records: https://github.com/ComplexityBiosystems/2D-silica-ML and https://zenodo.org/records/6335037
+- Perera, Agrawal ACCURATE 2023: https://doi.org/10.1016/j.mechmat.2023.104639 and https://arxiv.org/abs/2211.12459
 - Perera, Agrawal 2023: https://doi.org/10.1016/j.mechmat.2023.104789
+- Perera, Agrawal multiscale AMR 2024: https://doi.org/10.1016/j.cma.2024.117152 and https://arxiv.org/abs/2402.08863
 - Karapiperis, Kochmann 2023: https://doi.org/10.1038/s44172-023-00085-0
 - Associated author code/data repository: https://github.com/kkarapiperis/gnn-fracture
 - Zhou, Feng 2024: https://doi.org/10.1016/j.ijsolstr.2024.112695
@@ -68,7 +77,11 @@ administrative overlap note.
 ## Important search outcomes
 
 - Karapiperis and Kochmann (2023) already perform sequential material-edge failure prediction on changing graphs. Broad “first learned topology-changing fracture” language is untenable.
+- ACCURATE (2023) explicitly transfers crack/stress prediction across domain geometry, crack length/orientation, and tensile/shear loading using staged 20-simulation fine-tuning updates. OOD claims need to distinguish fine-tuned transfer from zero-shot generalization.
 - Adaptive mesh connectivity in MeshGraphNets/ADAPT-GNN is computational topology, not material-bond deletion.
+- The multiscale AMR GNN (2024) reinforces that computational graph coarsening/refinement and phase-field crack evolution are distinct from persistent material-edge deletion.
+- StressNet predicts maximum stress from supplied stress/damage histories and does not generate fracture topology. Its primary text reports min--max statistics over all simulations, a practice that must not be copied into grouped evaluation.
+- Font-Clos et al. predict first bond failure and full crack paths from initial silica structure and transfer feature analysis to experimental images, but those experimental images have no fracture outcomes.
 - Current learned-fracture papers are predominantly deterministic. A next-edge softmax score is not evidence of calibration without proper-score/reliability evaluation.
 - Direct PG evidence spans architecture, elasticity, turgor/stress stiffening, atomistic mechanics, and remodeling. It does not supply the proposed joint rupture-rollout dataset by itself.
 
