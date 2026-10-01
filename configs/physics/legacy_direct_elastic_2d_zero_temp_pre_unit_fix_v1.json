@@ -1,0 +1,154 @@
+{
+  "schema_version": "pgworld.physics_profile.v1",
+  "profile_version": "1.0.0",
+  "profile_id": "legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1",
+  "canonical_hash": "sha256:bc2f7532284d1ac35363aa8f01fcfadf6c0368b86abd986a7546d721499bb8c8",
+  "family": "legacy_reproduction",
+  "route": "direct_ELASTIC_2D_ZERO_TEMP_pre_unit_fix",
+  "intended_use": "forensic reproduction of the retained direct elastic input only",
+  "review_status": "legacy_unreviewed_reproduction_only",
+  "biological_parameter_certified": false,
+  "final_science_campaign_allowed": false,
+  "coarse_graining_status": "unresolved",
+  "nonlinear_fit_status": "unreproduced",
+  "angle_resolution_status": "unreviewed",
+  "spacing": {
+    "code_edge_rest_length_nm": 1.03,
+    "mapping_status": "one_edge_vs_two_edge_molecular_mapping_unresolved",
+    "candidate_two_edge_hypothesis": "not_applicable_without_reconciling_pre_unit_fix_coefficients",
+    "candidate_angle_scaling": "not_frozen_pending_review"
+  },
+  "mass": {
+    "status": "unverified_data_file_input",
+    "value_ag": null,
+    "physical_time_valid": false
+  },
+  "units": {
+    "lammps_style": "nano",
+    "energy": "pN nm",
+    "force": "pN",
+    "length": "nm",
+    "angle_input": "degree",
+    "angle_internal": "radian",
+    "membrane_tension_internal": "pN/nm",
+    "membrane_tension_summary": "N/m",
+    "pN_per_nm_to_N_per_m": 0.001,
+    "pN_nm_to_J": 1e-21
+  },
+  "potentials": {
+    "harmonic_bond": {
+      "style": "LAMMPS bond_style harmonic",
+      "equation": "E=K*(r-r0)^2",
+      "parameter_units": "K:pN/nm,r0:nm",
+      "parameters": {"K_pN_per_nm": 5.57, "r0_nm": 1.03},
+      "status": "inherited_exact_pre_unit_fix_reproduction_only"
+    },
+    "nonlinear_bond": {
+      "style": "LAMMPS bond_style nonlinear",
+      "equation": "E=epsilon*(r-r0)^2/(lambda^2-(r-r0)^2)",
+      "parameter_units": "epsilon:pN nm,r0:nm,lambda:nm",
+      "parameters": {
+        "epsilon_pN_nm": 0.1709,
+        "r0_nm": 0.9065,
+        "lambda_nm": 4.0878
+      },
+      "status": "inherited_distinct_fit_exact_pre_unit_fix_reproduction_only"
+    },
+    "harmonic_angle": {
+      "style": "LAMMPS angle_style harmonic",
+      "equation": "E=K*(theta-theta0)^2",
+      "parameter_units": "K:pN nm/rad^2,theta0:degree_input",
+      "parameters": {"K_pN_nm": 0.0418, "theta0_degrees": 180.0},
+      "status": "inherited_exact_resolution_mapping_unreviewed"
+    }
+  },
+  "reference_state": {
+    "name": "fixed_cell_equilibrated",
+    "cell_policy": "fixed_cell_coordinate_minimization",
+    "zero_tension_claim": false,
+    "coordinates_required": true,
+    "full_cell_matrix_required": true,
+    "achieved_geometry_required": true,
+    "minimization_diagnostics_required": true,
+    "initial_tension_required": true
+  },
+  "tension": {
+    "source": "configurational_virial",
+    "kinetic_term_included": false,
+    "dimensionality": "2D membrane force_per_length",
+    "sign_convention": "positive_tension_equals_negative_LAMMPS_pressure",
+    "primary": "total",
+    "secondary": "incremental_from_reference"
+  },
+  "axes": {
+    "x": "axial",
+    "y": "hoop",
+    "laboratory_mapping_status": "dataset_specific_unconfirmed"
+  },
+  "dimensional_scope": {
+    "native_quantity": "2D membrane tension and in-plane stiffness",
+    "thickness_nm": null,
+    "stress_3d_allowed": false,
+    "cylinder_display_label": "2D mechanics displayed on a cylindrical surface"
+  },
+  "rupture_law": {
+    "status": "phenomenological_provisional",
+    "primary_endpoint": "damage_initiation",
+    "deterministic_version": "not_configured",
+    "heterogeneous_version": "not_configured",
+    "threshold_visibility": "must_be_recorded_when_configured",
+    "fresh_lottery_per_step": false
+  },
+  "derived_numerical_facts": {
+    "one_edge_harmonic_tangent_pN_per_nm": 11.14,
+    "two_edge_series_tangent_pN_per_nm": 5.57,
+    "two_edge_series_rest_length_nm": 2.06,
+    "nonlinear_local_tangent_pN_per_nm": 0.020454684243696408,
+    "nonlinear_extension_pole_nm": 4.9943,
+    "angle_curvature_pN_nm_per_rad2": 0.0836,
+    "status": "mechanical_derivations_not_biological_certification"
+  },
+  "legacy_output": {
+    "declared_tangent_unit": "GPa",
+    "tangent_conversion_factor": 1.01325e-8,
+    "dimensional_status": "known_invalid_3d_label_without_thickness"
+  },
+  "review_requests": [
+    {
+      "person": "Prof. Christoph Schmidt",
+      "role": "proposed scientific reviewer",
+      "status": "proposed_unconfirmed"
+    },
+    {
+      "person": "Octavio",
+      "role": "proposed inherited implementation and provenance checker",
+      "status": "proposed_unconfirmed"
+    }
+  ],
+  "sources": [
+    {
+      "id": "source_direct_elastic_potential",
+      "kind": "repository_source",
+      "citation_or_path": "ELASTIC_2D_ZERO_TEMP/PG_2D_potential.mod",
+      "claim_scope": "exact retained coefficient route including its distinct nonlinear fit"
+    },
+    {
+      "id": "source_direct_elastic_init",
+      "kind": "repository_source",
+      "citation_or_path": "ELASTIC_2D_ZERO_TEMP/PG_2D_init.mod",
+      "claim_scope": "exact retained cfac and GPa label; the label is dimensionally invalid without thickness"
+    },
+    {
+      "id": "lammps_pressure_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://docs.lammps.org/compute_pressure.html",
+      "claim_scope": "2D area normalization establishes force-per-length dimensions"
+    }
+  ],
+  "provenance": {
+    "source_routes": ["ELASTIC_2D_ZERO_TEMP/PG_2D_potential.mod", "ELASTIC_2D_ZERO_TEMP/PG_2D_init.mod"],
+    "source_revision": "78da30ffd8b374125a34edaacc71ae7650b8f722",
+    "decision_record": "docs/decisions/scope.md",
+    "notes": "Preserves the distinct 1/1000-scale elastic route and invalid inherited GPa interpretation for provenance only."
+  }
+}

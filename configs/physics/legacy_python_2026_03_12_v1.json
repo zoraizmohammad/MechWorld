@@ -1,0 +1,154 @@
+{
+  "schema_version": "pgworld.physics_profile.v1",
+  "profile_version": "1.0.0",
+  "profile_id": "legacy_python_2026_03_12_v1",
+  "canonical_hash": "sha256:47a96afb4aca5abc413fd0d75ea68b8a45e470cb4bf2a0a398a32a45d9ed022b",
+  "family": "legacy_reproduction",
+  "route": "current_python",
+  "intended_use": "reproduce the inherited current Python route and run bounded numerical fixtures only",
+  "review_status": "legacy_unreviewed_reproduction_only",
+  "biological_parameter_certified": false,
+  "final_science_campaign_allowed": false,
+  "coarse_graining_status": "unresolved",
+  "nonlinear_fit_status": "unreproduced",
+  "angle_resolution_status": "unreviewed",
+  "spacing": {
+    "code_edge_rest_length_nm": 1.03,
+    "mapping_status": "one_edge_vs_two_edge_molecular_mapping_unresolved",
+    "candidate_two_edge_hypothesis": "provisional_two_1.03_nm_edges_may_refine_one_2.0_nm_published_spring",
+    "candidate_angle_scaling": "not_frozen_pending_review"
+  },
+  "mass": {
+    "status": "placeholder",
+    "value_ag": 0.0004271587301788674,
+    "physical_time_valid": false
+  },
+  "units": {
+    "lammps_style": "nano",
+    "energy": "pN nm",
+    "force": "pN",
+    "length": "nm",
+    "angle_input": "degree",
+    "angle_internal": "radian",
+    "membrane_tension_internal": "pN/nm",
+    "membrane_tension_summary": "N/m",
+    "pN_per_nm_to_N_per_m": 0.001,
+    "pN_nm_to_J": 1e-21
+  },
+  "potentials": {
+    "harmonic_bond": {
+      "style": "LAMMPS bond_style harmonic",
+      "equation": "E=K*(r-r0)^2",
+      "parameter_units": "K:pN/nm,r0:nm",
+      "parameters": {"K_pN_per_nm": 5570.0, "r0_nm": 1.03},
+      "status": "inherited_exact_mapping_unresolved"
+    },
+    "nonlinear_bond": {
+      "style": "LAMMPS bond_style nonlinear",
+      "equation": "E=epsilon*(r-r0)^2/(lambda^2-(r-r0)^2)",
+      "parameter_units": "epsilon:pN nm,r0:nm,lambda:nm",
+      "parameters": {
+        "epsilon_pN_nm": 185.328520541486,
+        "r0_nm": 1.0,
+        "lambda_nm": 4.034069292365436
+      },
+      "status": "inherited_exact_fit_unreproduced"
+    },
+    "harmonic_angle": {
+      "style": "LAMMPS angle_style harmonic",
+      "equation": "E=K*(theta-theta0)^2",
+      "parameter_units": "K:pN nm/rad^2,theta0:degree_input",
+      "parameters": {"K_pN_nm": 41.8, "theta0_degrees": 180.0},
+      "status": "inherited_exact_resolution_mapping_unreviewed"
+    }
+  },
+  "reference_state": {
+    "name": "fixed_cell_equilibrated",
+    "cell_policy": "fixed_cell_coordinate_minimization",
+    "zero_tension_claim": false,
+    "coordinates_required": true,
+    "full_cell_matrix_required": true,
+    "achieved_geometry_required": true,
+    "minimization_diagnostics_required": true,
+    "initial_tension_required": true
+  },
+  "tension": {
+    "source": "configurational_virial",
+    "kinetic_term_included": false,
+    "dimensionality": "2D membrane force_per_length",
+    "sign_convention": "positive_tension_equals_negative_LAMMPS_pressure",
+    "primary": "total",
+    "secondary": "incremental_from_reference"
+  },
+  "axes": {
+    "x": "axial",
+    "y": "hoop",
+    "laboratory_mapping_status": "dataset_specific_unconfirmed"
+  },
+  "dimensional_scope": {
+    "native_quantity": "2D membrane tension and in-plane stiffness",
+    "thickness_nm": null,
+    "stress_3d_allowed": false,
+    "cylinder_display_label": "2D mechanics displayed on a cylindrical surface"
+  },
+  "rupture_law": {
+    "status": "phenomenological_provisional",
+    "primary_endpoint": "damage_initiation",
+    "deterministic_version": "not_configured",
+    "heterogeneous_version": "not_configured",
+    "threshold_visibility": "must_be_recorded_when_configured",
+    "fresh_lottery_per_step": false
+  },
+  "derived_numerical_facts": {
+    "one_edge_harmonic_tangent_pN_per_nm": 11140.0,
+    "two_edge_series_tangent_pN_per_nm": 5570.0,
+    "two_edge_series_rest_length_nm": 2.06,
+    "nonlinear_local_tangent_pN_per_nm": 22.776424425306164,
+    "nonlinear_extension_pole_nm": 5.034069292365436,
+    "angle_curvature_pN_nm_per_rad2": 83.6,
+    "status": "mechanical_derivations_not_biological_certification"
+  },
+  "legacy_output": {
+    "declared_tangent_unit": "MPa*nm",
+    "tangent_conversion_factor": 1.0,
+    "dimensional_status": "dimensionally_2d_but_legacy_label_deprecated"
+  },
+  "review_requests": [
+    {
+      "person": "Prof. Christoph Schmidt",
+      "role": "proposed scientific reviewer",
+      "status": "proposed_unconfirmed"
+    },
+    {
+      "person": "Octavio",
+      "role": "proposed inherited implementation and provenance checker",
+      "status": "proposed_unconfirmed"
+    }
+  ],
+  "sources": [
+    {
+      "id": "source_current_python_constants",
+      "kind": "repository_source",
+      "citation_or_path": "src/simulation_constants_settings.py",
+      "claim_scope": "exact inherited current-Python numerical values only"
+    },
+    {
+      "id": "lammps_harmonic_nonlinear_angle_2sep2026",
+      "kind": "official_documentation",
+      "citation_or_path": "https://docs.lammps.org/",
+      "claim_scope": "equations and actual units, not biological mapping"
+    },
+    {
+      "id": "nguyen_2015",
+      "kind": "primary_paper",
+      "citation_or_path": "https://www.pnas.org/doi/10.1073/pnas.1504281112",
+      "claim_scope": "published coarse model; repository mapping remains unresolved"
+    }
+  ],
+  "provenance": {
+    "source_routes": ["src/simulation_constants_settings.py", "src/run_lammps_isotropic_strain.py"],
+    "source_revision": "78da30ffd8b374125a34edaacc71ae7650b8f722",
+    "decision_record": "docs/decisions/scope.md",
+    "notes": "Preserves inherited current-Python values without certifying their molecular interpretation."
+  }
+}
