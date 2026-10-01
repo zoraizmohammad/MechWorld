@@ -854,7 +854,7 @@
       "id": "P01-11",
       "work_package": "WP1",
       "title": "Package the repaired simulator and accept gate G1",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "integrator",
       "execution_kind": "agent",
       "mandatory": true,
@@ -868,10 +868,29 @@
       ],
       "owned_paths": [
         "pyproject.toml",
-        "dependency lockfile",
+        "requirements.lock",
+        "requirements.txt",
+        "src/pgworld/__init__.py",
+        "src/pgworld/cli.py",
+        "src/pgworld/doctor.py",
+        "src/pgworld/config/__init__.py",
+        "src/pgworld/config/physics_profiles.py",
+        "src/pgworld/config/profiles/",
+        "src/pgworld/simulation/__init__.py",
+        "tools/doctor.py",
+        "src/task_compute_elastic_tensor.py",
+        "src/fig_R2_energy_by_length_distribution.py",
+        "src/fig_R2_turgor.py",
+        "src/results_PE_by_isotropy.py",
+        "src/results_moduli_by_distribution.py",
+        "src/results_moduli_by_isotropy.py",
+        "src/results_moduli_combined.py",
+        "src/results_moduli_subplots_density.py",
         "tests/",
-        "reports/gates/G1.json",
-        "docs/migration.md"
+        "reports/gates/G1.candidate.json",
+        "docs/migration.md",
+        "docs/subagents/P01-11-package-g1.md",
+        "evidence/subagents/P01-11/"
       ],
       "expected_outputs": [
         "installable package preserving legacy adapters",
@@ -889,7 +908,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": "Python 3.11 compileall currently fails in seven inherited figure/result scripts because nested double-quoted replace calls are invalid in f-strings before Python 3.12. Repair and regression-test this compatibility gap before clean-install acceptance."
+      "notes": "Assigned from accepted main a0d625994d593c236195dda2734c62111d201ea1 to research/p01-11-package-g1 in isolated worktree C:/Users/mzora/MechWorld-wt-p01-11. The implementation agent owns only the expanded packaging/CLI/profile-resource/doctor/test/migration/candidate-evidence paths listed here; root ledgers and the final reports/gates/G1.json decision remain integrator-only. Acceptance requires a wheel or equivalent isolated installation that imports bundled immutable profiles with unchanged hashes, runs pgworld doctor against real LAMMPS 20260902, executes analytical/solver fixtures outside the source tree, compiles every tracked Python source under Python 3.11, preserves or explicitly fail-closes legacy adapters, records an exact dependency/environment lock including the external LAMMPS limitation, and leaves no build artifacts in source. The seven inherited f-string failures and task_compute_elastic_tensor.py's unsafe/misleading legacy call must be repaired or made explicitly forensic. A candidate report may recommend G1 but cannot self-accept it; no production sweep, public release, or biological certification is authorized."
     },
     {
       "id": "P02-01",

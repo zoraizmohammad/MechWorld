@@ -134,3 +134,20 @@ reference versus local base separation, and nonaffine-relaxation wording were
 correct. Independent main verification passed 11 focused, 58 compatibility,
 and 164 total tests, four-file compilation, and the convergence reproducer;
 21/21 real LAMMPS instances closed. Ownership is cleared; P01-11 is eligible.
+
+## Eighth wave
+
+The assignment uses accepted main revision
+`a0d625994d593c236195dda2734c62111d201ea1`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Package and G1 candidate/integration | `research/p01-11-package-g1`; `C:/Users/mzora/MechWorld-wt-p01-11` | P01-11: build and verify the installable package, bundled immutable profiles, `pgworld doctor`, Python 3.11 compatibility, explicit legacy-wrapper migration, clean isolated real-LAMMPS smoke, and candidate G1 evidence | Exact expanded list in `TASKS.json`: packaging/lock files; package CLI/doctor/profile resources; doctor wrapper; seven syntax-repair files; elastic task wrapper; tests; migration/candidate/evidence/report paths | No root ledger/README edit, no final `reports/gates/G1.json`, no parameter changes, no production sweep, no public release, no private data, and no edits outside assigned paths |
+
+The return requires red-first packaging/compatibility tests, a clean source build
+with no retained build products, an isolated installed-environment doctor and
+analytical/real-LAMMPS fixtures outside the checkout, exact wheel/config hashes,
+dependency and external-LAMMPS limitations, sole-author Mohammad commits, and
+path/identity proof. The implementation agent may prepare only
+`G1.candidate.json`; the integrator independently reruns, reviews, and owns the
+final gate decision.

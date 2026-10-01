@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting the independently reviewed P01-07 tangent/coupling validation. P01-11 packaging and G1 review is the next eligible task. Final biological parameter review remains blocked.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting the independently reviewed P01-07 tangent/coupling validation and assigning P01-11 packaging/G1 preparation in an isolated worktree. Final biological parameter review remains blocked.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -13,7 +13,7 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting
 | Historical defects | Reproduced, then regression-repaired | The original A01-A05 failures remain archived under `evidence/source_audit_live/`; the current pure-Python diagnostic observes all five repaired, without invoking LAMMPS |
 | LAMMPS environment | Verified for bounded serial smoke work | P00-03 doctor exited 0 on a real bonded fixture; required styles and analytical component energies passed; actual rupture/MPI/GPU/production use remain unvalidated |
 | Run isolation | Local adapter verified | P01-08 lifecycle/concurrency tests pass and a real serial LAMMPS `run 0` completed through its immutable run directory; inherited runners and restart equivalence are not yet migrated/validated |
-| Inherited mechanics repair | Tangent/coupling validation accepted | P01-01 through P01-10 are integrated or explicitly isolated as provisional/blocked; P01-11 packaging and G1 review remains |
+| Inherited mechanics repair | Packaging/G1 preparation active | P01-01 through P01-10 are integrated or explicitly isolated as provisional/blocked; P01-11 is isolated and active |
 | Physics/units contract | Immutable provisional profiles verified; biological review pending | Four route-specific hashes separate historical execution from the required new virial-only policy and reject tampered persisted snapshots. Coarse-graining, angle mapping, nonlinear-fit recovery, and the final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
 | Rupture, dataset, models, evaluation, explorer | Not started | Dependency-gated behind verified mechanics and actual topology-changing trajectories |
@@ -35,7 +35,8 @@ Latest integration verification: P01-07 passed 11 focused, 58 compatibility, and
 - P01-05A is done after two independent correction reviews: distinct legacy routes and `reviewed_physics_provisional_v0` are immutable, persisted snapshots are revalidated, mixed aggregation fails closed, and every historical entry point is source-linked. P01-05 remains blocked for actual Prof. Schmidt/Octavio review and final biological parameter certification.
 - P01-06 is done after adversarial correction and independent main verification: analytical, finite-difference, and real-LAMMPS fixtures cover harmonic/nonlinear bonds, noncollinear angles, configurational virials, periodic geometry, native 2D signs/normalization, and fixed-reference total/incremental tension without claiming biological certification.
 - P01-07 is done after independent rejection/correction cycles: the immutable fixed reference is separate from the local tangent base, current-area native-2D conventions are explicit, all nine raw couplings survive, saved stencils replay on readback, branch-changing outputs are directional secants, and the inherited misleading route fails closed by default.
-- Task left before G1: complete P01-11 clean packaging, migrate the inherited elastic wrapper, repair the recorded Python 3.11 source-compatibility failures, run a clean installation, and review the gate evidence. G1 may establish numerical consistency under provisional profiles, not biological calibration.
+- P01-11 is active on `research/p01-11-package-g1`: it must produce a real installable package and `pgworld doctor`, bundle immutable profiles without changing their hashes, make the old elastic task explicitly forensic/fail-closed, repair all seven Python 3.11 syntax failures, verify an isolated install with real LAMMPS, and prepare—not self-approve—the G1 candidate evidence.
+- Task left before G1: independently review and integrate P01-11, then make the integrator-owned gate decision. G1 may establish numerical consistency under provisional profiles, not biological calibration.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
 - Compatibility follow-up: seven inherited plotting/result scripts fail Python 3.11 compilation because of nested f-string quote syntax; targeted repaired files compile, and the broader issue is queued before P01-11.
 
