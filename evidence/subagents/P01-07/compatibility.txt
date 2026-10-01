@@ -1,0 +1,10 @@
+..........................................................               [100%]
+============================== warnings summary ===============================
+tests/physics/test_elastic_tangent.py::test_legacy_elastic_adapter_closes_solver_on_success
+tests/physics/test_elastic_tangent.py::test_legacy_elastic_adapter_closes_solver_on_failure
+  C:\Users\mzora\MechWorld-wt-p01-07\src\run_lammps_elastic_tensor.py:1647: DeprecationWarning: legacy .elastic_constants output is positive-difference and symmetrized; use the raw P01-07 tangent API for scientific output
+    _run_legacy_elastic_tensor_commands(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+- generated xml file: C:\Users\mzora\MechWorld-wt-p01-07\evidence\subagents\P01-07\compatibility.xml -
+58 passed, 2 warnings in 2.70s

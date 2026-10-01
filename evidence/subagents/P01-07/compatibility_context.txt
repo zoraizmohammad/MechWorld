@@ -1,0 +1,5 @@
+cwd=C:\Users\mzora\MechWorld-wt-p01-07
+commit=a8063f5e333459eb439fc49108a4f86e3a6f336b
+command=.venv_python -B -m pytest tests/physics/test_elastic_tangent.py tests/physics/test_energy_force_virial.py tests/physics/test_physics_profiles.py tests/unit/test_analysis_regression.py -q --junitxml=evidence/subagents/P01-07/compatibility.xml
+exit_code=0
+runtime_seconds=3.5650342

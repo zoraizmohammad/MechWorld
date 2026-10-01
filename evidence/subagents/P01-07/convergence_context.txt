@@ -1,0 +1,5 @@
+cwd=C:\Users\mzora\MechWorld-wt-p01-07
+commit=a8063f5e333459eb439fc49108a4f86e3a6f336b
+command=.venv_python -B evidence/subagents/P01-07/reproduce_convergence.py
+exit_code=0
+runtime_seconds=0.4309659

@@ -1,0 +1,5 @@
+cwd=C:\Users\mzora\MechWorld-wt-p01-07
+commit=a8063f5e333459eb439fc49108a4f86e3a6f336b
+command=.venv_python -B -m pytest tests/physics/test_elastic_tangent.py -q --junitxml=evidence/subagents/P01-07/focused.xml
+exit_code=0
+runtime_seconds=2.6939265

@@ -1,0 +1,5 @@
+cwd=C:\Users\mzora\MechWorld-wt-p01-07
+commit=a8063f5e333459eb439fc49108a4f86e3a6f336b
+command=.venv_python -B -m pytest -q --junitxml=evidence/subagents/P01-07/full.xml
+exit_code=0
+runtime_seconds=6.6160578

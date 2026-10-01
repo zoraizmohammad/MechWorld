@@ -1,0 +1,551 @@
+{
+  "all_minimizations_converged": true,
+  "biological_parameter_certification_claim": false,
+  "convention": {
+    "axes": {
+      "x": "axial",
+      "y": "hoop"
+    },
+    "dimensional_scope": "native_2d_no_thickness_conversion",
+    "incremental_cell_update": "H(q)=F_inc(q)@H_base",
+    "incremental_deformation_gradient": "F_inc=[[1+epsilon_xx,gamma_xy],[0,1+epsilon_yy]]",
+    "incremental_derivative_relation": "dN_total_dq_equals_dDeltaN_dq_because_N_fixed_reference_is_constant",
+    "load_coordinate_kind": "quasi_static_not_physical_time",
+    "primary_quantity": "total_configurational_tension_2d",
+    "raw_derivative_interpretation": "local_spatial_algorithmic_tangent_not_general_finite_strain_material_tensor",
+    "reference_state": "fixed_cell_equilibrated_not_zero_tension",
+    "sample_coordinate_update": "x_sample=relax(x_trial,H(q),same_topology_and_branch)",
+    "secondary_quantity": "incremental_from_fixed_reference",
+    "shear_definition": "engineering_simple_shear_gamma_xy_equals_F_xy",
+    "strain_vector_order": [
+      "epsilon_xx",
+      "epsilon_yy",
+      "gamma_xy"
+    ],
+    "tension_measure": "current_area_cauchy_like_membrane_tension",
+    "tension_source": "configurational_virial_only_N_equals_minus_W_over_current_area",
+    "tension_unit": "pN/nm",
+    "tension_vector_order": [
+      "N_xx",
+      "N_yy",
+      "N_xy"
+    ],
+    "trial_coordinate_update": "x_trial=F_inc(q)@x_base"
+  },
+  "equilibrium_modulus_claim": false,
+  "exact_base_tension_pN_per_nm": [
+    357.8263556563346,
+    273.9608035493812,
+    313.0980611992928
+  ],
+  "exact_raw_tangent_pN_per_nm": [
+    [
+      1056.5037168016722,
+      177.0984989705645,
+      1237.538813400756
+    ],
+    [
+      260.9640510775179,
+      683.5126453731008,
+      468.0592477985368
+    ],
+    [
+      611.3426910021703,
+      468.0592477985367,
+      808.8856581762802
+    ]
+  ],
+  "finest_geometric_identity_residuals": {
+    "C12_minus_C21_minus_Nyy_minus_Nxx_pN_per_nm": -1.6336503620095755e-05,
+    "C13_minus_C31_minus_2Nxy_pN_per_nm": 9.227857731275435e-06,
+    "C23_minus_C32_pN_per_nm": 4.209596227155998e-06
+  },
+  "fixture": "8-bond oblique prestressed minimized periodic harmonic ring",
+  "limitations": [
+    "bounded numerical fixture, not a biological parameter certification",
+    "local spatial/algorithmic current-area tangent, not a general finite-strain material tensor",
+    "no rupture, physical-time, three-dimensional, or production-campaign claim"
+  ],
+  "max_force_pN": 2.4556356947869062e-11,
+  "payload_sha256_excluding_this_field": "sha256:1434d2131531253e775be37d3f250aea06bf7c891ae009011ec147174dd2c10d",
+  "physical_time_claim": false,
+  "profile_identity": {
+    "canonical_hash": "sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5",
+    "profile_id": "reviewed_physics_provisional_v0"
+  },
+  "solver_instances_closed": 21,
+  "solver_instances_started": 21,
+  "solver_version": 20260902,
+  "step_results": [
+    {
+      "asymmetry_diagnostics": {
+        "C12_minus_C21_pN_per_nm": -83.86581349199673,
+        "C13_minus_C31_pN_per_nm": 626.1962700531853,
+        "C23_minus_C32_pN_per_nm": 6.735501756338635e-05,
+        "frobenius_norm_matrix_minus_transpose_pN_per_nm": 893.4822251183297,
+        "matrix_minus_transpose_pN_per_nm": [
+          [
+            0.0,
+            -83.86581349199673,
+            626.1962700531853
+          ],
+          [
+            83.86581349199673,
+            0.0,
+            6.735501756338635e-05
+          ],
+          [
+            -626.1962700531853,
+            -6.735501756338635e-05,
+            0.0
+          ]
+        ],
+        "max_abs_matrix_minus_transpose_pN_per_nm": 626.1962700531853,
+        "raw_values_replaced_or_symmetrized": false
+      },
+      "base_tension_pN_per_nm": [
+        357.8263556563344,
+        273.96080354938107,
+        313.09806119929254
+      ],
+      "frobenius_error_pN_per_nm": 0.0005904046840491583,
+      "max_sample_force_pN": 1.9554136088117957e-11,
+      "raw_tangent_pN_per_nm": [
+        [
+          1056.5034393058852,
+          177.09866006615016,
+          1237.5389319458918
+        ],
+        [
+          260.9644735581469,
+          683.5125098929211,
+          468.0592307350082
+        ],
+        [
+          611.3426618927065,
+          468.05916337999065,
+          808.8854955132376
+        ]
+      ],
+      "sample_areas_nm2": [
+        55.99999999999997,
+        55.94400000000001,
+        56.055999999999976,
+        55.94400000000001,
+        56.055999999999976,
+        55.99999999999997,
+        55.99999999999997
+      ],
+      "sample_cells_nm": [
+        [
+          [
+            8.0,
+            0.0
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            7.992,
+            0.0
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            8.008,
+            0.0
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            8.0,
+            0.0
+          ],
+          [
+            0.0,
+            6.993
+          ]
+        ],
+        [
+          [
+            8.0,
+            0.0
+          ],
+          [
+            0.0,
+            7.007
+          ]
+        ],
+        [
+          [
+            8.0,
+            -0.007
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            8.0,
+            0.007
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ]
+      ],
+      "solver_validation": {
+        "all_instances_closed": true,
+        "backend": "LAMMPS_serial_library",
+        "fixed_topology": true,
+        "fixture_base_pair_positions_nm": [
+          [
+            -0.5,
+            -0.4375
+          ],
+          [
+            0.5,
+            0.4375
+          ]
+        ],
+        "fixture_bond_count": 8,
+        "fixture_kind": "periodic_harmonic_ring",
+        "instances_closed": 7,
+        "instances_started": 7,
+        "minimization_performed": true,
+        "physical_time_claim": false,
+        "solver_version": 20260902
+      },
+      "step": 0.001
+    },
+    {
+      "asymmetry_diagnostics": {
+        "C12_minus_C21_pN_per_nm": -83.86561745322751,
+        "C13_minus_C31_pN_per_nm": 626.1961593123146,
+        "C23_minus_C32_pN_per_nm": 1.683889649939374e-05,
+        "frobenius_norm_matrix_minus_transpose_pN_per_nm": 893.4820330911026,
+        "matrix_minus_transpose_pN_per_nm": [
+          [
+            0.0,
+            -83.86561745322751,
+            626.1961593123146
+          ],
+          [
+            83.86561745322751,
+            0.0,
+            1.683889649939374e-05
+          ],
+          [
+            -626.1961593123146,
+            -1.683889649939374e-05,
+            0.0
+          ]
+        ],
+        "max_abs_matrix_minus_transpose_pN_per_nm": 626.1961593123146,
+        "raw_values_replaced_or_symmetrized": false
+      },
+      "base_tension_pN_per_nm": [
+        357.8263556563344,
+        273.96080354938107,
+        313.09806119929254
+      ],
+      "frobenius_error_pN_per_nm": 0.00014760120851179542,
+      "max_sample_force_pN": 2.4556356947869062e-11,
+      "raw_tangent_pN_per_nm": [
+        [
+          1056.5036474274052,
+          177.09853924429808,
+          1237.5388430369867
+        ],
+        [
+          260.9641566975256,
+          683.5126115029198,
+          468.05924353265027
+        ],
+        [
+          611.342683724672,
+          468.05922669375377,
+          808.8856175105548
+        ]
+      ],
+      "sample_areas_nm2": [
+        55.99999999999997,
+        55.97200000000001,
+        56.02799999999998,
+        55.97200000000001,
+        56.02799999999998,
+        55.99999999999997,
+        55.99999999999997
+      ],
+      "sample_cells_nm": [
+        [
+          [
+            8.0,
+            0.0
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            7.996,
+            0.0
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            8.004,
+            0.0
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            8.0,
+            0.0
+          ],
+          [
+            0.0,
+            6.9965
+          ]
+        ],
+        [
+          [
+            8.0,
+            0.0
+          ],
+          [
+            0.0,
+            7.0035
+          ]
+        ],
+        [
+          [
+            8.0,
+            -0.0035
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            8.0,
+            0.0035
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ]
+      ],
+      "solver_validation": {
+        "all_instances_closed": true,
+        "backend": "LAMMPS_serial_library",
+        "fixed_topology": true,
+        "fixture_base_pair_positions_nm": [
+          [
+            -0.5,
+            -0.4375
+          ],
+          [
+            0.5,
+            0.4375
+          ]
+        ],
+        "fixture_bond_count": 8,
+        "fixture_kind": "periodic_harmonic_ring",
+        "instances_closed": 7,
+        "instances_started": 7,
+        "minimization_performed": true,
+        "physical_time_claim": false,
+        "solver_version": 20260902
+      },
+      "step": 0.0005
+    },
+    {
+      "asymmetry_diagnostics": {
+        "C12_minus_C21_pN_per_nm": -83.86556844345705,
+        "C13_minus_C31_pN_per_nm": 626.1961316264433,
+        "C23_minus_C32_pN_per_nm": 4.209596227155998e-06,
+        "frobenius_norm_matrix_minus_transpose_pN_per_nm": 893.4819850833771,
+        "matrix_minus_transpose_pN_per_nm": [
+          [
+            0.0,
+            -83.86556844345705,
+            626.1961316264433
+          ],
+          [
+            83.86556844345705,
+            0.0,
+            4.209596227155998e-06
+          ],
+          [
+            -626.1961316264433,
+            -4.209596227155998e-06,
+            0.0
+          ]
+        ],
+        "max_abs_matrix_minus_transpose_pN_per_nm": 626.1961316264433,
+        "raw_values_replaced_or_symmetrized": false
+      },
+      "base_tension_pN_per_nm": [
+        357.8263556563344,
+        273.96080354938107,
+        313.09806119929254
+      ],
+      "frobenius_error_pN_per_nm": 3.690026524441755e-05,
+      "max_sample_force_pN": 2.1373125491663814e-11,
+      "raw_tangent_pN_per_nm": [
+        [
+          1056.5036994582897,
+          177.09850903895585,
+          1237.5388208091636
+        ],
+        [
+          260.9640774824129,
+          683.5126369053341,
+          468.05924673174104
+        ],
+        [
+          611.3426891827203,
+          468.0592425221448,
+          808.885648009209
+        ]
+      ],
+      "sample_areas_nm2": [
+        55.99999999999997,
+        55.98600000000002,
+        56.013999999999996,
+        55.98600000000002,
+        56.013999999999996,
+        55.99999999999997,
+        55.99999999999997
+      ],
+      "sample_cells_nm": [
+        [
+          [
+            8.0,
+            0.0
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            7.998,
+            0.0
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            8.002,
+            0.0
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            8.0,
+            0.0
+          ],
+          [
+            0.0,
+            6.9982500000000005
+          ]
+        ],
+        [
+          [
+            8.0,
+            0.0
+          ],
+          [
+            0.0,
+            7.00175
+          ]
+        ],
+        [
+          [
+            8.0,
+            -0.00175
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ],
+        [
+          [
+            8.0,
+            0.00175
+          ],
+          [
+            0.0,
+            7.0
+          ]
+        ]
+      ],
+      "solver_validation": {
+        "all_instances_closed": true,
+        "backend": "LAMMPS_serial_library",
+        "fixed_topology": true,
+        "fixture_base_pair_positions_nm": [
+          [
+            -0.5,
+            -0.4375
+          ],
+          [
+            0.5,
+            0.4375
+          ]
+        ],
+        "fixture_bond_count": 8,
+        "fixture_kind": "periodic_harmonic_ring",
+        "instances_closed": 7,
+        "instances_started": 7,
+        "minimization_performed": true,
+        "physical_time_claim": false,
+        "solver_version": 20260902
+      },
+      "step": 0.00025
+    }
+  ],
+  "successive_error_ratios": [
+    0.25000006351491927,
+    0.24999975011362255
+  ],
+  "task_id": "P01-07"
+}
