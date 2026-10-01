@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting the independently reviewed P01-07 tangent/coupling validation and assigning P01-11 packaging/G1 preparation in an isolated worktree. Final biological parameter review remains blocked.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independently reviewing and accepting P01-11 and mechanics gate G1. P02-01 explicit quasi-static loading/control protocols are next; final biological parameter review remains blocked.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -13,16 +13,16 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting
 | Historical defects | Reproduced, then regression-repaired | The original A01-A05 failures remain archived under `evidence/source_audit_live/`; the current pure-Python diagnostic observes all five repaired, without invoking LAMMPS |
 | LAMMPS environment | Verified for bounded serial smoke work | P00-03 doctor exited 0 on a real bonded fixture; required styles and analytical component energies passed; actual rupture/MPI/GPU/production use remain unvalidated |
 | Run isolation | Local adapter verified | P01-08 lifecycle/concurrency tests pass and a real serial LAMMPS `run 0` completed through its immutable run directory; inherited runners and restart equivalence are not yet migrated/validated |
-| Inherited mechanics repair | Packaging/G1 preparation active | P01-01 through P01-10 are integrated or explicitly isolated as provisional/blocked; P01-11 is isolated and active |
+| Inherited mechanics repair | G1 accepted | P01-01 through P01-11 are integrated or explicitly retained as provisional/blocked; the installable wheel and `pgworld doctor` passed fresh-environment real-LAMMPS checks |
 | Physics/units contract | Immutable provisional profiles verified; biological review pending | Four route-specific hashes separate historical execution from the required new virial-only policy and reject tampered persisted snapshots. Coarse-graining, angle mapping, nonlinear-fit recovery, and the final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
-| Rupture, dataset, models, evaluation, explorer | Not started | Dependency-gated behind verified mechanics and actual topology-changing trajectories |
+| Rupture, dataset, models, evaluation, explorer | WP2 next | P02-01 loading/control protocols are dependency-eligible; irreversible topology, datasets, trained models, evaluation, and explorer gates remain unaccepted |
 | Experimental validation | P08-01 blocked on access | AFM plus matched morphology is the proposed target, but actual lab protocol, custodian, permissions, acquisition, raw files, calibration, and review remain unconfirmed |
-| Release | Foundation gate accepted only | G0 is accepted from preserved-source, environment, access, and isolated-workflow evidence; G1-G11 remain unaccepted and no public push, hosting, data release, or paper submission is authorized |
+| Release | Foundation and mechanics gates accepted | G0 and numerical/software mechanics gate G1 are accepted; G2-G11 remain unaccepted and no public hosting, data/model release, or paper submission is authorized |
 
 No persistent simulation, training, viewer, or experimental job is running. Further mechanics work remains limited to bounded serial analytical/LAMMPS fixtures under the recorded smoke-test limits.
 
-Latest integration verification: P01-07 passed 11 focused, 58 compatibility, and 164 total tests. Its oblique prestressed periodic-ring tangent shows second-order central convergence; all 21 real LAMMPS 20260902 instances closed and the maximum final force was `2.45563569478691e-11 pN`. Exact evidence is under `evidence/integration/P01-07/`.
+Latest integration verification: P01-11 passed 7 focused and 173 total tests on integrated `main`, plus a separate isolated-wheel rerun. The fresh exact-lock venv passed `pip check`; installed P01-06 bounded harmonic-fixture energy/force/virial errors were all `0.0`, installed P01-07 closed 7/7 real LAMMPS 20260902 instances, and all immutable profile hashes survived packaging. Exact evidence is under `evidence/integration/P01-11/` and `reports/gates/G1.json`.
 
 ## Current work and blockers
 
@@ -35,14 +35,14 @@ Latest integration verification: P01-07 passed 11 focused, 58 compatibility, and
 - P01-05A is done after two independent correction reviews: distinct legacy routes and `reviewed_physics_provisional_v0` are immutable, persisted snapshots are revalidated, mixed aggregation fails closed, and every historical entry point is source-linked. P01-05 remains blocked for actual Prof. Schmidt/Octavio review and final biological parameter certification.
 - P01-06 is done after adversarial correction and independent main verification: analytical, finite-difference, and real-LAMMPS fixtures cover harmonic/nonlinear bonds, noncollinear angles, configurational virials, periodic geometry, native 2D signs/normalization, and fixed-reference total/incremental tension without claiming biological certification.
 - P01-07 is done after independent rejection/correction cycles: the immutable fixed reference is separate from the local tangent base, current-area native-2D conventions are explicit, all nine raw couplings survive, saved stencils replay on readback, branch-changing outputs are directional secants, and the inherited misleading route fails closed by default.
-- P01-11 is active on `research/p01-11-package-g1`: it must produce a real installable package and `pgworld doctor`, bundle immutable profiles without changing their hashes, make the old elastic task explicitly forensic/fail-closed, repair all seven Python 3.11 syntax failures, verify an isolated install with real LAMMPS, and prepare—not self-approve—the G1 candidate evidence.
-- Task left before G1: independently review and integrate P01-11, then make the integrator-owned gate decision. G1 may establish numerical consistency under provisional profiles, not biological calibration.
+- P01-11 and G1 are done after two independent review cycles. The package bundles unchanged immutable profile identities, exposes `pgworld doctor`, makes the old elastic task explicitly forensic/fail-closed, compiles all 80 tracked Python files under Python 3.11, and passes a true isolated install against external LAMMPS 20260902.
+- P02-01 is the next eligible task: define explicit isotropic, axial, hoop, unequal-biaxial, shear, cyclic/unloading, pressure-derived, and local-intervention control semantics with tensor covariance and physical-interaction locality tests.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
-- Compatibility follow-up: seven inherited plotting/result scripts fail Python 3.11 compilation because of nested f-string quote syntax; targeted repaired files compile, and the broader issue is queued before P01-11.
+- Compatibility follow-up complete: the seven inherited nested-f-string quote failures were repaired without changing plotting semantics, and the tracked-source compilation regression now covers all 80 Python files.
 
 ## Remaining path
 
-G0 environment/source acceptance is complete. The remaining critical sequence is G1 mechanics validation → G2 irreversible rupture → G3 canonical trajectories → G4 frozen nonleaking study cohorts → G5 baselines → G6 trained joint world model → G7 frozen evaluation. Experimental G8 proceeds in parallel when real lab inputs exist; the explorer reaches G9 only with actual solver/model data; release and independent audit are G10-G11.
+G0 environment/source acceptance and G1 numerical mechanics validation are complete. The remaining critical sequence is G2 irreversible rupture, G3 canonical trajectories, G4 frozen nonleaking study cohorts, G5 baselines, G6 trained joint world model, and G7 frozen evaluation. Experimental G8 proceeds in parallel when real lab inputs exist; the explorer reaches G9 only with actual solver/model data; release and independent audit are G10-G11.
 
 The machine-readable source of task truth is `TASKS.json`. The detailed current state, commands, evidence, active ownership, and blockers are in `handoff.md`. With every future handoff, this README must be updated in the same logical change so the status and tasks left do not drift.
 
@@ -53,4 +53,4 @@ cd C:\Users\mzora\MechWorld
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Current verified result after the integrated control-flow, parser/periodic-identity, environment, distribution, run-isolation, analysis-regression, reference-validation, reproducibility, structural-observable, immutable-profile, energy/force/virial, and tangent tests: 164 passed. The untouched bootstrap result was 5 passed after dependency repair. This accepts P01-07 numerical consistency, not mechanics gate G1, biological parameters, a trained model, experiments, or release readiness.
+Current verified result after the integrated control-flow, parser/periodic-identity, environment, distribution, run-isolation, analysis-regression, reference-validation, reproducibility, structural-observable, immutable-profile, energy/force/virial, tangent, packaging, legacy-safety, and tracked-compilation tests: 173 passed. The untouched bootstrap result was 5 passed after dependency repair. This accepts G1 numerical/software consistency, not biological parameters, irreversible rupture, a trained model, experiments, or public-release readiness.

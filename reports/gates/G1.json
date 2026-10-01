@@ -1,0 +1,36 @@
+{
+  "gate": "G1",
+  "status": "ACCEPTED",
+  "decision_date": "2026-10-01",
+  "evaluated_revision": "adf9d7d220b78fed697dab77a4e8ca6612d6fbe2",
+  "decision_owner": "integrator",
+  "terminal_tasks": {
+    "P01-11": "DONE"
+  },
+  "acceptance_basis": [
+    "An isolated PEP 517 wheel installed into a fresh non-system-site venv from the exact workstation lock, passed pip check, resolved project modules outside the checkout, and loaded only the authorized external LAMMPS 20260902 module path.",
+    "Installed pgworld doctor, P01-06 energy/force/virial, and P01-07 tangent fixtures ran against real LAMMPS and closed every solver instance.",
+    "All immutable profile IDs and canonical hashes survived packaging; installed-resource tampering failed closed and biological certification remained false.",
+    "Every Git-tracked Python source compiled under Python 3.11, the final integrated suite passed 173 tests with no failures/errors/skips, and an independently reviewed Windows newline-materialization regression was corrected without changing profile content or runtime physics.",
+    "The wheel member allowlist excludes private/generated data and the legacy elastic task is default-deny, explicitly forensic, and deletion-safe."
+  ],
+  "evidence": [
+    "evidence/integration/P01-11/verification.md",
+    "evidence/integration/P01-11/full.xml",
+    "evidence/integration/P01-11/focused.xml",
+    "evidence/integration/P01-11/full-final.xml",
+    "evidence/integration/P01-11/wheel-final.xml",
+    "evidence/integration/P01-11/wheel-install-final.json",
+    "evidence/subagents/P01-11/verification.md",
+    "evidence/subagents/P01-11/newline-regression.md",
+    "reports/gates/G1.candidate.json",
+    "docs/migration.md",
+    "docs/subagents/P01-11-package-g1.md"
+  ],
+  "limitations": [
+    "G1 establishes numerical implementation and packaging consistency under legacy/provisional profiles; it does not approve biological parameters or the unresolved molecular coarse-graining.",
+    "LAMMPS 20260902 is supplied by an external Windows installer without Python distribution metadata, so the dependency lock is exact for this workstation rather than a universal binary lock.",
+    "No fracture/topology-change gate, production campaign, experiment, trained model, public release, or manuscript/submission approval is established by G1.",
+    "The repository still has no tracked LICENSE, COPYING, or NOTICE file; public distribution rights require owner review."
+  ]
+}

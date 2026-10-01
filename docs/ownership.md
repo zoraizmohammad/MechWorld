@@ -151,3 +151,13 @@ dependency and external-LAMMPS limitations, sole-author Mohammad commits, and
 path/identity proof. The implementation agent may prepare only
 `G1.candidate.json`; the integrator independently reruns, reviews, and owns the
 final gate decision.
+
+Integration state: the P01-11 return and its cross-platform correction were
+path- and identity-reviewed and integrated as `2143d6c`, `f819c25`, `7e6295a`,
+`f3746f4`, and `adf9d7d`. Independent main verification first reproduced and
+then closed one Windows CRLF-versus-LF test-assertion defect. Final main runs
+passed 7 focused, 173 total, and one separate isolated-wheel test; all 80
+tracked Python files compiled, the fresh exact-lock venv passed `pip check`,
+and installed P01-06/P01-07 real-LAMMPS checks passed with complete solver
+closure. The integrator accepted G1 in `reports/gates/G1.json`. P01-11 edit
+ownership is cleared; no agent owns root ledgers or gate state.

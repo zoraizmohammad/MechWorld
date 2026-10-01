@@ -44,11 +44,16 @@
     },
     {
       "id": "G1",
-      "status": "NOT_ACCEPTED",
+      "status": "ACCEPTED",
       "terminal_tasks": [
         "P01-11"
       ],
-      "evidence": []
+      "evidence": [
+        "reports/gates/G1.json",
+        "evidence/integration/P01-11/verification.md",
+        "evidence/integration/P01-11/full-final.xml",
+        "evidence/integration/P01-11/wheel-install-final.json"
+      ]
     },
     {
       "id": "G2",
@@ -854,7 +859,7 @@
       "id": "P01-11",
       "work_package": "WP1",
       "title": "Package the repaired simulator and accept gate G1",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "integrator",
       "execution_kind": "agent",
       "mandatory": true,
@@ -904,11 +909,24 @@
         "python -m pytest -q",
         "pgworld doctor"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_INTEGRATION_2026-10-01; INITIAL_MAIN_171_PASSED_1_FAILED_CRLF_ASSERTION; CORRECTED_FOCUSED_7_PASSED; FINAL_FULL_173_PASSED; ISOLATED_WHEEL_1_PASSED; PIP_CHECK_PASS; TRACKED_PYTHON_80_COMPILED; REAL_LAMMPS_20260902_DOCTOR_AND_P01_06_P01_07_PASS",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "reports/gates/G1.json",
+        "reports/gates/G1.candidate.json",
+        "evidence/integration/P01-11/verification.md",
+        "evidence/integration/P01-11/full.xml",
+        "evidence/integration/P01-11/focused.xml",
+        "evidence/integration/P01-11/full-final.xml",
+        "evidence/integration/P01-11/wheel-final.xml",
+        "evidence/integration/P01-11/wheel-install-final.json",
+        "evidence/subagents/P01-11/verification.md",
+        "evidence/subagents/P01-11/newline-regression.md",
+        "docs/migration.md",
+        "docs/subagents/P01-11-package-g1.md"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from accepted main a0d625994d593c236195dda2734c62111d201ea1 to research/p01-11-package-g1 in isolated worktree C:/Users/mzora/MechWorld-wt-p01-11. The implementation agent owns only the expanded packaging/CLI/profile-resource/doctor/test/migration/candidate-evidence paths listed here; root ledgers and the final reports/gates/G1.json decision remain integrator-only. Acceptance requires a wheel or equivalent isolated installation that imports bundled immutable profiles with unchanged hashes, runs pgworld doctor against real LAMMPS 20260902, executes analytical/solver fixtures outside the source tree, compiles every tracked Python source under Python 3.11, preserves or explicitly fail-closes legacy adapters, records an exact dependency/environment lock including the external LAMMPS limitation, and leaves no build artifacts in source. The seven inherited f-string failures and task_compute_elastic_tensor.py's unsafe/misleading legacy call must be repaired or made explicitly forensic. A candidate report may recommend G1 but cannot self-accept it; no production sweep, public release, or biological certification is authorized."
+      "notes": "Accepted after isolated implementation, two independent review cycles, and integration-tip verification. Integrated commits 2143d6c, f819c25, 7e6295a, f3746f4, and adf9d7d are sole-author Mohammad Zoraiz changes within assigned ownership. The first main full run reproduced a Windows CRLF-versus-LF raw-byte test defect (171 passed, 1 failed); the reviewed correction permits only CRLF checkout normalization while retaining exact remaining content, registered hashes, and tamper rejection. Final main runs passed 7 focused, 173 total, and one separate isolated-wheel test. The fresh exact-lock venv passed pip check, installed only the allowlisted package payload, resolved no project module from a checkout, and loaded external LAMMPS 20260902 from the authorized installer. Installed P01-06 bounded harmonic-fixture energy/force/virial errors were all zero and P01-07 closed 7/7 solver instances. G1 accepts bounded numerical/software consistency under immutable legacy/provisional profiles, not biological parameters, rupture, production compute, experiments, trained models, public release, or manuscript submission."
     },
     {
       "id": "P02-01",
