@@ -590,7 +590,7 @@
       "id": "P01-06",
       "work_package": "WP1",
       "title": "Implement independent small-network energy, force, and virial checks",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -618,7 +618,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": ""
+      "notes": "Assigned from accepted main revision 9280b5d on research/p01-10-observables in isolated worktree C:/Users/mzora/MechWorld-wt-p01-10. Scope is red-first validation of pore, 2D orientation, and true chemical-connectivity observables on known structures, including PBC, rendering-resolution, line-width, seam, and visually crossing but unbonded-line sensitivity. No ledger/README/shared-contract edits, physics-parameter approval, production simulation, or claims beyond the validated fixtures."
     },
     {
       "id": "P01-07",

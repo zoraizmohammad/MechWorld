@@ -51,3 +51,13 @@ Integration state: the P01-09 analysis return was path-reviewed and integrated a
 Integration state: the P10-01 audit and review expansion were path-reviewed and integrated as `8dfdfef` and `08cf163`. Independent main-tree verification accepted 29 bibliography/citation pairs, passed 11 focused tests and 79 total tests, and spot-checked eight decisive/current DOI records plus the key changing-graph full-text claim. Its ownership is cleared; the search-refresh and independent manuscript-claim review remain later release obligations.
 
 Integration state: the P01-04 reproducibility return was path-reviewed and integrated as `1f90577`. Independent main-tree verification passed 14 focused tests, 45 compatibility tests, and 93 total tests plus targeted compilation and diff checking. Real LAMMPS 20260902 loaded 108/108 atoms from the deterministic fixture, preserved all 324 emitted coordinate tokens with zero measured max/RMS error, and closed. Its ownership is cleared. This is generator/serialization evidence, not approval of physics parameters, rupture behavior, training, or production use.
+
+## Fourth wave
+
+The assignment uses accepted main revision `9280b5d1486496b705e0c178c43da7a488568c67`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Structural observables/physics | `research/p01-10-observables`; `C:/Users/mzora/MechWorld-wt-p01-10` | P01-10: exact red-first validation of pore, 2D orientation, and chemical-connectivity observables on known structures, including PBC, rendering resolution/line width, periodic seams, and visually crossing unbonded lines | `src/process_pores.py`, `src/process_orientation.py`, `tests/physics/test_structural_observables.py`, `evidence/subagents/P01-10/`, `docs/subagents/P01-10-observables.md` | No ledger/README/shared-contract/dependency edits, no physics-parameter approval, no production solver work, no invention of chemical crosslinks from rendered crossings, and no edits outside owned paths |
+
+The return requires a sole-author Mohammad Zoraiz commit, exact commands/results/limitations, path-boundary proof, and integrator review plus rerun before acceptance.

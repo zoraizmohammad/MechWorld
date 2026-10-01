@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting P01-04 reproducible generation and precise serialization; P01-10 structural-observable validation is the next eligible task.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting P01-04 reproducible generation and assigning P01-10 structural-observable validation in an isolated worktree.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -28,7 +28,7 @@ Latest integration verification: P01-04 passed 14 focused, 45 compatibility, and
 
 - P01-01 is done: its parser and periodic-identity slices now cover tilted bounds, unsupported-form rejection, arbitrary wrapping/image shifts, exact 2D minimum images, and persistent atom identity. Persistent per-edge image identity remains explicitly assigned to P03-01.
 - P01-04 is done: deterministic namespaced seeds, achieved-network metrics, canonical graph fingerprints, and 17-significant-digit serialization are integrated. The event/model streams are reserved but not yet consumed, and this is not mechanics or experimental validation.
-- P01-10 is now dependency-eligible: validate pore, orientation, and chemical-connectivity observables under PBC, rendering-resolution changes, and visually crossing but unbonded lines.
+- P01-10 is active on `research/p01-10-observables`: validate pore, orientation, and true chemical-connectivity observables under PBC, rendering-resolution changes, periodic seams, and visually crossing but unbonded lines.
 - P01-09 is done: derived moduli are rebuilt atomically without deleting raw records, interpolation stays within networks/replicates, ambiguous axes fail explicitly, and the verified factor-1000 energy-density label/conversion defect is repaired. Cross-cohort replicate pairing remains positional until the later manifest defines persistent IDs.
 - P10-01 is done as a targeted 2026-10-01 claim audit: prior GNN, fracture, failure-learning, stochastic-simulation, uncertainty, and PG-mechanics work is explicit. The eventual contribution must be scoped to demonstrated PG-specific joint mechanics/event rollouts, calibrated uncertainty, real experiments, and the scientist workflow; no broad priority language is allowed.
 - P01-05 is blocked for Mohammad/lab review: choose the coarse-grain mapping and parameter profile, reference/observable conventions, physical-time scope, and any thickness; do not apply a blind factor-of-two coefficient edit.

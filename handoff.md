@@ -6,7 +6,7 @@
 - **Current session objective:** Reconcile the execution packet with the actual checkout, establish the measured workstation baseline and isolated subagent workflow, then integrate the first reproduced-defect regression repair and continue through eligible dependencies.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
-- **Gate state:** G0 is accepted from measured source-preservation, environment, access, and isolated-workflow evidence; G1-G11 remain not accepted. P00-01 through P00-05, P01-01 through P01-04, P01-08, P01-09, and P10-01 are done. P01-10 is the next dependency-eligible engineering task. P00-06 and P01-05 are blocked on human/lab decisions without blocking independent engineering.
+- **Gate state:** G0 is accepted from measured source-preservation, environment, access, and isolated-workflow evidence; G1-G11 remain not accepted. P00-01 through P00-05, P01-01 through P01-04, P01-08, P01-09, and P10-01 are done. P01-10 is active in an isolated worktree. P00-06 and P01-05 are blocked on human/lab decisions without blocking independent engineering.
 
 ## 📊 Transient State & What Changed
 
@@ -21,6 +21,7 @@
 - Native subagent returns are integrated only after path/author review and independent reruns. The P01-01 parser and P00-03 environment commits were integrated as `912c9cc` and `4faeab1`; the report-only P01-05 audit as `59ecfdc`; P01-03, P01-08, the remaining P01-01 identity slice, P01-09, P10-01, and P01-04 as `eef253f`, `9429b4c`, `71a5700`, `6df2a91`/`717f678`, `8dfdfef`/`08cf163`, and `1f90577`. Exact ownership is in `docs/ownership.md`; none owns the root ledger, README, or shared contracts.
 - P01-08 adds a typed local-only adapter with immutable per-run artifact trees, deterministic expanded config/provenance, failure/interruption/close status, and per-process concurrency control. Inherited runners remain unmigrated. Restart resume/equivalence, hard walltime/memory enforcement, cross-process scheduling policy, MPI/GPU, and production use remain unclaimed.
 - P01-03 replaces expanded million/100-million-entry arrays with a normalized finite `DiscreteDistribution`. It preserves inherited FS number/molar and separate WFS weight laws, retains the inherited integer-grid lognormal definition, validates truncation/input, and documents the intentional seeded-stream change. P01-04 now owns namespaced RNG propagation and achieved-network metrics.
+- P01-10 is assigned from accepted main revision `9280b5d` to `research/p01-10-observables` at `C:/Users/mzora/MechWorld-wt-p01-10`. Its ownership is limited to `src/process_pores.py`, `src/process_orientation.py`, `tests/physics/test_structural_observables.py`, `evidence/subagents/P01-10/`, and `docs/subagents/P01-10-observables.md`.
 - The physics audit found that current 2D tension conversion is dimensionally correct, A16 is a definite factor-1000 energy-density label/conversion defect, and A12 cannot be resolved by blindly halving the harmonic coefficient because a two-edge series interpretation reproduces the cited coarse spring. Three legacy parameter routes must remain distinct. Physical time, any 3D thickness, coarse-grain mapping, angle mapping, nonlinear-fit provenance, and reference-state/observable choices remain human-review questions.
 - P01-02 repaired the reproduced A03/A04/A06 control-flow defects: analysis filters now accumulate, one-shot output criteria mutate the caller-owned schedule, and the ensemble wrapper passes the current minimizer API by explicit keywords while preserving requested initial/final dumps and remap selection.
 
@@ -56,7 +57,7 @@
 
 ## ⏭️ Next Concrete Steps
 
-1. [ ] Assign and review P01-10 with exact red/green evidence for pore, orientation, and true chemical-connectivity observables under PBC, resolution changes, and visually crossing unbonded lines.
+1. [ ] Review the active P01-10 return with exact red/green evidence for pore, orientation, and true chemical-connectivity observables under PBC, resolution changes, and visually crossing unbonded lines.
 2. [ ] Carry the P01-09 positional cross-cohort pairing limitation into the trajectory manifest so later comparisons use persistent replicate IDs rather than filename order.
 3. [ ] Independently review every subagent diff and rerun targeted plus inherited tests in the integration worktree before acceptance.
 4. [ ] Migrate inherited simulation entry points to P01-08 paths in a later owned task and add true restart-resume/suffix-equivalence coverage before claiming restartability.
