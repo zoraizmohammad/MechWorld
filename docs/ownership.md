@@ -125,3 +125,12 @@ The return requires exact red and green commands, perturbation-convergence and
 raw-export evidence, sole-author Mohammad commits, explicit units/conventions,
 path-boundary proof, and limitations. The integrator must independently review
 and rerun the branch before acceptance.
+
+Integration state: the five P01-07 return commits were path- and
+identity-reviewed and integrated as `5990e09`, `8adf0de`, `b1c8fff`, `60cfa09`,
+and `b265c9e`. Intermediate designs were rejected until minimization truth,
+strict persisted-stencil replay, legacy fail-closed behavior, immutable fixed
+reference versus local base separation, and nonaffine-relaxation wording were
+correct. Independent main verification passed 11 focused, 58 compatibility,
+and 164 total tests, four-file compilation, and the convergence reproducer;
+21/21 real LAMMPS instances closed. Ownership is cleared; P01-11 is eligible.

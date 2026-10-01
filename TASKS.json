@@ -676,7 +676,7 @@
       "id": "P01-07",
       "work_package": "WP1",
       "title": "Validate tangent stiffness, finite-strain conventions, and coupling",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -699,11 +699,19 @@
       "planned_verification_commands": [
         "python -m pytest tests/physics/test_elastic_tangent.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "VERIFIED",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "docs/subagents/P01-07-elastic-tangent.md",
+        "evidence/subagents/P01-07/verification.md",
+        "evidence/subagents/P01-07/convergence.json",
+        "evidence/integration/P01-07/verification.md",
+        "evidence/integration/P01-07/focused.xml",
+        "evidence/integration/P01-07/compatibility.xml",
+        "evidence/integration/P01-07/full.xml"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from accepted main 0edcf671c51e828164506ed8590f1282a18f5ce2 to research/p01-07-elastic-tangent in isolated worktree C:/Users/mzora/MechWorld-wt-p01-07. Ownership is limited to src/run_lammps_elastic_tensor.py, src/process_elastic_tensor.py, tests/physics/test_elastic_tangent.py, evidence/subagents/P01-07/, and docs/subagents/P01-07-elastic-tangent.md. The task must begin with exact red regressions and validate analytical smooth fixed-topology tangents over several perturbation sizes, explicit finite-strain/stress/shear conventions, central versus separately labeled one-sided derivatives, unsymmetrized raw matrices, normal-shear coupling, and provenance-rich raw exports. It may use the P01-06 oracle and immutable profiles read-only, may run only bounded serial fixtures, and cannot certify biological parameters, rupture tangents, production readiness, or G1."
+      "notes": "Accepted after repeated adversarial correction and independent main verification. Integrated commits 5990e09, 8adf0de, b1c8fff, 60cfa09, and b265c9e are sole-author Mohammad Zoraiz changes within assigned ownership. Main reruns passed 11 focused, 58 compatibility, and 164 total tests with no failures/errors/skips; four-file compilation and the independent convergence reproducer passed. Errors fell by approximately 0.25 for each halved step; 21/21 real LAMMPS 20260902 instances closed and maximum final force was 2.45563569478691e-11 pN. The contract separates immutable fixed reference from local base, uses current-area native-2D tension, preserves all nine raw couplings, replays persisted stencils, labels branch-changing results as directional secants, and disables the misleading legacy route by default. This is a bounded harmonic-ring numerical validation, not biological certification, a heterogeneous-network campaign, a stability proof, or G1 acceptance."
     },
     {
       "id": "P01-08",
