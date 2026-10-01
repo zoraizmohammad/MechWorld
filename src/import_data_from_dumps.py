@@ -23,18 +23,29 @@ def import_2D_triclinic_box_bounds_from_dump(filename : str) -> tuple[float, flo
     i = 4; # go to line number 5
     if not lines[i].startswith("ITEM: BOX BOUNDS"):
         raise ValueError("Unexpected format: BOX BOUNDS missing")
-
+    box_bounds_header = lines[i].split()
     i += 1;
     box_bounds = []
     for j in range(3):
         parts = list(map(float, lines[i+j].split()))
         box_bounds.append(parts)
 
-    xlo = box_bounds[0][0]
-    xhi = box_bounds[0][1]
-    xy  = box_bounds[0][2]
-    ylo = box_bounds[0][0]
-    yhi = box_bounds[0][1]
+    is_restricted_triclinic = {"xy", "xz", "yz"}.issubset(box_bounds_header)
+    if is_restricted_triclinic:
+        xy = box_bounds[0][2]
+        xz = box_bounds[1][2]
+        yz = box_bounds[2][2]
+    else:
+        xy = 0.0
+        xz = 0.0
+        yz = 0.0
+
+    # LAMMPS writes restricted-triclinic bounding extents to dump files. Convert
+    # them back to the true box bounds used by the existing 2D return contract.
+    xlo = box_bounds[0][0] - min(0.0, xy, xz, xy + xz)
+    xhi = box_bounds[0][1] - max(0.0, xy, xz, xy + xz)
+    ylo = box_bounds[1][0] - min(0.0, yz)
+    yhi = box_bounds[1][1] - max(0.0, yz)
 
     return (xlo, xhi, xy, ylo, yhi)
 

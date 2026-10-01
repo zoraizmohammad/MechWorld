@@ -1,0 +1,32 @@
+Command:
+  $env:PYTHONDONTWRITEBYTECODE='1'; & C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest -q --tb=short tests/unit/test_periodic_geometry.py
+Working directory:
+  C:\Users\mzora\MechWorld-wt-p01-01
+Exit status: 1
+Captured with the baseline parser restored after writing the regression and before restoring the fix:
+
+FFF                                                                      [100%]
+================================== FAILURES ===================================
+___________________ test_reads_non_square_orthogonal_bounds ___________________
+tests\unit\test_periodic_geometry.py:39: in test_reads_non_square_orthogonal_bounds
+    bounds = import_2D_triclinic_box_bounds_from_dump(str(dump_path))
+src\import_data_from_dumps.py:34: in import_2D_triclinic_box_bounds_from_dump
+    xy  = box_bounds[0][2]
+E   IndexError: list index out of range
+_ test_converts_restricted_triclinic_dump_bounds_to_true_bounds[3.0--5.0-10.0] _
+tests\unit\test_periodic_geometry.py:66: in test_converts_restricted_triclinic_dump_bounds_to_true_bounds
+    assert bounds == (-5.0, 7.0, xy, -4.0, 6.0)
+E   assert (-5.0, 10.0, 3.0, -5.0, 10.0) == (-5.0, 7.0, 3.0, -4.0, 6.0)
+E     At index 1 diff: 10.0 != 7.0
+E     Use -v to get more diff
+_ test_converts_restricted_triclinic_dump_bounds_to_true_bounds[-3.0--8.0-7.0] _
+tests\unit\test_periodic_geometry.py:66: in test_converts_restricted_triclinic_dump_bounds_to_true_bounds
+    assert bounds == (-5.0, 7.0, xy, -4.0, 6.0)
+E   assert (-8.0, 7.0, -3.0, -8.0, 7.0) == (-5.0, 7.0, -3.0, -4.0, 6.0)
+E     At index 0 diff: -8.0 != -5.0
+E     Use -v to get more diff
+=========================== short test summary info ===========================
+FAILED tests/unit/test_periodic_geometry.py::test_reads_non_square_orthogonal_bounds
+FAILED tests/unit/test_periodic_geometry.py::test_converts_restricted_triclinic_dump_bounds_to_true_bounds[3.0--5.0-10.0]
+FAILED tests/unit/test_periodic_geometry.py::test_converts_restricted_triclinic_dump_bounds_to_true_bounds[-3.0--8.0-7.0]
+3 failed in 9.27s
