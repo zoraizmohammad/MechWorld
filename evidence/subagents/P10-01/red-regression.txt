@@ -1,0 +1,29 @@
+P10-01 red regression
+Date: 2026-10-01
+CWD: C:\Users\mzora\MechWorld-wt-p10-01
+Base commit: a2805a61305aae0e3fc1b8ab0fb737759ca36cd1
+
+Command:
+python -m pytest tests/unit/test_references.py -q
+
+Exit status: 2
+
+Output:
+
+=================================== ERRORS ====================================
+_______________ ERROR collecting tests/unit/test_references.py ________________
+ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p10-01\tests\unit\test_references.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\unit\test_references.py:13: in <module>
+    from check_references import check_references, parse_bibliography
+E   ModuleNotFoundError: No module named 'check_references'
+=========================== short test summary info ===========================
+ERROR tests/unit/test_references.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.48s
+
+Interpretation: the test was added before the validator implementation and reproduced the
+missing reference-checking capability. No production file existed at this point.
