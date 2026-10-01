@@ -1,0 +1,12 @@
+Command: C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest tests/unit/test_analysis_regression.py -q --junitxml=evidence/subagents/P01-09/red.xml
+CWD: C:\Users\mzora\MechWorld-wt-p01-09
+Source state: base a79a7aaf337f32dd459a00444babe2851633046d plus the new regression test, before production-source edits
+Exit status: 1
+Result: 6 failed in 9.30s
+Failures:
+- missing converted energy_density_aJ_per_nm2 field (A16)
+- aggregation returned no output manifest, appended on repeat, and deleted raw inputs (A18)
+- missing per-replicate tension interpolation with descending-axis handling (A17)
+- missing explicit duplicate/non-monotonic interpolation rejection (A17)
+- missing per-network elastic interpolation (A17)
+Machine-readable result: red.xml

@@ -1,0 +1,4 @@
+Command: C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m py_compile src/process_network_ensembles.py src/process_elastic_tensor.py tests/unit/test_analysis_regression.py
+CWD: C:\Users\mzora\MechWorld-wt-p01-09
+Exit status: 0
+Result: targeted production and regression-test modules compiled without output.

@@ -2,6 +2,7 @@ from utils_helpers import find_files, get_confidence_intervals, add_curve_with_c
 from simulation_constants_settings import DSU
 import os
 import re
+import tempfile
 from dataclasses import dataclass, asdict
 import pandas as pd
 import numpy as np
@@ -68,61 +69,86 @@ class ElasticTensorStruct:
         eigenvalues = np.linalg.eigvalsh(self.get_stiffness_tensor())
         self.positive_definite = np.all(eigenvalues > 0) # note to self that .all() exists
 
-def combine_elastic_constant_files_into_one_file_per_network(working_dir : str):
-    set_of_unique_basepaths = set();
-    regex_individual_constants = r".+_prestr\d\.\d+\.elastic_constants";
-    regex_capture_basepaths = r"(.+)_prestr\d\.\d+\.elastic_constants";
+def _read_individual_elastic_constant(filepath : str) -> ElasticTensorStruct:
+    with open(filepath, "r", encoding="utf-8") as source:
+        line_data = source.readline().split()
+    if len(line_data) != 8:
+        raise ValueError(
+            f"Expected 8 fields in elastic-constant record {filepath}; "
+            f"received {len(line_data)}"
+        )
 
-    filepaths_to_individual_lines : set[str] = find_files(working_dir, regex_individual_constants);
+    struct = ElasticTensorStruct(
+        strain=float(line_data[0]),
+        C11=float(line_data[1]),
+        C22=float(line_data[2]),
+        C33=float(line_data[3]),
+        C12=float(line_data[4]),
+        C13=float(line_data[5]),
+        C23=float(line_data[6]),
+        units=line_data[7],
+    )
+    struct.calculate_orthotropic_moduli()
+    return struct
 
-    #print(filepaths_to_individual_lines);
 
-    for filepath in filepaths_to_individual_lines:
-        match = re.match(regex_capture_basepaths, filepath);
-        if match:
-            basepath = match.group(1);
-            set_of_unique_basepaths.add(basepath);
+def combine_elastic_constant_files_into_one_file_per_network(
+        working_dir : str) -> list[str]:
+    """Create deterministic per-network summaries without mutating raw records."""
+    individual_pattern = re.compile(
+        r"^(?P<base>.+)_prestr[+-]?(?:\d+(?:\.\d*)?|\.\d+)\.elastic_constants$"
+    )
+    grouped_filepaths : dict[str, list[str]] = {}
+    for filename in sorted(listdir(working_dir)):
+        match = individual_pattern.fullmatch(filename)
+        if not match:
+            continue
+        filepath = os.path.join(working_dir, filename)
+        if os.path.isfile(filepath):
+            grouped_filepaths.setdefault(match.group("base"), []).append(filepath)
 
-    #print(set_of_unique_basepaths);
+    combined_paths = []
+    header = "strain C11 C22 C33 C12 C13 C23 Ex Ey Gxy Vxy Vyx units\n"
+    for basename in sorted(grouped_filepaths):
+        structs = [
+            _read_individual_elastic_constant(filepath)
+            for filepath in grouped_filepaths[basename]
+        ]
+        structs.sort(key=lambda item: item.strain)
 
-    for basepath in set_of_unique_basepaths:
-        combined_filepath = basepath + ".moduli"
+        strains = np.asarray([item.strain for item in structs], dtype=float)
+        if not np.all(np.isfinite(strains)):
+            raise ValueError(f"Network {basename} contains non-finite strain")
+        if len(np.unique(strains)) != len(strains):
+            raise ValueError(f"Network {basename} contains duplicate strain records")
+        units = {item.units for item in structs}
+        if len(units) != 1:
+            raise ValueError(f"Network {basename} mixes elastic units: {sorted(units)}")
 
-        if not os.path.exists(combined_filepath):
-            with open(combined_filepath, "w+") as f:
-                f.write("strain C11 C22 C33 C12 C13 C23 Ex Ey Gxy Vxy Vyx units\n");
+        combined_filepath = os.path.join(working_dir, basename + ".moduli")
+        # Write a complete replacement and atomically install it. This makes a
+        # repeated invocation byte-identical while retaining every raw input.
+        with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                newline="",
+                prefix=basename + ".moduli.",
+                suffix=".tmp",
+                dir=working_dir,
+                delete=False) as temporary:
+            temporary.write(header)
+            for struct in structs:
+                temporary.write(struct.line_data())
+            temporary_path = temporary.name
+        try:
+            os.replace(temporary_path, combined_filepath)
+        except BaseException:
+            if os.path.exists(temporary_path):
+                os.remove(temporary_path)
+            raise
+        combined_paths.append(combined_filepath)
 
-        for filepath in sorted(list(filepaths_to_individual_lines)):
-            if not filepath.startswith(basepath):
-                continue;
-            
-            line : str = "";
-            with open(filepath, "r") as f:
-                line = f.readline();
-            
-            line_data = line.split(" ")
-            struct = ElasticTensorStruct(
-                strain= float(line_data[0]), 
-                C11   = float(line_data[1]),
-                C22   = float(line_data[2]),
-                C33   = float(line_data[3]),
-                C12   = float(line_data[4]),
-                C13   = float(line_data[5]),
-                C23   = float(line_data[6]),
-                Ex = None,
-                Ey = None,
-                Gxy = None,
-                Vxy = None,
-                Vyx = None,
-                units = str(line_data[7]).strip(),
-            )
-            print(struct.line_data())
-            struct.calculate_orthotropic_moduli()
-
-            with open(combined_filepath, "a+") as f:
-                f.write(struct.line_data());
-
-            os.remove(filepath);
+    return combined_paths
 
 def import_ElasticTensorStructs_from_file(filepath : str) -> list[ElasticTensorStruct]:
     structs = list()
@@ -162,7 +188,7 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> pd
     combined_df : pd.DataFrame = "-";
     files_found_cnt = 0;
     
-    for filename in listdir(dirpath):
+    for filename in sorted(listdir(dirpath)):
         if re.search(regex_pattern, filename):
             #print(f"{filename} is a match")
             filepath = os.path.join(dirpath,filename)
@@ -171,6 +197,7 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> pd
             df['rho_0'] = [get_initial_density_from_filename(filename)] * len(df);
             df['rho_f'] = df["rho_0"] / (1+df["strain"])**2;
             df['ratio'] = df["tension_ratio_xx_over_yy"];
+            df['network_id'] = [os.path.splitext(filename)[0]] * len(df);
 
             linkage = get_crosslinkage_from_filename(filename);
             if linkage: df['linkage'] = [linkage] * len(df);
@@ -186,6 +213,61 @@ def collect_combined_elastic_dataframe(dirpath : str, regex_pattern : str) -> pd
         raise FileNotFoundError(f"No files were found in: {dirpath} matching regex: {regex_pattern}");
 
     return combined_df, files_found_cnt;
+
+
+def _strict_monotonic_group(
+        frame : pd.DataFrame,
+        x_column : str,
+        context : str) -> pd.DataFrame:
+    if len(frame) < 2:
+        raise ValueError(f"{context} needs at least two interpolation states")
+    x = frame[x_column].to_numpy(dtype=float)
+    if not np.all(np.isfinite(x)):
+        raise ValueError(f"{context} contains a non-finite interpolation axis")
+    differences = np.diff(x)
+    if np.any(differences == 0):
+        raise ValueError(f"{context} contains duplicate {x_column} values")
+    if np.all(differences > 0):
+        return frame.copy().reset_index(drop=True)
+    if np.all(differences < 0):
+        return frame.iloc[::-1].copy().reset_index(drop=True)
+    raise ValueError(f"{context} {x_column} must be strictly monotonic")
+
+
+def interpolate_grouped_values_at(
+        frame : pd.DataFrame,
+        target_x : float,
+        value_columns : list[str],
+        group_column : str = "network_id",
+        x_column : str = "strain") -> pd.DataFrame:
+    """Interpolate once per independent network, rejecting ambiguous axes."""
+    required = [group_column, x_column, *value_columns]
+    missing = [column for column in required if column not in frame]
+    if missing:
+        raise ValueError(f"Grouped interpolation is missing columns: {missing}")
+    if not np.isfinite(target_x):
+        raise ValueError("Interpolation target must be finite")
+
+    rows = []
+    for group_id, group in frame.groupby(group_column, sort=True):
+        group = _strict_monotonic_group(
+            group, x_column, f"network {group_id!r}"
+        )
+        axis = group[x_column].to_numpy(dtype=float)
+        if target_x < axis[0] or target_x > axis[-1]:
+            raise ValueError(
+                f"network {group_id!r} target {target_x} is outside "
+                f"the {x_column} range [{axis[0]}, {axis[-1]}]"
+            )
+
+        row = {group_column: group_id, x_column: target_x}
+        for column in value_columns:
+            values = group[column].to_numpy(dtype=float)
+            if not np.all(np.isfinite(values)):
+                raise ValueError(f"network {group_id!r} has non-finite {column}")
+            row[column] = float(np.interp(target_x, axis, values))
+        rows.append(row)
+    return pd.DataFrame(rows, columns=required)
 
 ## TODO: Check reduced stiffness matrix for unstable modes, look at eigenvalues
 
@@ -285,11 +367,16 @@ def full_subplots_figure(curves_information : list[tuple[str, str, str, str, flo
         add_curve_with_ci(df, 'strain', 'ratio',"-", curve_label_override=extra_label_info,curve_color=color_name
             , ax=axes[1,2])
         
-        print(f"Ex,  $\epsilon_0$ {print_this_strain}", np.interp(print_this_strain, df["strain"], df["Ex"]))
-        print(f"Ey,  $\epsilon_0$ {print_this_strain}", np.interp(print_this_strain, df["strain"], df["Ey"]))
-        print(f"Gxy, $\epsilon_0$ {print_this_strain}", np.interp(print_this_strain, df["strain"], df["Gxy"]))
-        print(f"Vxy, $\epsilon_0$ {print_this_strain}", np.interp(print_this_strain, df["strain"], df["Vxy"]))
-        print(f"Vyx, $\epsilon_0$ {print_this_strain}", np.interp(print_this_strain, df["strain"], df["Vyx"]))
+        interpolated = interpolate_grouped_values_at(
+            df,
+            target_x=print_this_strain,
+            value_columns=["Ex", "Ey", "Gxy", "Vxy", "Vyx"],
+        )
+        for column in ("Ex", "Ey", "Gxy", "Vxy", "Vyx"):
+            print(
+                rf"{column},  $\epsilon_0$ {print_this_strain}",
+                interpolated[column].mean(),
+            )
     
     axes[0,0].legend()
 

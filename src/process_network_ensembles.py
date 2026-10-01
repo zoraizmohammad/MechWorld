@@ -112,10 +112,11 @@ def collect_list_of_prestrain_dataframes(dirpath : str, regex_pattern : str) -> 
     # Returns a list of dataframes, one from each file
     dfs = list();
 
-    for filename in listdir(dirpath):
+    for filename in sorted(listdir(dirpath)):
         if re.search(regex_pattern, filename):
             filepath = os.path.join(dirpath,filename)
             df = import_isotropic_prestrain_dataframe(filepath)
+            df.attrs["source_path"] = filepath
             dfs.append(df)
 
     return dfs
@@ -171,10 +172,115 @@ def calc_energy_df_from_file_df(file_df : pd.DataFrame) -> pd.DataFrame:
     glycan_pe_frac  = glycan_pe  / total_pe;
     angle_pe_frac   = angle_pe   / total_pe;
     peptide_pe_frac = peptide_pe / total_pe;
-    energy_density = pe / (lx * ly)
+    # In LAMMPS ``units nano``, one energy unit is 1 pN nm = 1e-3 aJ.
+    # Dividing the raw energy by an area in nm^2 therefore first gives
+    # pN/nm and needs the 1e-3 factor for an aJ/nm^2 plot label.
+    energy_density_pN_per_nm = pe / (lx * ly)
+    energy_density_aJ_per_nm2 = energy_density_pN_per_nm * 1e-3
 
-    d = {"strain":strain, "glycan_pe_frac":glycan_pe_frac, "angle_pe_frac":angle_pe_frac, "peptide_pe_frac":peptide_pe_frac,"energy_density":energy_density, "rho_f":rho_f, "rho_0":rho_0}
+    d = {
+        "strain": strain,
+        "glycan_pe_frac": glycan_pe_frac,
+        "angle_pe_frac": angle_pe_frac,
+        "peptide_pe_frac": peptide_pe_frac,
+        # Preserve the legacy column consumed by figure functions, now in the
+        # unit those functions have always declared in their axis label.
+        "energy_density": energy_density_aJ_per_nm2,
+        "energy_density_aJ_per_nm2": energy_density_aJ_per_nm2,
+        "energy_density_pN_per_nm": energy_density_pN_per_nm,
+        "rho_f": rho_f,
+        "rho_0": rho_0,
+    }
     return pd.DataFrame(d)
+
+
+def _strict_monotonic_frame(
+        frame : pd.DataFrame,
+        x_column : str,
+        context : str) -> pd.DataFrame:
+    """Return an increasing-axis copy or reject an ambiguous trajectory."""
+    if x_column not in frame:
+        raise ValueError(f"{context} is missing interpolation axis '{x_column}'")
+    if len(frame) < 2:
+        raise ValueError(f"{context} needs at least two interpolation states")
+
+    x = frame[x_column].to_numpy(dtype=float)
+    if not np.all(np.isfinite(x)):
+        raise ValueError(f"{context} contains a non-finite interpolation axis")
+
+    differences = np.diff(x)
+    if np.any(differences == 0):
+        raise ValueError(f"{context} contains duplicate {x_column} values")
+    if np.all(differences > 0):
+        return frame.copy().reset_index(drop=True)
+    if np.all(differences < 0):
+        return frame.iloc[::-1].copy().reset_index(drop=True)
+    raise ValueError(f"{context} {x_column} must be strictly monotonic")
+
+
+def calculate_paired_tension_ratios(
+        numerator_dfs : list[pd.DataFrame],
+        denominator_dfs : list[pd.DataFrame]) -> list[pd.DataFrame]:
+    """Interpolate and divide within explicit independent replicate pairs.
+
+    Inputs are paired by their deterministic list position. Each trajectory is
+    validated independently; concatenated ensemble arrays are never used as an
+    interpolation axis.
+    """
+    if len(numerator_dfs) != len(denominator_dfs):
+        raise ValueError(
+            "Numerator and denominator ensembles need the same replicate count; "
+            f"received {len(numerator_dfs)} and {len(denominator_dfs)}"
+        )
+
+    ratio_dfs = []
+    for replicate_index, (numerator, denominator) in enumerate(
+            zip(numerator_dfs, denominator_dfs)):
+        numerator = _strict_monotonic_frame(
+            numerator, "strain", f"numerator replicate {replicate_index}"
+        )
+        denominator = _strict_monotonic_frame(
+            denominator, "strain", f"denominator replicate {replicate_index}"
+        )
+
+        required_columns = ("tension_xx", "tension_yy")
+        for label, frame in (("numerator", numerator), ("denominator", denominator)):
+            missing = [column for column in required_columns if column not in frame]
+            if missing:
+                raise ValueError(
+                    f"{label} replicate {replicate_index} is missing {missing}"
+                )
+            if not np.all(np.isfinite(frame[list(required_columns)].to_numpy(dtype=float))):
+                raise ValueError(
+                    f"{label} replicate {replicate_index} contains non-finite tension"
+                )
+
+        target_strain = numerator["strain"].to_numpy(dtype=float)
+        source_strain = denominator["strain"].to_numpy(dtype=float)
+        if target_strain[0] < source_strain[0] or target_strain[-1] > source_strain[-1]:
+            raise ValueError(
+                f"replicate {replicate_index} needs extrapolation outside the "
+                "denominator strain range"
+            )
+
+        result = numerator.copy()
+        result["replicate_index"] = replicate_index
+        for component in required_columns:
+            denominator_values = np.interp(
+                target_strain,
+                source_strain,
+                denominator[component].to_numpy(dtype=float),
+            )
+            if np.any(denominator_values == 0.0):
+                raise ValueError(
+                    f"replicate {replicate_index} has zero interpolated {component}"
+                )
+            result[f"comparison_ratio_{component[-2:]}"] = (
+                result[component].to_numpy(dtype=float) / denominator_values
+            )
+        ratio_dfs.append(result)
+
+    return ratio_dfs
 
 def file_dfs_to_combined_tension_df(file_dfs : pd.DataFrame) -> pd.DataFrame:
     tension_dfs = list()
@@ -514,34 +620,14 @@ def plot_comparison_of_ensembles(working_dirpath : str, curves_info : list[tuple
         dfs_A = collect_list_of_prestrain_dataframes(working_dirpath, output_regex_A)
         dfs_B = collect_list_of_prestrain_dataframes(working_dirpath, output_regex_B)
 
-        tension_df_A = file_dfs_to_combined_tension_df(dfs_A)
-        tension_df_B = file_dfs_to_combined_tension_df(dfs_B)
+        tension_dfs_A = [calculate_tension_df_from_file_df(df) for df in dfs_A]
+        tension_dfs_B = [calculate_tension_df_from_file_df(df) for df in dfs_B]
 
-        if not isinstance(tension_df_A,pd.DataFrame) or not isinstance(tension_df_B,pd.DataFrame):
+        if not tension_dfs_A or not tension_dfs_B:
             continue;
-        
-        strain_A   = tension_df_A["strain"].to_numpy();
-        tension_xx_A = tension_df_A["tension_xx"].to_numpy();
-        tension_yy_A = tension_df_A["tension_yy"].to_numpy();
 
-        strain_B   = tension_df_B["strain"].to_numpy();
-        tension_xx_B = tension_df_B["tension_xx"].to_numpy();
-        tension_yy_B = tension_df_B["tension_yy"].to_numpy();
-
-        tension_xx_B_interp = np.interp(strain_A, strain_B, tension_xx_B)
-        tension_yy_B_interp = np.interp(strain_A, strain_B, tension_yy_B)
-
-        print(tension_xx_B_interp)
-
-        comparison_ratio_xx = tension_xx_A / tension_xx_B_interp;
-        comparison_ratio_yy = tension_yy_A / tension_yy_B_interp;
-
-        print(strain_A)
-        print(comparison_ratio_xx)
-
-        tension_df_A["comparison_ratio_xx"] = comparison_ratio_xx;
-        tension_df_A["comparison_ratio_yy"] = comparison_ratio_yy;
-    
-        add_network_ratio(tension_df_A, colornamestr, labelstr)
+        ratio_dfs = calculate_paired_tension_ratios(tension_dfs_A, tension_dfs_B)
+        combined_ratio_df = pd.concat(ratio_dfs, ignore_index=True)
+        add_network_ratio(combined_ratio_df, colornamestr, labelstr)
 
     finish_network_ratio();

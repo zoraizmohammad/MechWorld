@@ -1,0 +1,5 @@
+Command: C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest -q --junitxml=evidence/subagents/P01-09/full_suite.xml
+CWD: C:\Users\mzora\MechWorld-wt-p01-09
+Exit status: 0
+Result: 68 passed in 9.56s
+Machine-readable result: full_suite.xml

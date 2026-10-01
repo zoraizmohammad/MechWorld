@@ -1,0 +1,4 @@
+Command: git diff --check
+CWD: C:\Users\mzora\MechWorld-wt-p01-09
+Exit status: 0
+Result: no whitespace errors. Git emitted only the repository line-ending advisory that LF working-tree content will be converted to CRLF when Git next touches the two inherited source files.

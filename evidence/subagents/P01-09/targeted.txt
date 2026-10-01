@@ -1,0 +1,5 @@
+Command: C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -m pytest tests/unit/test_analysis_regression.py -q --junitxml=evidence/subagents/P01-09/targeted.xml
+CWD: C:\Users\mzora\MechWorld-wt-p01-09
+Exit status: 0
+Result: 6 passed in 7.06s
+Machine-readable result: targeted.xml
