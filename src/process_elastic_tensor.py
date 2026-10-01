@@ -1,5 +1,7 @@
 from utils_helpers import find_files, get_confidence_intervals, add_curve_with_ci, get_initial_density_from_filename, get_crosslinkage_from_filename, apply_band_filters_to_df
 from simulation_constants_settings import DSU
+import hashlib
+import json
 import os
 import re
 import tempfile
@@ -8,6 +10,52 @@ import pandas as pd
 import numpy as np
 from os import listdir
 import matplotlib.pyplot as plt
+
+from run_lammps_elastic_tensor import TangentEstimate, validate_raw_tangent_record
+
+
+def _reject_nonfinite_json(value: str) -> None:
+    raise ValueError(f"non-finite JSON constant is forbidden: {value}")
+
+
+def write_raw_tangent_record(filepath: str | os.PathLike[str], result: TangentEstimate) -> str:
+    """Create one immutable provenance-rich raw tangent JSON artifact.
+
+    Exclusive creation is intentional: raw stencil observations must never be
+    silently replaced by a later rerun.  Callers choose a new run/artifact ID.
+    """
+
+    if not isinstance(result, TangentEstimate):
+        raise TypeError("raw tangent export requires a TangentEstimate")
+    record = validate_raw_tangent_record(result.as_record())
+    payload = (
+        json.dumps(
+            record,
+            allow_nan=False,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    ).encode("utf-8")
+    # ``xb`` gives the no-overwrite guarantee at the filesystem operation,
+    # rather than relying on a racy pre-existence check.
+    with open(filepath, "xb") as destination:
+        destination.write(payload)
+        destination.flush()
+        os.fsync(destination.fileno())
+    return "sha256:" + hashlib.sha256(payload).hexdigest()
+
+
+def read_raw_tangent_record(filepath: str | os.PathLike[str]) -> dict:
+    """Read and strictly validate a raw tangent artifact without modifying it."""
+
+    try:
+        with open(filepath, "r", encoding="utf-8") as source:
+            record = json.load(source, parse_constant=_reject_nonfinite_json)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError(f"raw tangent artifact is not valid UTF-8 JSON: {error}") from error
+    return validate_raw_tangent_record(record)
 
 @dataclass
 class ElasticTensorStruct:
