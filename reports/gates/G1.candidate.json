@@ -1,0 +1,42 @@
+{
+  "gate": "G1",
+  "status": "CANDIDATE_FOR_INTEGRATOR_REVIEW_NOT_ACCEPTED",
+  "gate_accepted": false,
+  "candidate_date": "2026-10-01",
+  "accepted_base": "a0d625994d593c236195dda2734c62111d201ea1",
+  "substantive_implementation_revision": "ea59aea89e9431689b63db1bc8288b30116a2534",
+  "evaluated_implementation_revision": "a9d6d690e89a761758acc1ac3e72f98087278543",
+  "implementation_range": "a0d625994d593c236195dda2734c62111d201ea1..a9d6d690e89a761758acc1ac3e72f98087278543",
+  "prepared_by_role": "P01-11 implementation subagent",
+  "acceptance_owner": "integrator",
+  "measured_basis": [
+    "The full source suite passed 172 tests with zero failures, errors, or skips.",
+    "All 80 Git-tracked Python files compiled under the verified Python 3.11 interpreter.",
+    "An isolated PEP 517 build produced an allowlisted wheel with no test, evidence, result, private-data, restart, dump, image, or cache payload.",
+    "A fresh venv installed every exact requirements.lock entry, passed pip check, imported all declared modules from its own site-packages, and had no checkout path on sys.path.",
+    "The actual pgworld.exe doctor command ran LAMMPS 20260902, used an immutable profile identity, reproduced analytical component energies, and closed the solver.",
+    "Installed P01-06 energy, force, and configurational-virial errors were zero for the bounded harmonic fixture; the solver closed.",
+    "Installed P01-07 tangent evidence started and closed all seven real-LAMMPS instances.",
+    "All four packaged immutable profile hashes were unchanged and an installed-resource mutation failed closed.",
+    "The complete assigned branch diff from accepted base through the final EOF-whitespace correction passed git diff --check."
+  ],
+  "evidence": [
+    "evidence/subagents/P01-11/verification.md",
+    "evidence/subagents/P01-11/red.xml",
+    "evidence/subagents/P01-11/focused-wheel-green.xml",
+    "evidence/subagents/P01-11/packaging-contract.xml",
+    "evidence/subagents/P01-11/full.xml",
+    "evidence/subagents/P01-11/wheel-install.json",
+    "evidence/subagents/P01-11/tracked-compile.json",
+    "docs/migration.md",
+    "docs/subagents/P01-11-package-g1.md"
+  ],
+  "limitations": [
+    "Final biological parameter and coarse-graining review remains pending; numerical consistency is not biological certification.",
+    "LAMMPS 20260902 comes from an external Windows installer path without Python distribution metadata, so requirements.lock is not a universal binary lock.",
+    "The repository has no tracked LICENSE, COPYING, or NOTICE file; public release rights remain unresolved.",
+    "The forensic restart task does not migrate a raw restart into a validated P01-07 tangent artifact because required reference/base metadata is absent.",
+    "No production campaign, physical-time claim, rupture validation, experimental validation, trained model, public deployment, or manuscript/release approval is established by this candidate."
+  ],
+  "prohibited_interpretation": "This file is measured candidate evidence only. It does not ACCEPT G1 and does not authorize a large simulation sweep or public release."
+}

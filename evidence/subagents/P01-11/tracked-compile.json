@@ -1,0 +1,12 @@
+{
+  "schema_version": "pgworld.p01_11.tracked_compile.v1",
+  "substantive_implementation_revision": "ea59aea89e9431689b63db1bc8288b30116a2534",
+  "evaluated_revision": "a9d6d690e89a761758acc1ac3e72f98087278543",
+  "command": "C:\\Users\\mzora\\MechWorld\\.venv\\Scripts\\python.exe -B -c <compile every path from git ls-files '*.py'>",
+  "cwd": "C:\\Users\\mzora\\MechWorld-wt-p01-11",
+  "python_version": "3.11",
+  "tracked_python_files": 80,
+  "failures": 0,
+  "exit_code": 0,
+  "elapsed_seconds": 0.2696212
+}

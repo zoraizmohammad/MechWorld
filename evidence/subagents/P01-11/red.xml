@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="5" time="0.425" timestamp="2026-10-01T17:17:25.134310" hostname="MZoraiz_P15"><testcase classname="tests.release.test_packaging_contract" name="test_pyproject_declares_one_pgworld_doctor_console_surface" time="0.001"><failure message="FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\mzora\\MechWorld-wt-p01-11\\pyproject.toml'">def test_pyproject_declares_one_pgworld_doctor_console_surface() -&gt; None:
+&gt;       metadata = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+
+tests\release\test_packaging_contract.py:38:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\AppData\Local\Programs\Python\Python311\Lib\pathlib.py:1058: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = WindowsPath('C:/Users/mzora/MechWorld-wt-p01-11/pyproject.toml')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+&gt;       return io.open(self, mode, buffering, encoding, errors, newline)
+E       FileNotFoundError: [Errno 2] No such file or directory: 'C:\\Users\\mzora\\MechWorld-wt-p01-11\\pyproject.toml'
+
+..\AppData\Local\Programs\Python\Python311\Lib\pathlib.py:1044: FileNotFoundError</failure></testcase><testcase classname="tests.release.test_packaging_contract" name="test_packaged_profiles_are_exact_copies_of_canonical_sources" time="0.001"><failure message="AssertionError: assert set() == {'legacy_dire...ovisional_v0'}&#10;  Extra items in the right set:&#10;  'legacy_direct_isotropic_pre_unit_fix_v1'&#10;  'legacy_python_2026_03_12_v1'&#10;  'legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1'&#10;  'reviewed_physics_provisional_v0'&#10;  Use -v to get more diff">def test_packaged_profiles_are_exact_copies_of_canonical_sources() -&gt; None:
+        original = ROOT / "configs" / "physics"
+        packaged = SRC / "pgworld" / "config" / "profiles"
+&gt;       assert {path.stem for path in packaged.glob("*.json")} == set(PROFILE_IDS)
+E       AssertionError: assert set() == {'legacy_dire...ovisional_v0'}
+E         Extra items in the right set:
+E         'legacy_direct_isotropic_pre_unit_fix_v1'
+E         'legacy_python_2026_03_12_v1'
+E         'legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1'
+E         'reviewed_physics_provisional_v0'
+E         Use -v to get more diff
+
+tests\release\test_packaging_contract.py:51: AssertionError</failure></testcase><testcase classname="tests.release.test_packaging_contract" name="test_module_cli_exposes_only_doctor_and_preserves_machine_readable_output" time="0.065"><failure message="AssertionError: assert 1 == 0&#10; +  where 1 = CompletedProcess(args=['C:\\Users\\mzora\\MechWorld\\.venv\\Scripts\\python.exe', '-B', '-m', 'pgworld.cli', '--help']...turncode=1, stdout='', stderr='C:\\Users\\mzora\\MechWorld\\.venv\\Scripts\\python.exe: No module named pgworld.cli\n').returncode">def test_module_cli_exposes_only_doctor_and_preserves_machine_readable_output() -&gt; None:
+        help_result = subprocess.run(
+            [sys.executable, "-B", "-m", "pgworld.cli", "--help"],
+            cwd=ROOT,
+            env=_source_environment(),
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=60,
+        )
+&gt;       assert help_result.returncode == 0
+E       AssertionError: assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['C:\\Users\\mzora\\MechWorld\\.venv\\Scripts\\python.exe', '-B', '-m', 'pgworld.cli', '--help']...turncode=1, stdout='', stderr='C:\\Users\\mzora\\MechWorld\\.venv\\Scripts\\python.exe: No module named pgworld.cli\n').returncode
+
+tests\release\test_packaging_contract.py:75: AssertionError</failure></testcase><testcase classname="tests.release.test_packaging_contract" name="test_legacy_elastic_task_requires_explicit_forensic_and_delete_flags" time="0.117"><failure message="assert '--allow-legacy-forensic-output' in 'Traceback (most recent call last):\n  File &quot;C:\\Users\\mzora\\MechWorld-wt-p01-11\\src\\task_compute_elastic_tensor.p...stic_tensor.py&quot;, line 9, in &lt;module&gt;\n    from lammps import lammps\nModuleNotFoundError: No module named \'lammps\'\n'&#10; +  where 'Traceback (most recent call last):\n  File &quot;C:\\Users\\mzora\\MechWorld-wt-p01-11\\src\\task_compute_elastic_tensor.p...stic_tensor.py&quot;, line 9, in &lt;module&gt;\n    from lammps import lammps\nModuleNotFoundError: No module named \'lammps\'\n' = CompletedProcess(args=['C:\\Users\\mzora\\MechWorld\\.venv\\Scripts\\python.exe', '-B', 'C:\\Users\\mzora\\MechWorld-w...tic_tensor.py&quot;, line 9, in &lt;module&gt;\n    from lammps import lammps\nModuleNotFoundError: No module named \'lammps\'\n').stderr">tmp_path = WindowsPath('C:/Users/mzora/AppData/Local/Temp/pytest-of-mzora/pytest-201/test_legacy_elastic_task_requi0')
+
+    def test_legacy_elastic_task_requires_explicit_forensic_and_delete_flags(
+        tmp_path: Path,
+    ) -&gt; None:
+        restart = tmp_path / "network_prestr0.0.restart"
+        restart.write_bytes(b"not-a-real-restart")
+        completed = subprocess.run(
+            [sys.executable, "-B", str(SRC / "task_compute_elastic_tensor.py"), str(restart)],
+            cwd=tmp_path,
+            env=_source_environment(),
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=60,
+        )
+        assert completed.returncode != 0
+&gt;       assert "--allow-legacy-forensic-output" in completed.stderr
+E       assert '--allow-legacy-forensic-output' in 'Traceback (most recent call last):\n  File "C:\\Users\\mzora\\MechWorld-wt-p01-11\\src\\task_compute_elastic_tensor.p...stic_tensor.py", line 9, in &lt;module&gt;\n    from lammps import lammps\nModuleNotFoundError: No module named \'lammps\'\n'
+E        +  where 'Traceback (most recent call last):\n  File "C:\\Users\\mzora\\MechWorld-wt-p01-11\\src\\task_compute_elastic_tensor.p...stic_tensor.py", line 9, in &lt;module&gt;\n    from lammps import lammps\nModuleNotFoundError: No module named \'lammps\'\n' = CompletedProcess(args=['C:\\Users\\mzora\\MechWorld\\.venv\\Scripts\\python.exe', '-B', 'C:\\Users\\mzora\\MechWorld-w...tic_tensor.py", line 9, in &lt;module&gt;\n    from lammps import lammps\nModuleNotFoundError: No module named \'lammps\'\n').stderr
+
+tests\release\test_packaging_contract.py:109: AssertionError</failure></testcase><testcase classname="tests.release.test_tracked_python_compiles" name="test_every_git_tracked_python_source_compiles" time="0.112"><failure message="assert [&quot;src/fig_R2_...hed '('&quot;, ...] == []&#10;  Left contains 7 more items, first extra item: &quot;src/fig_R2_energy_by_length_distribution.py:13: f-string: unmatched '('&quot;&#10;  Use -v to get more diff">def test_every_git_tracked_python_source_compiles() -&gt; None:
+        completed = subprocess.run(
+            ["git", "ls-files", "*.py"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        tracked = completed.stdout.splitlines()
+        assert tracked
+        failures: list[str] = []
+        for relative in tracked:
+            source = (ROOT / relative).read_bytes()
+            try:
+                compile(source, relative, "exec")
+            except SyntaxError as error:
+                failures.append(f"{relative}:{error.lineno}: {error.msg}")
+&gt;       assert failures == []
+E       assert ["src/fig_R2_...hed '('", ...] == []
+E         Left contains 7 more items, first extra item: "src/fig_R2_energy_by_length_distribution.py:13: f-string: unmatched '('"
+E         Use -v to get more diff
+
+tests\release\test_tracked_python_compiles.py:29: AssertionError</failure></testcase></testsuite></testsuites>
