@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting P01-09 non-destructive grouped analysis and its dimensional correction; P01-04 reproducibility and P10-01 current related-work review remain active.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting the 29-source P10-01 claim audit; P01-04 generator reproducibility remains active.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -14,21 +14,22 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting
 | LAMMPS environment | Verified for bounded serial smoke work | P00-03 doctor exited 0 on a real bonded fixture; required styles and analytical component energies passed; actual rupture/MPI/GPU/production use remain unvalidated |
 | Run isolation | Local adapter verified | P01-08 lifecycle/concurrency tests pass and a real serial LAMMPS `run 0` completed through its immutable run directory; inherited runners and restart equivalence are not yet migrated/validated |
 | Inherited mechanics repair | In progress | P01-01 through P01-03, P01-08, and P01-09 are integrated; canonical edge schema, reproducible generation, structural-observable validation, and human-reviewed physics mapping remain |
-| Physics/units contract | Audit complete; human review blocked | Current 2D tension conversion is sound; A16 has a definite factor-1000 energy-density defect; A12 coarse-grain stiffness/angle mapping, reference state, physical time, and any 3D thickness remain unapproved |
+| Physics/units contract | Software defect repaired; human review blocked | Current 2D tension conversion is sound and A16's factor-1000 energy-density defect is repaired; A12 coarse-grain stiffness/angle mapping, reference state, physical time, and any 3D thickness remain unapproved |
+| Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
 | Rupture, dataset, models, evaluation, explorer | Not started | Dependency-gated behind verified mechanics and actual topology-changing trajectories |
 | Experimental validation | Blocked on human/data inputs | Actual lab protocol, acquisition, raw files, calibration, and review cannot be fabricated or replaced by synthetic data |
 | Release | Foundation gate accepted only | G0 is accepted from preserved-source, environment, access, and isolated-workflow evidence; G1-G11 remain unaccepted and no public push, hosting, data release, or paper submission is authorized |
 
 No simulation, training, viewer, or experimental job is currently running.
 
-Latest integration verification: P01-09 passed 6 focused analysis regressions and the complete merged suite passed 68 tests. Raw analysis inputs remain byte-preserved, derived aggregation is idempotent, and the A16 energy-density output now applies the audited factor `1e-3` without changing material coefficients. Exact evidence is under `evidence/integration/`.
+Latest integration verification: P10-01's bidirectional reference validator passed all 29 bibliography/citation pairs, 11 focused tests passed, and the complete merged suite passed 79 tests. Independent primary-record checks confirm that broad learned-fracture novelty is untenable. Exact evidence is under `evidence/integration/`.
 
 ## Active work
 
 - P01-01 is done: its parser and periodic-identity slices now cover tilted bounds, unsupported-form rejection, arbitrary wrapping/image shifts, exact 2D minimum images, and persistent atom identity. Persistent per-edge image identity remains explicitly assigned to P03-01.
 - P01-04 on `research/p01-04-reproducibility`: add namespaced RNG streams, achieved-network metrics, and measured high-precision serialization error.
 - P01-09 is done: derived moduli are rebuilt atomically without deleting raw records, interpolation stays within networks/replicates, ambiguous axes fail explicitly, and the verified factor-1000 energy-density label/conversion defect is repaired. Cross-cohort replicate pairing remains positional until the later manifest defines persistent IDs.
-- P10-01 on `research/p10-01-related-work`: verify the current primary-source overlap matrix and bibliography; prior fracture GNNs already rule out any broad “first learned fracture simulator” claim.
+- P10-01 is done as a targeted 2026-10-01 claim audit: prior GNN, fracture, failure-learning, stochastic-simulation, uncertainty, and PG-mechanics work is explicit. The eventual contribution must be scoped to demonstrated PG-specific joint mechanics/event rollouts, calibrated uncertainty, real experiments, and the scientist workflow; no broad priority language is allowed.
 - P01-05 is blocked for Mohammad/lab review: choose the coarse-grain mapping and parameter profile, reference/observable conventions, physical-time scope, and any thickness; do not apply a blind factor-of-two coefficient edit.
 - Compatibility follow-up: seven inherited plotting/result scripts fail Python 3.11 compilation because of nested f-string quote syntax; targeted repaired files compile, and the broader issue is queued before P01-11.
 
@@ -45,4 +46,4 @@ cd C:\Users\mzora\MechWorld
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Current verified result after the integrated control-flow, parser/periodic-identity, environment, distribution, run-isolation, and analysis-regression tests: 68 passed. The untouched bootstrap result was 5 passed after dependency repair. Neither result is by itself a mechanics, model, experiment, or release gate.
+Current verified result after the integrated control-flow, parser/periodic-identity, environment, distribution, run-isolation, analysis-regression, and reference-validation tests: 79 passed. The untouched bootstrap result was 5 passed after dependency repair. Neither result is by itself a mechanics, model, experiment, or release gate.

@@ -47,3 +47,5 @@ Both assignments use accepted main revision `a79a7aaf337f32dd459a00444babe285163
 Each return requires a sole-author Mohammad Zoraiz commit, exact commands and results, limitations, path-boundary proof, and integrator review plus rerun before acceptance.
 
 Integration state: the P01-09 analysis return was path-reviewed and integrated as `6df2a91` and `717f678`. Independent main-tree verification passed 6 focused tests and 68 total tests plus targeted compilation and diff checking. Its ownership is cleared. The lack of persistent cross-cohort replicate IDs remains an explicit later manifest/data-contract limitation rather than being hidden by positional pairing.
+
+Integration state: the P10-01 audit and review expansion were path-reviewed and integrated as `8dfdfef` and `08cf163`. Independent main-tree verification accepted 29 bibliography/citation pairs, passed 11 focused tests and 79 total tests, and spot-checked eight decisive/current DOI records plus the key changing-graph full-text claim. Its ownership is cleared; the search-refresh and independent manuscript-claim review remain later release obligations.

@@ -2448,7 +2448,7 @@
       "id": "P10-01",
       "work_package": "WP10",
       "title": "Complete current primary-source related-work and novelty assessment",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "research/integrator",
       "execution_kind": "agent",
       "mandatory": true,
@@ -2469,11 +2469,25 @@
       "planned_verification_commands": [
         "python tools/check_references.py --bibliography paper/references.bib"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_INTEGRATION_2026-10-01; INITIAL_RED_IMPORT_ERROR; FOLLOWUP_RED_UNCITED_ENTRY_1_FAILED; VALIDATOR_29_ENTRIES_29_CITED_PASS; TARGETED_11_PASSED_0.48S; FULL_SUITE_79_PASSED_5.38S; PY_COMPILE_AND_DIFF_CHECK_PASS; PRIMARY_DOI_SPOTCHECK_PASS",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "docs/related_work.md",
+        "paper/references.bib",
+        "tools/check_references.py",
+        "tests/unit/test_references.py",
+        "docs/subagents/P10-01-related-work.md",
+        "evidence/subagents/P10-01/search-audit.md",
+        "evidence/subagents/P10-01/red-regression.txt",
+        "evidence/subagents/P10-01/follow-up-red.txt",
+        "evidence/subagents/P10-01/verification.md",
+        "evidence/subagents/P10-01/follow-up-verification.md",
+        "evidence/integration/P10-01/verification.md",
+        "evidence/integration/P10-01/targeted.xml",
+        "evidence/integration/P10-01/full_suite.xml"
+      ],
       "blocked_by": [],
-      "notes": "Assigned on research/p10-01-related-work at a2805a6 with a current primary-source search, explicit overlap/negative novelty findings, bibliography plus real local validator/tests, evidence, and return report. Begin early and revisit after results; no broad priority claim is allowed."
+      "notes": "Integrated as 8dfdfef and 08cf163 after independent review expanded the audit to 29 cited primary records. Karapiperis and Kochmann (2023) directly contradict a broad first learned topology-changing fracture claim by predicting sequential failed beams on updated graphs. The contribution boundary is conditional and PG-specific; adaptive remeshing, diffuse damage, softmax confidence, and experimental-image transfer are not relabeled as persistent chemical-edge rupture, calibration, or experimental fracture validation. The audit is targeted through 2026-10-01, not exhaustive, and requires refresh before manuscript priority claims."
     },
     {
       "id": "P10-02",
