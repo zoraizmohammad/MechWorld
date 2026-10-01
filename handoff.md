@@ -6,7 +6,7 @@
 - **Current session objective:** Reconcile the execution packet with the actual checkout, establish the measured workstation baseline and isolated subagent workflow, then integrate the first reproduced-defect regression repair and continue through eligible dependencies.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
-- **Gate state:** G0 is accepted from measured source-preservation, environment, access, and isolated-workflow evidence; G1-G11 remain not accepted. P00-01 through P00-05, P01-01 through P01-04, P01-08 through P01-10, and P10-01 are done. P00-06 and P01-05 are blocked on human/lab decisions; after P01-10 there is no remaining dependency-eligible agent task until those decisions unblock P01-06.
+- **Gate state:** G0 is accepted; G1-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-08 through P01-10, and P10-01 are done. P01-05A provisional computational profiles are now eligible. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
 
 ## 📊 Transient State & What Changed
 
@@ -24,6 +24,7 @@
 - P01-10 was assigned from accepted main revision `9280b5d` and integrated as `916c5a7` after ownership/author review. It separates bond-table chemical connectivity from periodic raster-image pore metrics, records raster sensitivity, fixes rectangular pixel scaling and bounded periodic fill, and makes the supported 2D orientation/PBC convention explicit.
 - The physics audit found that current 2D tension conversion is dimensionally correct, A16 is a definite factor-1000 energy-density label/conversion defect, and A12 cannot be resolved by blindly halving the harmonic coefficient because a two-edge series interpretation reproduces the cited coarse spring. Three legacy parameter routes must remain distinct. Physical time, any 3D thickness, coarse-grain mapping, angle mapping, nonlinear-fit provenance, and reference-state/observable choices remain human-review questions.
 - P01-02 repaired the reproduced A03/A04/A06 control-flow defects: analysis filters now accumulate, one-shot output criteria mutate the caller-owned schedule, and the ensemble wrapper passes the current minimizer API by explicit keywords while preserving requested initial/final dumps and remap selection.
+- Mohammad's 2026-10-01 decision fixes a simulation-first quasi-static scope, fixed-cell equilibrated reference, total configurational 2D tension primary plus incremental tension, damage initiation as the primary phenomenological event endpoint, bounded local compute, and no 3D/time claims without separate validation. It authorizes a provisional computational contract but not final biological parameters, lab access, production compute, public release, or manuscript submission.
 
 ## ✅ Verification & Hard Evidence
 
@@ -46,6 +47,7 @@
 - Integrated P10-01 related-work audit: the bidirectional validator accepted **29 entries and 29 cited keys**; **11 focused tests passed in 0.48s** and the merged full suite passed **79 tests in 5.38s**. Crossref metadata spot checks passed for eight decisive/current DOI records. Open full-text review confirms Karapiperis and Kochmann (2023) predict sequential failed beams on updated graphs, so broad first learned-fracture/topology claims are prohibited. Evidence: `docs/related_work.md` and `evidence/integration/P10-01/`.
 - Integrated P01-04 reproducible generation: the pre-implementation return preserved nine exact red failures. On main, **14 focused tests passed in 8.45s**, **45 compatibility tests passed in 8.83s**, and the merged full suite passed **93 tests in 12.27s**; compilation and diff checks passed. Real LAMMPS 20260902 loaded 108/108 deterministic fixture atoms, all 324 coordinate tokens had measured max/RMS round-trip error 0, and the solver closed. Evidence: `evidence/integration/P01-04/`.
 - Integrated P01-10 structural observables: two exact red regressions captured grayscale handling and rectangular x-scale defects. On main, **19 focused tests passed in 3.09s**, **33 compatibility tests passed in 4.23s**, and the merged full suite passed **112 tests in 6.22s**; compilation, diff checks, and the sensitivity reproducer passed. Raster settings measurably change image-pore values; a rendered crossing remains two chemical components because topology comes only from declared bonds. Evidence: `evidence/integration/P01-10/`.
+- P00-06 human decision accepted: the dated record and bounded resource/release/access policy are in `docs/decisions/scope.md` and `docs/access_and_resources.md`. Two independent read-only reviewers agreed that P01-05A/P01-06 may proceed under fail-closed provisional profiles while P01-05 remains blocked. Primary-source review confirmed the cited harmonic/nonlinear/2D-pressure conventions and Nguyen bead/parameter facts; it did not certify the repository mapping. Evidence: `evidence/decisions/2026-10-01-scope-source-review.md`.
 - Packet archive limitation: no ZIP was present; the historical archive SHA-256 could not be recomputed. Live inventory matches the packet's counts, but byte identity is `[UNVERIFIED]`.
 
 ## 🚫 Constraints & "Do Not Touch" Zones
@@ -58,9 +60,9 @@
 
 ## ⏭️ Next Concrete Steps
 
-1. [ ] Mohammad/lab: resolve P00-06 and P01-05 decisions on quasi-static versus physical-time claims, coarse-grain/mass and stiffness/angle mappings, reference state/observables, any wall thickness, lab/data ownership, and compute/release boundaries.
+1. [ ] Implement and review P01-05A: distinct immutable legacy routes plus a fail-closed `reviewed_physics_provisional_v0` profile with expanded identity/hash and mixed-profile rejection.
 2. [ ] Carry the P01-09 positional cross-cohort pairing limitation into the trajectory manifest so later comparisons use persistent replicate IDs rather than filename order.
-3. [ ] Once the reviewed physics contract exists, assign P01-06 analytical/LAMMPS energy-force-virial checks, then P01-07 tangent/coupling validation and P01-11 packaging/G1 review.
+3. [ ] After P01-05A acceptance, assign P01-06 analytical/LAMMPS energy-force-virial checks, then P01-07 tangent/coupling validation and P01-11 packaging/G1 review.
 4. [ ] Migrate inherited simulation entry points to P01-08 paths in a later owned task and add true restart-resume/suffix-equivalence coverage before claiming restartability.
 5. [ ] Continue eligible independent engineering while P00-06/P01-05 and lab inputs remain blocked.
 6. [ ] Preserve P03-01 ownership of canonical persistent per-edge image offsets and stable edge identity; the P01-01 inferred minimum image is not a trajectory identity substitute.

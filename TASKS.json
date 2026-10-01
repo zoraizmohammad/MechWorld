@@ -340,7 +340,7 @@
       "id": "P00-06",
       "work_package": "WP0",
       "title": "Approve study scope, lab dependencies, parameter-review owners, and compute policy",
-      "status": "BLOCKED_HUMAN",
+      "status": "DONE",
       "owner_role": "Mohammad/lab",
       "execution_kind": "human",
       "mandatory": true,
@@ -360,16 +360,15 @@
         "No budget, biosafety approval, data license, or authorship permission is fabricated."
       ],
       "planned_verification_commands": [],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "HUMAN_DECISION_RECORDED_2026-10-01",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
-      "blocked_by": [
-        "Mohammad/lab decision on quasi-static versus physical-time claims",
-        "Lab-approved specimen and measurement scope plus data/access owner",
-        "Primary failure endpoint and parameter-review owner",
-        "Production compute/storage policy and release/authorship boundaries"
+      "evidence": [
+        "docs/decisions/scope.md",
+        "docs/access_and_resources.md",
+        "evidence/decisions/2026-10-01-scope-source-review.md"
       ],
-      "notes": "Independent software repairs may proceed while unresolved human decisions block only affected science tasks. Blockers are recorded in docs/access_and_resources.md and do not authorize the agent to fabricate decisions."
+      "blocked_by": [],
+      "notes": "Mohammad's 2026-10-01 decision fixes a simulation-first quasi-static main scope, fixed-cell reference, total/incremental 2D tension policy, phenomenological damage-initiation endpoint, bounded local compute policy, proposed AFM target, and release authority boundaries. Unknown lab access, reviewer acceptance, final biological parameters, production budget, and public rights are explicitly delegated to P08-01, P01-05, P04-03, and P10-04 rather than fabricated. DONE records governance, not those later approvals."
     },
     {
       "id": "P01-01",
@@ -550,6 +549,43 @@
       "notes": "Integrated as 1f90577 after path/author review. Main verification passed 14 focused, 45 compatibility, and 93 total tests; targeted compilation and diff checks passed. Real LAMMPS 20260902 loaded all 108 deterministic fixture atoms, preserved 324 coordinate tokens with zero measured max/RMS error, and closed. Named seed derivation, achieved-network metrics, and high-precision output are accepted; material fields, stochastic events, model training, physical coefficients, relaxation mechanics, and historical-file repair remain outside this task."
     },
     {
+      "id": "P01-05A",
+      "work_package": "WP1",
+      "title": "Freeze the provisional computational physics contract",
+      "status": "TODO",
+      "owner_role": "physics",
+      "execution_kind": "agent",
+      "mandatory": true,
+      "depends_on": [
+        "P00-01",
+        "P00-06"
+      ],
+      "owned_paths": [
+        "docs/physics_parameters.md",
+        "configs/physics/",
+        "src/pgworld/config/physics_profiles.py",
+        "tests/physics/test_physics_profiles.py"
+      ],
+      "expected_outputs": [
+        "route-specific immutable legacy profiles",
+        "fail-closed provisional reviewed profile",
+        "hash/provenance and mixed-profile rejection contract"
+      ],
+      "acceptance_criteria": [
+        "Legacy routes remain distinct and exact; reviewed_physics_provisional_v0 is visibly pending and cannot be mistaken for biological certification.",
+        "Profiles encode actual equations/units, fixed-cell reference, total/incremental configurational 2D tension, physical-time/thickness prohibitions, axes, rupture status, review status, and immutable identity.",
+        "Runs/artifacts can record expanded profile identity and silent mixed-profile aggregation fails closed."
+      ],
+      "planned_verification_commands": [
+        "python -m pytest tests/physics/test_physics_profiles.py -q"
+      ],
+      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
+      "evidence": [],
+      "blocked_by": [],
+      "notes": "Authorized by the 2026-10-01 scope decision. This computational slice may complete independently; it must preserve final coarse-graining, nonlinear-fit, angle-resolution, mass/time, and reviewer approval as explicit pending fields."
+    },
+    {
       "id": "P01-05",
       "work_package": "WP1",
       "title": "Resolve the physical parameter and units contract",
@@ -558,8 +594,7 @@
       "execution_kind": "human_review",
       "mandatory": true,
       "depends_on": [
-        "P00-01",
-        "P00-06"
+        "P01-05A"
       ],
       "owned_paths": [
         "docs/physics_parameters.md",
@@ -580,11 +615,12 @@
         "docs/subagents/P01-05-physics-audit.md"
       ],
       "blocked_by": [
-        "P00-06 human approval of coarse-grain DSU/mass and one-edge versus two-edge stiffness mapping",
-        "Lab review of angle-resolution mapping and nonlinear-fit provenance",
-        "Human choice of reference state, total versus incremental observables, physical-time scope, and any wall thickness"
+        "Prof. Christoph Schmidt and Octavio reviewer assignments are proposed but unconfirmed",
+        "Final bead/disaccharide and one-edge versus two-edge molecular mapping",
+        "Resolution-consistent angle mapping and nonlinear-fit provenance/acceptance",
+        "Final approved reviewed_physics profile"
       ],
-      "notes": "Source audit completed 2026-09-30. It found correct current 2D tension conversion, no validated physical-time or 3D-thickness interpretation, an unresolved A12 coarse-grain mapping that must not be corrected blindly, three incompatible legacy parameter routes, and a definite A16 factor-1000 energy-density label/conversion defect. Source reading/derivation is agent work; a parameter decision requiring lab knowledge cannot be self-approved by an agent."
+      "notes": "Final biological parameter certification remains blocked. The 2026-10-01 decision resolves the main scope to quasi-static, fixed-cell equilibrated reference, total 2D configurational tension primary plus incremental tension, no 3D conversion without thickness, and no physical-time validity. P01-05A separately freezes a provisional computational contract so numerical validation can continue without falsely completing this review."
     },
     {
       "id": "P01-06",
@@ -597,7 +633,7 @@
       "depends_on": [
         "P00-03",
         "P01-01",
-        "P01-05"
+        "P01-05A"
       ],
       "owned_paths": [
         "src/pgworld/physics/",
@@ -873,7 +909,7 @@
       "execution_kind": "agent",
       "mandatory": true,
       "depends_on": [
-        "P01-05",
+        "P01-05A",
         "P02-01"
       ],
       "owned_paths": [
@@ -1032,7 +1068,7 @@
       "id": "P02-07",
       "work_package": "WP2",
       "title": "Add physical-time dynamics only when required by the final claims",
-      "status": "TODO",
+      "status": "DEFERRED_EXTENSION",
       "owner_role": "simulation",
       "execution_kind": "agent",
       "mandatory": false,
@@ -1055,11 +1091,13 @@
       "planned_verification_commands": [
         "python -m pytest tests/physics/test_dynamics.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "DEFERRED_BY_SCOPE_DECISION_2026-10-01",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "docs/decisions/scope.md"
+      ],
       "blocked_by": [],
-      "notes": "Conditional extension; change to mandatory if scope or manuscript claims require physical-time prediction. Cannot silently defer while retaining those claims."
+      "notes": "The 2026-10-01 main-scope decision excludes physical-time/rate claims, so this optional extension is deferred. Reactivate and make mandatory before any relaxation-time, rate, fatigue-time, or time-to-failure claim."
     },
     {
       "id": "P03-01",
@@ -1985,7 +2023,7 @@
       "id": "P08-01",
       "work_package": "WP8",
       "title": "Confirm real lab protocol, data access, training, and acquisition schedule",
-      "status": "TODO",
+      "status": "BLOCKED_ACCESS",
       "owner_role": "Mohammad/lab",
       "execution_kind": "human",
       "mandatory": true,
@@ -2008,8 +2046,13 @@
       "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
-      "blocked_by": [],
-      "notes": ""
+      "blocked_by": [
+        "Authorized data custodian and approved storage location",
+        "Exact lab-approved specimen conditions and protocol",
+        "Permitted training, external-processing, derivative, and publication uses",
+        "Confirmed acquisition/training owners and schedule"
+      ],
+      "notes": "The proposed target is quasi-static AFM force-indentation on an untreated laboratory E. coli baseline with matched morphology, but no exact protocol, dataset, custodian, rights, or schedule has been confirmed. Prof. Schmidt and the relevant data creator are the requested coordination path; no access or approval is assumed."
     },
     {
       "id": "P08-02",

@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting P01-10 structural-observable validation. No further agent task is dependency-eligible until the P00-06/P01-05 human physics decisions are recorded.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after recording Mohammad's quasi-static scope/governance decisions. P01-05A provisional computational-profile work is now dependency-eligible; final biological parameter review remains blocked.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -13,11 +13,11 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after accepting
 | Historical defects | Reproduced, then regression-repaired | The original A01-A05 failures remain archived under `evidence/source_audit_live/`; the current pure-Python diagnostic observes all five repaired, without invoking LAMMPS |
 | LAMMPS environment | Verified for bounded serial smoke work | P00-03 doctor exited 0 on a real bonded fixture; required styles and analytical component energies passed; actual rupture/MPI/GPU/production use remain unvalidated |
 | Run isolation | Local adapter verified | P01-08 lifecycle/concurrency tests pass and a real serial LAMMPS `run 0` completed through its immutable run directory; inherited runners and restart equivalence are not yet migrated/validated |
-| Inherited mechanics repair | Human-decision frontier | P01-01 through P01-04 and P01-08 through P01-10 are integrated; the reviewed physical parameter contract, independent energy/force/virial checks, tangent validation, packaging, and G1 acceptance remain |
-| Physics/units contract | Software defect repaired; human review blocked | Current 2D tension conversion is sound and A16's factor-1000 energy-density defect is repaired; A12 coarse-grain stiffness/angle mapping, reference state, physical time, and any 3D thickness remain unapproved |
+| Inherited mechanics repair | Provisional-contract work eligible | P01-01 through P01-04 and P01-08 through P01-10 are integrated; P01-05A profiles, energy/force/virial checks, tangent validation, packaging, and G1 remain |
+| Physics/units contract | Computational scope decided; biological review pending | Quasi-static fixed-cell reference, total/incremental configurational 2D tension, no physical-time claims, and no 3D conversion are fixed. Coarse-graining, angle mapping, nonlinear-fit provenance, and final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
 | Rupture, dataset, models, evaluation, explorer | Not started | Dependency-gated behind verified mechanics and actual topology-changing trajectories |
-| Experimental validation | Blocked on human/data inputs | Actual lab protocol, acquisition, raw files, calibration, and review cannot be fabricated or replaced by synthetic data |
+| Experimental validation | P08-01 blocked on access | AFM plus matched morphology is the proposed target, but actual lab protocol, custodian, permissions, acquisition, raw files, calibration, and review remain unconfirmed |
 | Release | Foundation gate accepted only | G0 is accepted from preserved-source, environment, access, and isolated-workflow evidence; G1-G11 remain unaccepted and no public push, hosting, data release, or paper submission is authorized |
 
 No simulation, training, viewer, or experimental job is currently running.
@@ -31,8 +31,10 @@ Latest integration verification: P01-10 passed 19 focused, 33 compatibility, and
 - P01-10 is done: periodic image-pore metrics record raster settings, orientation/attachment vectors use the supported 2D periodic convention, and chemical connectivity ignores rendered crossings unless a bond exists.
 - P01-09 is done: derived moduli are rebuilt atomically without deleting raw records, interpolation stays within networks/replicates, ambiguous axes fail explicitly, and the verified factor-1000 energy-density label/conversion defect is repaired. Cross-cohort replicate pairing remains positional until the later manifest defines persistent IDs.
 - P10-01 is done as a targeted 2026-10-01 claim audit: prior GNN, fracture, failure-learning, stochastic-simulation, uncertainty, and PG-mechanics work is explicit. The eventual contribution must be scoped to demonstrated PG-specific joint mechanics/event rollouts, calibrated uncertainty, real experiments, and the scientist workflow; no broad priority language is allowed.
-- P01-05 is blocked for Mohammad/lab review: choose the coarse-grain mapping and parameter profile, reference/observable conventions, physical-time scope, and any thickness; do not apply a blind factor-of-two coefficient edit.
-- Tasks left before G1: record P00-06/P01-05 human decisions, then complete P01-06 analytical/LAMMPS energy-force-virial checks, P01-07 tangent/coupling validation, and P01-11 clean packaging/gate review. Model, dataset, experiment, explorer, and release work remains downstream of those evidence gates.
+- P00-06 is done as a governance decision: main claims are quasi-static; the primary endpoint is phenomenological damage initiation; compute remains bounded/local; public release and manuscript submission still require separate approval.
+- P01-05A is next: freeze distinct legacy routes and a fail-closed `reviewed_physics_provisional_v0` profile with hashes/provenance. P01-05 remains blocked for Prof. Schmidt/Octavio review and final biological parameter certification.
+- Tasks left before G1: complete P01-05A, P01-06 analytical/LAMMPS energy-force-virial checks, P01-07 tangent/coupling validation, and P01-11 clean packaging/gate review. G1 may establish numerical consistency under provisional profiles, not biological calibration.
+- Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
 - Compatibility follow-up: seven inherited plotting/result scripts fail Python 3.11 compilation because of nested f-string quote syntax; targeted repaired files compile, and the broader issue is queued before P01-11.
 
 ## Remaining path
