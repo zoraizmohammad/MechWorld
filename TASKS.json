@@ -1023,7 +1023,7 @@
       "id": "P02-03",
       "work_package": "WP2",
       "title": "Implement the quasi-static rupture and relaxation cascade",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "simulation",
       "execution_kind": "agent",
       "mandatory": true,
@@ -1052,17 +1052,30 @@
       "planned_verification_commands": [
         "python -m pytest tests/integration/test_fracture_cascade.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_PASS; FOCUSED_MAIN_60_PASSED; FULL_MAIN_331_PASSED_14_WARNINGS; ISOLATED_WHEEL_RETRY_1_PASSED_AFTER_PRESERVED_TIMEOUT",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "docs/decisions/fracture_execution.md",
+        "docs/subagents/P02-03-fracture-cascade.md",
+        "evidence/subagents/P02-03/final-topology.xml",
+        "evidence/subagents/P02-03/final-focused-fake-reference.xml",
+        "evidence/subagents/P02-03/final-focused-real-reference.xml",
+        "evidence/subagents/P02-03/full-suite-venv.xml",
+        "evidence/subagents/P02-03/wheel-install-retry.xml",
+        "evidence/subagents/P02-03/wheel-report-retry.json",
+        "evidence/integration/P02-03/focused-main.xml",
+        "evidence/integration/P02-03/focused-main-correction.xml",
+        "evidence/integration/P02-03/main-full.xml",
+        "evidence/integration/P02-03/verification.md"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from accepted and pushed P02-02 main revision 0ee619434daa414e76d70aacb914e6393c6652e7 to research/p02-03-fracture-cascade in isolated worktree C:/Users/mzora/MechWorld-wt-p02-03. Ownership is expanded from the initial task to a solver-independent external stable-topology registry, package export, unit/integration tests, one exact wheel-member/import compatibility test, an execution decision record, and subagent evidence/report. Root README, handoff, TASKS, ownership ledger, P02-01 controls, P02-02 damage module, physics profiles, shared trajectory schemas, P02-04 localization/accounting, P02-06 restart/sensitivity, and gate decisions remain integrator-owned/read-only. Implement the transactional quasi-static sequence apply supported control, relax, validate accepted equilibrium, assess P02-02 damage, stage rank-zero event, record pre-deletion state, remove every and only dependent angle plus the exact physical bond, audit topology/atom retention, record same-position post-deletion state, re-relax at unchanged coordinate/progress, commit the logical event/state only after successful audit/convergence, and reassess from the new equilibrium until stable or a strict budget is reached. Use external opaque stable node/bond/angle IDs; never use dump row/local bond order as identity, never renumber survivors, retain disconnected components/atoms, and preserve source-derived signed per-edge periodic image offsets rather than recomputing nearest images. A mutation or post-delete relaxation failure must roll back/reconstruct the last accepted state and remain diagnostic-only, never damage initiation, healing, or mechanical instability. Never invoke fix bond/break during minimization and never reuse stale candidates. Record phase-labelled raw energy/tension/convergence snapshots and a transition envelope linking pre-equilibrium, event, topology mutation, and post-equilibrium, but leave derived deletion/work/relaxation accounting/localization to P02-04 and canonical storage/model access paths to P03-01. Fail closed on unsupported pressure-derived cell control, unvalidated general/shear mapping, ambiguous duplicate endpoint/type topology, half-cell image ambiguity, profile/reference/control/topology mixing, nonfinite/nonconverged states, repeated deletion, and exhausted event/relaxation budgets. Begin with exact red regressions, include tiny serial real-LAMMPS fixtures plus injected fake-backend rollback/budget tests, run one solver/test process at a time with at most two threads, commit solely as Mohammad Zoraiz, and do not push. The wheel-test edit may only name/import-smoke the two new public modules while retaining all strict exclusions."
+      "notes": "Accepted after isolated implementation and independent adversarial review. Immutable subagent commits 08b9ab0, 96b4808, and report-only selector correction 23d9ed5 were integrated as 1ea1d25, 875f298, and 056dd98; all are sole-author/committer Mohammad Zoraiz changes within assigned ownership. Exact red/correction evidence is retained, including several honestly documented misleading historical filenames. Final subagent evidence passed 18 topology, 39 fake/replay, 3 real serial LAMMPS, 331 full-suite, and one isolated-wheel test after one preserved dependency-install timeout and the single authorized retry. Integrated main independently passed 60 focused tests and 331 full tests. The accepted contract provides opaque stable topology identity, authoritative signed edge images, exact dependent-angle/bond deletion, transactional rollback, fresh cascade reassessment, retained fragments, raw phase mechanics, full control/profile/reference/law/threshold replay, and hidden-threshold separation. Real evidence remains limited to a constrained serial orthogonal sequential-tag harmonic fixture with diagonal deformation and extension-ratio rupture. P02-04 still owns localization and derived energy/work accounting; P02-06 owns restart/sensitivity; P03 owns canonical storage. G2 remains unaccepted, with no production/general PG, nonlinear-peptide, physical-time, biological, experimental, or release claim."
     },
     {
       "id": "P02-04",
       "work_package": "WP2",
       "title": "Add stable event localization, budgets, and energy accounting",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -1071,7 +1084,10 @@
       ],
       "owned_paths": [
         "src/pgworld/simulation/fracture.py",
-        "tests/physics/test_fracture_accounting.py"
+        "tests/physics/test_fracture_accounting.py",
+        "docs/decisions/fracture_accounting.md",
+        "docs/subagents/P02-04-localization-accounting.md",
+        "evidence/subagents/P02-04/"
       ],
       "expected_outputs": [
         "near-pole rejection and load refinement",
@@ -1088,7 +1104,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": ""
+      "notes": "Assigned from independently accepted integrated P02-03 main revision 056dd985b0dd27e5419df5f72b63d88fbd6c133f to research/p02-04-localization in isolated worktree C:/Users/mzora/MechWorld-wt-p02-04. Editing ownership is limited to fracture.py, the dedicated physics test, decision/report, and subagent evidence. Root ledgers/README, topology.py, P02-01 controls, P02-02 damage, profiles/oracles, P03 schema, package tests, dependencies, gates, restart/sensitivity, and all other paths are read-only. Begin with exact red tests. Localize the first accepted material threshold crossing between last accepted lower control and crossing upper control by deterministic bounded refinement in quasi-static load/path coordinates; cyclic/unloading load coordinate may decrease while path progress remains monotone. Rejected/nonconverged/nonlinear-domain-invalid trials must restore the same accepted checkpoint, must not mutate topology/damage or resample the frozen threshold field, and must never become scientific states/labels. Require explicit refinement/solver/retry budgets and terminal diagnostics. Preserve raw phase energies and implement typed derived accounting that separates fixed-topology conservative loading work, same-coordinate topology-deletion energy change, held-control zero boundary work during deletion/re-relaxation, and post-delete relaxation loss; never require energy to decrease across loading/deletion or conflate those terms. Pressure/tension/general-cell work remains unsupported unless independently derived and tested. Add coarse/fine analytical and bounded serial-LAMMPS localization/accounting checks where the existing fixture supports them, keep at most one solver process/two threads, record tolerances and limitations, commit solely as Mohammad Zoraiz, and do not push. This task does not accept G2 or implement restart/load-step sensitivity."
     },
     {
       "id": "P02-05",

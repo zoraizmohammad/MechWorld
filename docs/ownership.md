@@ -255,3 +255,36 @@ schema records; and exclude hidden thresholds/seeds/realization proxies,
 future reference states/events/topology, test-derived normalizers, and private
 access metadata from predictor-visible records. The integrator owns the shared
 contract reconciliation and strict package allowlist after independent review.
+
+Eleventh-wave integration state: independent review accepted immutable P02-03
+tip `23d9ed5` after repeated replay/rollback/real-fixture corrections and a
+final report-selector repair. It was integrated as `1ea1d25`, `875f298`, and
+`056dd98`. Main passed 60 focused and 331 full tests. P02-03 ownership is
+cleared; localization and derived accounting remain P02-04 scope, and G2
+remains unaccepted.
+
+Twelfth-wave review state: the first immutable P03-01 return
+`c489b8f`/`c38e4ab` passed its own focused and compatibility suites but was
+independently rejected after exact projection, reference-state, geometry,
+event/censor, coefficient, endpoint, visibility, and convergence forgeries
+were reproduced. That range is not integrated. The same specialist retains
+the listed paths for an exact red-to-green correction round. The integrator
+still owns the shared contract, package allowlist, ledgers, and gate decision.
+
+## Thirteenth wave
+
+The assignment uses independently accepted integrated main revision
+`056dd985b0dd27e5419df5f72b63d88fbd6c133f`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Localization and accounting/physics | `research/p02-04-localization`; `C:/Users/mzora/MechWorld-wt-p02-04` | P02-04: deterministic bounded first-crossing refinement, invalid-trial restoration, explicit budgets, and phase-correct separation of loading work, deletion energy, held-control boundary work, and relaxation loss | `src/pgworld/simulation/fracture.py`, `tests/physics/test_fracture_accounting.py`, `docs/decisions/fracture_accounting.md`, `docs/subagents/P02-04-localization-accounting.md`, `evidence/subagents/P02-04/` | No root ledger/README, topology/control/damage/profile/oracle/schema/package/dependency/gate edits; no restart/sensitivity, production simulation, private data, G2 decision, public action, or push |
+
+The specialist must start from exact red regressions; never publish rejected,
+nonconverged, or nonlinear-domain-invalid localization trials; restore the
+same accepted checkpoint and frozen threshold field after every trial; keep
+cyclic load coordinate separate from monotone path progress; and return an
+explicit diagnostic when refinement/solver/retry budgets are exhausted.
+Energy accounting must keep conservative fixed-topology loading work,
+same-coordinate deletion change, held-control boundary work, and post-delete
+relaxation loss as separately named quantities with units and provenance.

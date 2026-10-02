@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="2" failures="0" skipped="0" tests="2" time="2.438" timestamp="2026-10-01T23:36:50.260447" hostname="MZoraiz_P15"><testcase classname="" name="tests.unit.test_fracture_topology" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld\tests\unit\test_fracture_topology.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\unit\test_fracture_topology.py:6: in &lt;module&gt;
+    from pgworld.simulation.topology import (
+E   ModuleNotFoundError: No module named 'pgworld'</error></testcase><testcase classname="" name="tests.integration.test_fracture_cascade" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld\tests\integration\test_fracture_cascade.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\integration\test_fracture_cascade.py:13: in &lt;module&gt;
+    from pgworld.config.physics_profiles import load_physics_profile
+E   ModuleNotFoundError: No module named 'pgworld'</error></testcase></testsuite></testsuites>
