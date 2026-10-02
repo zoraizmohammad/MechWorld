@@ -1120,7 +1120,7 @@
       "id": "P02-05",
       "work_package": "WP2",
       "title": "Model material disorder and conditional stochastic events reproducibly",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -1147,11 +1147,21 @@
       "planned_verification_commands": [
         "python -m pytest tests/physics/test_stochastic_events.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_SUBAGENT_AND_INTEGRATION_2026-10-02; REVIEWER_ACCEPTED_IMMUTABLE_TIP_6F8E7F8; FOCUSED_29_PASS; COMPATIBILITY_101_PASS_AND_155_PASS_1_DESELECTED; SUBAGENT_FULL_516_PASS_15_WARNINGS; INTEGRATED_FOCUSED_COMPATIBILITY_101_PASS; INTEGRATED_FULL_516_PASS_14_WARNINGS; SUBAGENT_AND_INTEGRATED_ISOLATED_WHEEL_1_PASS; PATH_IDENTITY_HASH_COMPILE_AND_DIFF_AUDITS_PASS",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "src/pgworld/physics/stochasticity.py",
+        "tests/physics/test_stochastic_events.py",
+        "docs/decisions/stochasticity.md",
+        "docs/subagents/P02-05-stochasticity.md",
+        "evidence/subagents/P02-05/",
+        "evidence/integration/P02-05/verification.md",
+        "evidence/integration/P02-05/focused-compatibility.xml",
+        "evidence/integration/P02-05/full-suite.xml",
+        "evidence/integration/P02-05/wheel-install.xml"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from clean accepted and pushed main revision 3fdb17af5a1f7309255788f4df1cb38f0df4bd03 to branch research/p02-05-stochasticity in isolated worktree C:/Users/mzora/MechWorld-wt-p02-05. Editing ownership is limited to the new stochasticity module, its focused tests, decision/report/evidence, and a narrow strict-wheel allowlist/import-smoke addition for that exact module. All other source, shared schema/contracts, root ledgers/README, profiles, controls, damage.py, fracture.py, run manager, gates, and data/model paths are read-only. Implement the accepted simulation-first choice as sample-once quenched material thresholds using P01-04 namespace provenance and P02-02 materialize_thresholds; dynamics remain deterministic conditional on the frozen hidden field. The P01-04 events seed stays reserved and unconsumed, and requests for event-process randomness fail closed unless a separately validated load-progress hazard is later authorized. Rejected/nonconverged/localization retries cannot resample or consume a new rupture opportunity. Conditional-replicate records distinguish geometry, material disorder, and event-process randomness with exact units/profile/reference/law identity while predictor-visible views recursively exclude hidden seeds, thresholds, realization IDs, and proxies. Core work requires no LAMMPS. Preserve exact red evidence, run focused/compatibility/full/wheel checks sequentially under two threads, obtain independent review, commit solely as Mohammad Zoraiz, and do not push. This task does not accept G2 or G3, add physical-time/rate claims, create datasets, or generate a production campaign."
+      "notes": "Completed and independently accepted at immutable tip 6f8e7f8db3c3bdd1d3127823fafccb1a433d08b1 over base 3fdb17a. The implementation delegates threshold creation to the canonical P02-02 materialize_thresholds sampler and revalidates replay by exact rematerialization, preserving stable-ID/order/retry invariance. Conditional replicate/cohort records distinguish geometry and material-disorder provenance while holding predictor-visible conditions fixed; recursive predictor projection excludes hidden seeds, thresholds, realization IDs, graph/state identifiers, and proxies. The P01-04 event seed remains reserved with zero draws, and stochastic event-process, hazard, physical-time, and fresh-lottery requests fail closed. Integrated main passed 101 focused/upstream compatibility, 516 full-suite, and one isolated-wheel test. Graph/state IDs are caller-supplied hash-bound bindings, not independently derived. Restart/sensitivity, G2, event hazards, biological parameters, datasets/models, production simulation, experiments, and G3 remain unaccepted."
     },
     {
       "id": "P02-06",

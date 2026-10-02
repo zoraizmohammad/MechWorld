@@ -38,9 +38,9 @@ Verify coefficient conventions, units, periodic geometry, reference states, memb
 Apply controlled loading, identify mechanically triggered rupture, remove physical bonds and dependent angles irreversibly, localize events, and separate loading, deletion, held-control boundary work, and relaxation terms.
 
 **Status:** In progress. The transactional cascade, deterministic event
-localization, and phase-specific accounting are integrated for the certified
-tiny harmonic fixture. Sample-once material-disorder provenance and
-restart/load-step sensitivity remain before G2; the work does not yet establish
+localization, phase-specific accounting, and sample-once quenched material-
+disorder provenance are integrated for the certified bounded scope.
+Restart/load-step sensitivity remains before G2; the work does not yet establish
 general nonlinear-peptide fracture or biological rupture parameters.
 
 ## Phase 4 Trajectory data and study cohorts
@@ -83,19 +83,18 @@ Related trajectories from the same base network will remain in one split. Normal
 
 ## Immediate next steps
 
-1. Complete sample-once material-disorder/conditional-replicate provenance.
-2. Validate restart equivalence and load-step/refinement sensitivity; accept G2
+1. Validate restart equivalence and load-step/refinement sensitivity; accept G2
    only if the real bounded rupture workflow passes.
-3. Export accepted solver states/events into the reviewed schema, implement
+2. Export accepted solver states/events into the reviewed schema, implement
    immutable storage and grouped splits, and accept G3 only after round-trip
    evidence.
-4. Profile a small simulation pilot and report runtime, memory, storage, and
+3. Profile a small simulation pilot and report runtime, memory, storage, and
    convergence before requesting a larger campaign.
-5. Generate grouped study cohorts and evaluate mechanistic and learned
+4. Generate grouped study cohorts and evaluate mechanistic and learned
    baselines.
-6. Train and evaluate the joint topology-and-mechanics world model.
-7. Build the scientist-facing explorer from verified solver and model outputs.
-8. Complete open-source comparison, independent review, and release evidence.
+5. Train and evaluate the joint topology-and-mechanics world model.
+6. Build the scientist-facing explorer from verified solver and model outputs.
+7. Complete open-source comparison, independent review, and release evidence.
 
 ## Scientific guidance requested
 

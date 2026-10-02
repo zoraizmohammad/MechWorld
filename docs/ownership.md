@@ -317,3 +317,12 @@ exclude hidden seeds, thresholds, realization IDs, and proxies. A separate
 read-only reviewer audits red/green evidence, replay/privacy semantics, exact
 paths, identity, and immutable commits before integration. Full and wheel tests
 run sequentially under the two-thread ceiling.
+
+Fourteenth-wave integration state: the reviewer issued FINAL ACCEPT at
+immutable tip `6f8e7f8` after the implementer closed an exact canonical-field
+forgery and corrected evidence-hash provenance. Five sole-Mohammad commits were
+cherry-picked above the P02-05 assignment commit. Integrated main passed 101
+focused/upstream compatibility tests, 516 full-suite tests, and one isolated
+installed-wheel test. P02-05 editing ownership is cleared. P02-06 may begin
+only from the clean pushed acceptance commit; P03-02 remains dependency-blocked
+until P02-06 is accepted.

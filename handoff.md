@@ -3,16 +3,16 @@
 ## 🎯 Current Mission & Goals
 
 - **Ultimate goal:** Complete the evidence-gated MechWorld-PG program: verified inherited mechanics, irreversible topology change, reproducible graph trajectories, trained/evaluated physics-structured world models, actual experimental integration, a scientist-facing explorer, and an evidence-linked release candidate.
-- **Current session objective:** Execute P02-05 sample-once material-disorder and
-  conditional-replicate provenance in an isolated worktree with independent
-  review, while read-only downstream preflight prepares P02-06 without starting
-  a second mutation or heavy compute stream.
+- **Current session objective:** Accept and integrate the independently reviewed
+  P02-05 sample-once material-disorder contract, synchronize evidence/README/
+  tasks, then assign P02-06 stable-boundary restart and sensitivity from the
+  resulting clean pushed main revision.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
 - **Gate state:** G0 and G1 are accepted; G2-G11 remain not accepted. P00-01
   through P00-06, P01-01 through P01-04, P01-05A, P01-06 through P01-11,
-  P02-01 through P02-04, P03-01, and P10-01 are done. P02-05 is active from
-  pushed main `3fdb17a`; P02-06 remains required for G2 and
+  P02-01 through P02-05, P03-01, and P10-01 are done. P02-06 is the next
+  dependency-eligible task and remains required for G2; 
   P03-02 through P03-06 remain required for G3. P01-05 remains blocked on final
   biological review, P08-01 on actual lab access, and production/public release
   remain unauthorized.
@@ -71,6 +71,20 @@
   stochasticity module/test/decision/report/evidence plus the exact new wheel
   member/import smoke; core work uses no LAMMPS and all shared physics/schema/
   root-ledger files are read-only.
+- P02-05 completed with five sole-Mohammad commits and independent FINAL ACCEPT
+  at immutable tip `6f8e7f8`. Review reproduced and closed a rehashed forged-
+  threshold replay gap by requiring exact rematerialization through the P02-02
+  canonical sampler. The accepted contract provides sample-once quenched
+  material variability only; conditional dynamics are deterministic, the event
+  seed has zero draws, and event hazards/time fail closed. The reviewed range
+  is integrated on main; no subagent branch was pushed.
+- Read-only downstream preflight found that P02-06 must consume the finalized
+  P02-05 frozen-field/seed records and should checkpoint only stable accepted
+  boundaries. Interrupted localization/cascades resume from the prior accepted
+  state, never a partial/rejected trial. P03-02 must wait for accepted P02-06
+  and must export canonical in-memory records only; P03-04 retains HDF5 shard
+  ownership. The P02-06 specialist may prepare `G2.candidate.json`, while the
+  integrator retains `G2.json` and the actual gate decision.
 
 ## ✅ Verification & Hard Evidence
 
@@ -112,6 +126,15 @@
   allowlist/private-artifact boundary, passed `pip check`, and completed its
   authorized real-LAMMPS checks. Evidence and SHA-256 values:
   `evidence/integration/P02-04-P03-01/verification.md`.
+- Integrated P02-05 material-disorder provenance: the reviewer accepted
+  immutable tip `6f8e7f8` after exact canonical-field forgery, privacy,
+  cross-binding, retry/order invariance, and evidence-provenance corrections.
+  Subagent evidence passed **29 focused**, **101 compatibility**, **155
+  downstream compatibility with 1 real test deselected**, **516 full-suite**,
+  and **1 isolated-wheel** test. Integrated main independently passed **101 in
+  3.36 s**, **516 with 14 warnings in 110.83 s**, and **1 isolated-wheel in
+  97.55 s**. Evidence: `evidence/integration/P02-05/verification.md` and
+  `evidence/subagents/P02-05/`.
 - Packet archive limitation: no ZIP was present; the historical archive SHA-256 could not be recomputed. Live inventory matches the packet's counts, but byte identity is `[UNVERIFIED]`.
 
 ## 🚫 Constraints & "Do Not Touch" Zones
@@ -142,15 +165,22 @@
     allowlist without making an HDF5/export/G3 claim.
 12. [ ] Refresh P10-01 after project results and obtain independent claim review before any manuscript priority language; the current audit is targeted through 2026-10-01, not exhaustive.
 13. [ ] Do not begin a main dataset sweep before G2/G3 schema and rupture acceptance; do not begin model claims before real rupture, schema, split, and pilot gates.
-14. [ ] Complete active P02-05 from clean pushed main `3fdb17a`. Implement
+14. [x] Complete P02-05 from clean pushed main `3fdb17a`. Implement
     sample-once material-disorder/conditional-replicate provenance using the
     P01-04 seed namespaces and P02-02 threshold field; keep the event RNG
     reserved and unconsumed unless a separate load-progress hazard is later
     justified and validated. The separate implementer worktree and read-only
     reviewer are assigned; do not run LAMMPS for the core contract.
+15. [ ] Assign P02-06 only from the clean pushed P02-05 acceptance. Implement a
+    canonical JSON plus hashed-binary restart bundle at stable accepted
+    boundaries, preserve topology/damage/events/controls/progress/frozen
+    thresholds and the reserved zero-draw event seed, and verify uninterrupted
+    versus resumed suffixes plus load-step/refinement sensitivity on bounded
+    actual solver fixtures. The specialist writes `G2.candidate.json`; the
+    integrator alone decides `G2.json`.
 
-**Active jobs:** P02-05 source/test implementation only; no solver, simulation,
-training, or persistent job is running. **Persistent simulation/training jobs:**
-none. Inspect `reports/jobs.jsonl` before starting any future job.
+**Active jobs:** none. No solver, simulation, training, or persistent job is
+running. **Persistent simulation/training jobs:** none. Inspect
+`reports/jobs.jsonl` before starting any future job.
 
 **Resume command:** `cd C:/Users/mzora/MechWorld; git status --short --branch; .venv/Scripts/python.exe -m pytest -q`

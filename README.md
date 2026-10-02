@@ -6,9 +6,9 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-02 after
 independently accepting and integrating P02-04 event localization/accounting
-and the corrected P03-01 trajectory/access schema on top of the preserved
-project-phase documentation. Final biological parameter review remains
-blocked.
+and the corrected P03-01 trajectory/access schema, then independently accepting
+and integrating P02-05 sample-once material-disorder provenance. Final
+biological parameter review remains blocked.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -20,7 +20,7 @@ blocked.
 | Inherited mechanics repair | G1 accepted | P01-01 through P01-11 are integrated or explicitly retained as provisional/blocked; the installable wheel and `pgworld doctor` passed fresh-environment real-LAMMPS checks |
 | Physics/units contract | Immutable provisional profiles verified; biological review pending | Four route-specific hashes separate historical execution from the required new virial-only policy and reject tampered persisted snapshots. Coarse-graining, angle mapping, nonlinear-fit recovery, and the final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
-| Rupture, dataset, models, evaluation, explorer | P02-01 through P02-04 and P03-01 done; P02-05 active | Deterministic bounded localization/phase accounting and strict in-memory trajectory/access replay are integrated; sample-once material-disorder provenance is assigned in an isolated worktree, while restart/sensitivity, solver export/storage, datasets, models, evaluation, and the explorer remain incomplete; G2 and later gates remain unaccepted |
+| Rupture, dataset, models, evaluation, explorer | P02-01 through P02-05 and P03-01 done; P02-06 next | Sample-once quenched material-disorder provenance, deterministic localization/accounting, and strict in-memory trajectory/access replay are integrated; restart/sensitivity, solver export/storage, datasets, models, evaluation, and the explorer remain incomplete; G2 and later gates remain unaccepted |
 | Experimental validation | P08-01 blocked on access | AFM plus matched morphology is the proposed target, but actual lab protocol, custodian, permissions, acquisition, raw files, calibration, and review remain unconfirmed |
 | Release | Foundation and mechanics gates accepted | G0 and numerical/software mechanics gate G1 are accepted; G2-G11 remain unaccepted and no public hosting, data/model release, or paper submission is authorized |
 
@@ -34,6 +34,13 @@ fixture and 108 adversarial schema tests. Exact commands, hashes, and limits
 are under `evidence/integration/P02-04-P03-01/`; preserved subagent red/green
 evidence remains under `evidence/subagents/P02-04/` and
 `evidence/subagents/P03-01/`.
+
+P02-05 then passed 101 integrated focused/upstream compatibility tests in 3.36
+seconds, 516 full-suite tests in 110.83 seconds, and one isolated installed-
+wheel test in 97.55 seconds. The accepted scope is sample-once quenched material
+variability: conditional evolution is deterministic with a frozen hidden
+threshold field, and the reserved event RNG remains unconsumed. Evidence is
+under `evidence/integration/P02-05/` and `evidence/subagents/P02-05/`.
 
 ## Current work and blockers
 
@@ -64,12 +71,14 @@ evidence remains under `evidence/subagents/P02-04/` and
   these in-memory/replay modules without installing private/generated data.
   P03-02/P03-04 still own real solver export and HDF5 storage, so no canonical
   dataset or G3 claim exists yet.
-- P02-05 is active from pushed main `3fdb17a` in the isolated
-  `research/p02-05-stochasticity` worktree. It must bind
-  sample-once material disorder and conditional replicates to the existing
-  damage/localization contracts without adding an unvalidated event lottery or
-  physical-time claim. The event seed stays reserved and unconsumed; core work
-  requires no LAMMPS. P02-06 then owns restart/load-step sensitivity and G2.
+- P02-05 is done after independent adversarial review. It binds sample-once
+  P02-02 thresholds to exact P01-04 namespace provenance, rematerializes the
+  canonical field during replay, holds observed conditions fixed across
+  material-only cohorts, and recursively hides seeds/thresholds/identifying
+  proxies. It does not introduce event hazards, event draws, or physical time.
+  P02-06 is now the next eligible task and owns stable-boundary restart,
+  load-step/refinement sensitivity, a real bounded rupture-resume fixture, and
+  only a candidate G2 report for integrator review.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
 - Compatibility follow-up complete: the seven inherited nested-f-string quote failures were repaired without changing plotting semantics, and the tracked-source compilation regression now covers all 80 Python files.
 
@@ -77,8 +86,8 @@ evidence remains under `evidence/subagents/P02-04/` and
 
 G0 environment/source acceptance and G1 numerical mechanics validation are
 complete. P02-04 and P03-01 are integrated, but neither G2 nor G3 is accepted.
-The remaining critical sequence starts with active P02-05 material-disorder provenance,
-P02-06 restart/sensitivity and G2, P03-02 through P03-06 and G3, G4 frozen
+The remaining critical sequence starts with P02-06 restart/sensitivity and G2,
+P03-02 through P03-06 and G3, G4 frozen
 nonleaking study cohorts, G5 baselines, G6 trained joint world model, and G7
 frozen evaluation. Experimental G8 proceeds in parallel when real lab inputs
 exist; the explorer reaches G9 only with actual solver/model data; release and
@@ -93,8 +102,8 @@ cd C:\Users\mzora\MechWorld
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Current verified result after integrating deterministic localization/accounting
-and the strict trajectory/access schema: 487 passed. The untouched bootstrap
+Current verified result after integrating sample-once material-disorder
+provenance: 516 passed. The untouched bootstrap
 result was 5 passed after dependency repair. This accepts bounded software and
 fixture contracts, not G2/G3, a production/general PG fracture campaign,
 biological parameters, a canonical dataset, a trained model, experiments, or
