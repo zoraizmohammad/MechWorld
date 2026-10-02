@@ -17,7 +17,11 @@ parameter certification.
 ## Installed contents
 
 The wheel contains the `pgworld` package, including the physics oracles, local
-run manager, CLI/doctor, and all four immutable physics profiles. The profile
+run manager, CLI/doctor, the P03-01 `pgworld.trajectory.v1` and
+`pgworld.trajectory_access.v1` in-memory/replay schema modules, and all four
+immutable physics profiles. The schema package does not yet provide HDF5
+persistence, solver export, datasets, splits, normalizers, model APIs, or G3
+acceptance. The profile
 JSON resource content matches the accepted Git blobs exactly after normalizing
 only Git's platform CRLF checkout materialization to canonical LF in
 `configs/physics/`; the originals remain unchanged. The registered IDs and
@@ -52,9 +56,12 @@ utils_helpers
 ```
 
 Figure drivers, result scripts, sandbox scripts, cluster submission scripts,
-task drivers, private data, results, evidence, checkpoints, restart files,
-dumps, and images are not installed. A strict wheel-member allowlist tests this
-boundary. This is a compatibility package, not a public release bundle.
+task drivers, private or generated dataset artifacts, results, evidence,
+checkpoints, restart files, dumps, and images are not installed. A strict
+wheel-member allowlist tests this boundary. The legitimate `pgworld.data`
+source package is named explicitly in that allowlist and does not weaken the
+artifact exclusion. This is a compatibility package, not a public release
+bundle.
 
 ## Legacy elastic task
 

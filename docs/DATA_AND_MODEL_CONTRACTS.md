@@ -1,6 +1,12 @@
 # Data, Mechanics, and Model Contracts
 
-**Status:** interfaces to implement. None of the proposed `pgworld` commands or APIs should be assumed to exist yet. Schema changes require an integrator-reviewed decision record and a migration test.
+**Status:** the immutable in-memory/replay contracts `pgworld.trajectory.v1`
+and `pgworld.trajectory_access.v1` are implemented and independently reviewed
+under P03-01. HDF5 persistence, solver export, dataset loading, split manifests,
+normalizers, model APIs, and the proposed `pgworld` data/model commands remain
+interfaces to implement. Schema changes require an integrator-reviewed decision
+record and a migration test. See `docs/decisions/trajectory_schema.md` for the
+exact accepted v1 contract and its limitations.
 
 ## 1. Physical coordinate contract
 
@@ -50,82 +56,169 @@ Each run manifest contains:
 | `parent_run_id`, `branch_frame_id` | Counterfactual provenance; null for root runs |
 | `source_kind` | `lammps_reference`, `model_prediction`, `experimental`, or `test_fixture` |
 | `source_commit`, `source_tree_hash` | Code used; record dirty-state information |
-| `physics_profile`, `physics_profile_hash` | Exact potential/parameter definitions |
+| `physics_profile`, `physics_profile_hash` | Exact potential/parameter definitions; export must resolve the hash against an immutable profile snapshot |
+| `physics_profile_review_status`, `coarse_graining_convention` | Explicit provisional/review state and bead/edge mapping; never infer approval from a profile name |
+| `reference_state_id`, `reference_state_hash` | Fixed-cell equilibrated reference, including prestress and minimization evidence |
 | `simulator_version`, `build_features` | Actual LAMMPS version, styles/packages, precision/MPI details |
 | `config_hash`, `raw_artifact_hashes` | Configuration and original outputs |
 | `seeds` | Separate geometry, disorder, events, interventions, training streams |
 | `units` | Explicit unit of every stored quantity |
 | `geometry_axes`, `boundary_conditions` | Physical frame and constraints |
-| `loading_mode`, `rupture_law`, `observation_model` | Semantic model versions |
+| `loading_mode`, `rupture_law_id`, `rupture_law_hash` | Semantic control and rupture-law versions; deterministic versus sample-once heterogeneous sampling is resolved by a typed or immutable law artifact |
+| `observation_model_id`, `observation_model_hash` | Observation mapping identity; no implicit experimental mapping |
 | `quality_status`, `termination_reason` | Accepted, rejected, incomplete, or censored |
 | `split_id`, `access_policy` | Membership and publication/privacy rules |
 
-Store seeds for reproducibility, but do not expose hidden rupture thresholds, future events, test labels, or event RNG state as predictor inputs. A model input can contain only information declared available at inference. Keep provenance storage and predictive feature selection separate.
+Store seeds for reproducibility, but do not expose hidden rupture thresholds,
+future events, test labels, rejected trials, private access metadata, or event
+RNG state as predictor inputs. A model input can contain only information
+declared available at inference. Keep provenance storage and predictive feature
+selection separate. `AccessProjection.validate_against(parent)` is required at
+trust boundaries: a projection hash proves internal integrity, not that the
+projection came from a particular trajectory.
 
 ## 4. Numeric schema: one trajectory
 
-For the primary rupture-only model let N be the fixed node count, E0 the initial physical edge count, A0 the initial angle count, and T the number of recorded states. The graph evolves by masking edges/angles, not by renumbering surviving nodes.
+For the primary rupture-only model let N be the fixed node count, E0 the initial
+physical edge count, A0 the initial angle count, and T the number of recorded
+states. The graph evolves by masking edges/angles, not by renumbering surviving
+nodes. The accepted v1 interface is a strict typed record model. P03-04 may map
+it to columnar HDF5 arrays only if round trips preserve every opaque identity,
+nullable field, unit, hash, and relation below.
 
 ### Static arrays
 
 ```text
-nodes/id                 int64[N]
-nodes/molecule_id        int64[N]       # original identity, not current component
-nodes/type               int32[N]
-nodes/material_features  float64[N,F_n]
-edges/id                 int64[E0]
-edges/endpoints          int64[E0,2]    # persistent node IDs
-edges/type               int32[E0]
-edges/rest_length        float64[E0]
-edges/parameters         float64[E0,F_e]
-angles/id                int64[A0]
-angles/nodes             int64[A0,3]
-angles/dependent_edges   int64[A0,2]
-angles/parameters        float64[A0,F_a]
+nodes/id                       opaque_string[N]
+nodes/molecule_id              opaque_string[N]  # original identity, not current component
+nodes/type                     opaque_string[N]
+nodes/material_features        named_float64_with_units[N]
+edges/id                       opaque_string[E0]
+edges/endpoints                opaque_string[E0,2]  # persistent node IDs
+edges/solver_bond_type         int32[E0]
+edges/chemical_type            opaque_string[E0]
+edges/reference_rest_length_nm float64[E0]
+edges/reference_parameters     named_float64_with_units[E0]
+edges/reference_image_n_ij     int32[E0,2]
+angles/id                      opaque_string[A0]
+angles/nodes                   opaque_string[A0,3]
+angles/dependent_edges         opaque_string[A0,2]
+angles/chemical_type           opaque_string[A0]
+angles/reference_parameters    named_float64_with_units[A0]
 ```
+
+Opaque IDs are never coerced to integers: `"001"` and `"1"` are distinct.
+Parallel physical edges are permitted only when canonical endpoints plus
+`solver_bond_type` are unique, because chemical type alone cannot identify a
+solver bond for deletion. Each angle references exactly its two adjacent
+physical edges.
 
 Store the constitutive parameter names separately; a generic “stiffness” column is insufficient when one potential uses an energy parameter and another uses force/length.
 
 ### Per-state arrays
 
 ```text
-states/frame_id                 int64[T]
-states/load_step_id             int64[T]
-states/subevent_id              int64[T]
+states/frame_id                 opaque_string[T]
+states/load_step_id             opaque_string[T]
+states/control_id               opaque_string[T]
+states/subevent_index           int64[T]
 states/phase                    enum[T]
 states/load_coordinate          float64[T]
-states/physical_time_ns         float64[T] + valid_mask[T]
+states/load_coordinate_unit     enum[T]
+states/path_progress            float64[T]
+states/progress_unit            enum[T]
+states/physical_time_ns         null[T]  # v1 is quasi-static
 states/origin                   float64[T,d]
 states/cell_matrix              float64[T,d,d]
 states/positions                float64[T,N,d]
-states/velocities               float64[T,N,d] + valid_mask[T]
+states/velocities               optional_float64[T,N,d]  # capability-gated
 states/node_forces              float64[T,N,d]
-states/node_virial              float64[T,N,d,d] + convention_metadata
+states/node_virial              optional_float64[T,N,d,d] + convention_metadata
 states/edge_alive               bool[T,E0]
-states/edge_parameters          float64[T,E0,F_e] + parameter_names
-states/edge_damage              float64[T,E0] + valid_mask[T,E0]
-states/edge_image_offsets       int32[T,E0,d]
+states/edge_parameters          named_float64_with_units[T,E0]
+states/edge_damage              optional_float64[T,E0]  # only under a declared damage law
+states/edge_image_offsets       int32[T,E0,d] + valid_mask[T,E0]
 states/edge_lengths             float64[T,E0] + valid_mask[T,E0]
 states/edge_tension             float64[T,E0] + valid_mask[T,E0]
 states/edge_energy              float64[T,E0] + valid_mask[T,E0]
 states/angle_alive              bool[T,A0]
-states/component_id             int64[T,N]
-states/global_tension           float64[T,d,d]
-states/energy_terms             float64[T,K]
+states/component_id             opaque_string[T,N]
+states/total_tension            float64[T,d,d]  # pN/nm
+states/incremental_tension      float64[T,d,d]  # total minus fixed reference
+states/energy_terms             named_float64_with_units[T]
 states/convergence_diagnostics  typed numeric fields
 ```
 
+Schema v1 rejects physical-time and local-stress capability claims. Velocities,
+raw node virials, and a continuous edge-damage value are present only when the
+corresponding typed capability and semantics exist; missing quantities are not
+fabricated. Threshold-only runs omit `damage_value` rather than inventing a
+continuous damage coordinate. Raw energies `pe`, `ebond`, and `eangle` are
+required in `pN nm`.
+
 Keep reference parameters immutable and record the **effective current parameters** after local weakening. Repeated unchanged parameter arrays may use a validated change-log/deduplicated representation, but the loader must reconstruct the exact coefficients at every state. A damage variable is valid only under a declared law; a threshold-only experiment need not invent a continuous damage process.
 
-Avoid assigning zero length/force to an inactive edge and treating it as a physical observation. Use explicit validity masks. Keep a stable edge universe in each rupture-only run; optional future bond formation requires schema migration, creation IDs, and a physically defined process. Formation/healing is not required by this proposal.
+Avoid assigning zero length/force to an inactive edge and treating it as a
+physical observation. A dead edge has null current image, length, tension, and
+energy while its immutable reference image remains available. Keep a stable
+edge universe in each rupture-only run; optional future bond formation requires
+schema migration, creation IDs, and a physically defined process.
+Formation/healing is not required by this proposal. Component labels must
+represent the exact connected-component partition and remain stable while the
+alive topology is unchanged.
 
 Suggested phases include `accepted_equilibrium`, `pre_intervention`, `pre_rupture`, `post_topology_change`, and `post_event_equilibrium`. A pair of frames at the same load may still represent a real event and must not be dropped as a duplicate. Record rejected numerical trials separately from accepted scientific trajectories.
 
 ### Controls and events
 
-Each transition references a control object with deformation-gradient increment or boundary displacement, prescribed-force information where applicable, constrained-node masks, external pressure meaning, local weakening mask/factor, and progress increment. Include units and endpoint conventions.
+Each transition references a control object with absolute and incremental
+deformation gradient or tension target, an orthonormal axial/hoop basis,
+boundary displacement and force information where applicable, constrained-node
+masks, external-pressure derivation, local weakening/removal, load coordinate,
+and cumulative progress. One trajectory uses one continuous load family/unit.
+For the present deformation paths the progress increment equals the absolute
+load-coordinate change. A pure intervention inherits the active mechanical
+target and cannot advance load or progress. Pressure targets use the declared
+basis transformation of `diag(pR/2, pR)` and are not normal inflation of a
+flat patch.
 
-An event record contains stable event/edge IDs, triggering control, source (`prescribed_intervention` versus `material_rupture`), old/new state, actual loading coordinate, optional physical time, rupture criterion values, removed dependent interactions, pre/post energy, and cascade parent. Represent right censoring explicitly when no failure occurs before the loading endpoint.
+An event record contains stable SHA-256 event identity for material rupture,
+edge/control/state links, source (`prescribed_intervention` versus
+`material_rupture`), irreversible old/new state, quasi-static load/progress,
+criterion name/value/unit, removed dependent angles, law/profile/reference
+identity, threshold realization, and cascade parent. Event chronology follows
+linked state chronology and the named edge/angles match the exact topology
+delta. Event energy is not duplicated: the linked pre-rupture,
+post-topology-change, and post-event-equilibrium states retain the raw energy
+terms. Physical time is null and invalid in schema v1. Represent right
+censoring explicitly when no failure occurs before the
+loading endpoint. Damage initiation is the first accepted material rupture and
+does not terminate cascade/degradation evaluation.
+
+### Fixed reference and access views
+
+Every trajectory binds one hash-verified
+`fixed_cell_equilibrated_not_zero_tension` reference containing node
+coordinates, full cell matrix, measured total 2D tension, minimization limit,
+tolerance, achieved residual/iterations, profile identity, and static-graph
+identity. The reference is not reset after loading or rupture. Every state
+records total tension and incremental tension relative to that fixed reference.
+
+The exact P02 phase adapter is `pre_delete_relaxed -> pre_rupture`,
+`post_delete_unrelaxed -> post_topology_change`, and
+`post_event_relaxed -> post_event_equilibrium`. Damage initiation,
+load-bearing connectivity loss, load/stiffness degradation, and mechanical
+instability remain four distinct endpoint records.
+
+Observed, target-only, and privileged views have independent strict hashes and
+relational replay validation. Observed inputs exclude hidden thresholds/seeds,
+future states/events/topology, rejected trials, test-derived normalizers, and
+private access metadata. A predictor-known requested control is supplied as an
+authorized input rather than smuggled through a target. Target views preserve
+historical damage-initiation context without relabeling later cascade events.
+Privileged threshold records cover every physical edge and declare criterion,
+unit, realization, and predictor visibility; seeds and realization proxies
+remain hidden even when threshold values are deliberately visible.
 
 ## 5. Required physical consistency tests
 
@@ -204,9 +297,11 @@ Class-imbalance handling must not corrupt event probabilities. If event oversamp
 
 Every checkpoint bundle includes model/config versions, allowed inputs, feature schema, normalizers, physics profile, train/validation/test manifest hashes, intended-use card, seed, training history, and resume files. Release inference weights separately from internal optimizer and private metadata.
 
-## 9. Proposed CLI acceptance contract
+## 9. CLI acceptance contract
 
-These are target interfaces, not commands to run on the inherited repository before implementation:
+`pgworld doctor` is implemented as the bounded environment/mechanics diagnostic.
+The remaining commands below are target interfaces and must not be assumed to
+exist before their owning tasks are accepted:
 
 ```text
 pgworld doctor

@@ -1075,7 +1075,7 @@
       "id": "P02-04",
       "work_package": "WP2",
       "title": "Add stable event localization, budgets, and energy accounting",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -1100,11 +1100,21 @@
       "planned_verification_commands": [
         "python -m pytest tests/physics/test_fracture_accounting.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_SUBAGENT_AND_INTEGRATION_2026-10-02; REVIEWER_ACCEPTED_IMMUTABLE_TIP_56684DF; INTEGRATED_FOCUSED_48_INCLUDED_IN_163_PASS; FULL_SUITE_487_PASS; ISOLATED_WHEEL_1_PASS; DIFF_PATH_IDENTITY_AND_EVIDENCE_HASH_AUDITS_PASS",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "src/pgworld/simulation/fracture.py",
+        "tests/physics/test_fracture_accounting.py",
+        "docs/decisions/fracture_accounting.md",
+        "docs/subagents/P02-04-localization-accounting.md",
+        "evidence/subagents/P02-04/",
+        "evidence/integration/P02-04-P03-01/verification.md",
+        "evidence/integration/P02-04-P03-01/focused-and-package.xml",
+        "evidence/integration/P02-04-P03-01/full-suite.xml",
+        "evidence/integration/P02-04-P03-01/wheel-install.xml"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from independently accepted integrated P02-03 main revision 056dd985b0dd27e5419df5f72b63d88fbd6c133f to research/p02-04-localization in isolated worktree C:/Users/mzora/MechWorld-wt-p02-04. Editing ownership is limited to fracture.py, the dedicated physics test, decision/report, and subagent evidence. Root ledgers/README, topology.py, P02-01 controls, P02-02 damage, profiles/oracles, P03 schema, package tests, dependencies, gates, restart/sensitivity, and all other paths are read-only. Begin with exact red tests. Localize the first accepted material threshold crossing between last accepted lower control and crossing upper control by deterministic bounded refinement in quasi-static load/path coordinates; cyclic/unloading load coordinate may decrease while path progress remains monotone. Rejected/nonconverged/nonlinear-domain-invalid trials must restore the same accepted checkpoint, must not mutate topology/damage or resample the frozen threshold field, and must never become scientific states/labels. Require explicit refinement/solver/retry budgets and terminal diagnostics. Preserve raw phase energies and implement typed derived accounting that separates fixed-topology conservative loading work, same-coordinate topology-deletion energy change, held-control zero boundary work during deletion/re-relaxation, and post-delete relaxation loss; never require energy to decrease across loading/deletion or conflate those terms. Pressure/tension/general-cell work remains unsupported unless independently derived and tested. Add coarse/fine analytical and bounded serial-LAMMPS localization/accounting checks where the existing fixture supports them, keep at most one solver process/two threads, record tolerances and limitations, commit solely as Mohammad Zoraiz, and do not push. This task does not accept G2 or implement restart/load-step sensitivity."
+      "notes": "Completed and independently accepted at immutable subagent tip 56684df333f89a24499baa649878cad05290dd9c, then integrated on main above eef8159. Deterministic bounded first-crossing localization restores rejected/nonconverged/domain-invalid trials, freezes threshold/topology state, enforces retry/refinement/solver budgets, and publishes only a stable accepted cascade. Five raw phases support separate conservative loading work, same-coordinate deletion change, zero held-control boundary work, and post-delete relaxation loss. The bounded real LAMMPS fixture localized b23 at load/path 0.1 within [0.0984375,0.1] and finished with 3 atoms, 1 bond, 0 angles. Integrated verification passed 163 focused/package, 487 full-suite, and 1 isolated-wheel test. Scope remains the exact certified tiny harmonic fixture and supported diagonal deformation/extension-ratio law; nonlinear-peptide localization, persistent schedule/restart, sensitivity, experiments, biological/time claims, and G2 remain unaccepted."
     },
     {
       "id": "P02-05",
@@ -1211,7 +1221,7 @@
       "id": "P03-01",
       "work_package": "WP3",
       "title": "Freeze versioned graph, control, and event schemas",
-      "status": "IN_PROGRESS",
+      "status": "DONE",
       "owner_role": "integrator",
       "execution_kind": "agent",
       "mandatory": true,
@@ -1239,11 +1249,24 @@
       "planned_verification_commands": [
         "python -m pytest tests/unit/test_schema.py -q"
       ],
-      "verification_commands_status": "PROPOSED_INTERFACE_NOT_YET_IMPLEMENTED_UNLESS_PRESENT_IN_LIVE_REPO",
+      "verification_commands_status": "EXECUTED_SUBAGENT_AND_INTEGRATION_2026-10-02; REVIEWER_ACCEPTED_IMMUTABLE_TIP_8F22341; FOCUSED_SCHEMA_108_PASS; INTEGRATED_FOCUSED_PACKAGE_163_PASS; FULL_SUITE_487_PASS; ISOLATED_WHEEL_1_PASS; 23_OF_23_SUBAGENT_ARTIFACT_HASHES_AND_MAIN_PATH_IDENTITY_AUDITS_PASS",
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
-      "evidence": [],
+      "evidence": [
+        "src/pgworld/data/__init__.py",
+        "src/pgworld/data/schema.py",
+        "tests/unit/test_schema.py",
+        "docs/decisions/trajectory_schema.md",
+        "docs/DATA_AND_MODEL_CONTRACTS.md",
+        "docs/migration.md",
+        "docs/subagents/P03-01-schema.md",
+        "evidence/subagents/P03-01/",
+        "evidence/integration/P02-04-P03-01/verification.md",
+        "evidence/integration/P02-04-P03-01/focused-and-package.xml",
+        "evidence/integration/P02-04-P03-01/full-suite.xml",
+        "evidence/integration/P02-04-P03-01/wheel-install.xml"
+      ],
       "blocked_by": [],
-      "notes": "Assigned from accepted and pushed main revision 0222b6d6fdee180e2e2daa86ccfebb276c91f1f6 to research/p03-01-schema in isolated worktree C:/Users/mzora/MechWorld-wt-p03-01. The editing specialist owns only src/pgworld/data/__init__.py, src/pgworld/data/schema.py, tests/unit/test_schema.py, docs/decisions/trajectory_schema.md, docs/subagents/P03-01-schema.md, and evidence/subagents/P03-01/. The integrator retains docs/DATA_AND_MODEL_CONTRACTS.md, root ledgers, package/release tests, dependency files, manifests, and gate state. Begin with exact failing regressions. Define strict versioned typed records and replay validation for stable opaque node/edge/angle/event identities; column-vector H, origin, periodic axes, signed per-edge n_ij; fixed-reference provenance; controls/load progress/phases/status/units; immutable reference and reconstructible current effective edge parameters; and explicit observed, target-only, and privileged access paths. Predictor-visible records must recursively exclude hidden threshold values/seeds/realization proxies, future reference states/events/topology, rejected trials, test-derived normalizers, and private access metadata. Preserve same-load event substeps, irreversible masks, angle dependencies, censoring/invalid diagnostics, static/dynamic/event separation, grouped lineage, source/profile/reference/law hashes, and schema capability flags. Reconcile opaque string IDs with the earlier int64 draft without lossy coercion, reject unknown/tampered/mixed-schema fields, and provide migration/version failure tests. Do not implement HDF5 persistence, export real trajectories, alter P02-03 records, weaken package exclusions, use private data, or claim G3. Commit solely as Mohammad Zoraiz and do not push."
+      "notes": "Completed after four preserved adversarial correction rounds and independently accepted at immutable tip 8f22341e171e36ac4bb911754ef9274cb08466a6 (source 9f94f79f238aab251245c8381baf666cb55d9011). The strict v1 records preserve opaque identities, restricted-triclinic cells and signed images, fixed-cell reference/prestress, complete controls, phase/convergence semantics, reconstructible effective coefficients, topology/event chronology, four failure endpoints, and relationally validated observed/target/privileged access projections. The integrator reconciled the shared contract and strict wheel allowlist without weakening artifact exclusions. Integrated verification passed 108 schema tests within 163 focused/package tests, 487 full-suite tests, and 1 isolated-wheel test. This is in-memory/JSON-compatible schema and replay validation only: no solver exporter, HDF5 shard, dataset, split, normalizer, trained model, experiment, or G3 acceptance exists."
     },
     {
       "id": "P03-02",

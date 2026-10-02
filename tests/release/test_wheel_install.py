@@ -43,6 +43,8 @@ PACKAGE_MODULES = {
     "pgworld/doctor.py",
     "pgworld/config/__init__.py",
     "pgworld/config/physics_profiles.py",
+    "pgworld/data/__init__.py",
+    "pgworld/data/schema.py",
     "pgworld/physics/__init__.py",
     "pgworld/physics/damage.py",
     "pgworld/physics/energy_force_virial.py",
@@ -122,7 +124,6 @@ def test_wheel_installs_profiles_legacy_core_console_and_solver(tmp_path: Path) 
         "__pycache__",
         "artifacts",
         "checkpoints",
-        "data",
         "dumps",
         "evidence",
         "images",
@@ -206,6 +207,11 @@ import sys
 import pgworld
 import lammps
 from pgworld.config.physics_profiles import available_profile_ids, load_physics_profile
+from pgworld.data import (
+    ACCESS_SCHEMA_VERSION,
+    TRAJECTORY_SCHEMA_VERSION,
+    Cell2D as TrajectoryCell2D,
+)
 from pgworld.physics.energy_force_virial import PhysicsOracle
 from pgworld.physics.lammps_oracle import run_lammps_bond_fixture
 from pgworld.physics.damage import DamageLaw, materialize_thresholds
@@ -329,12 +335,24 @@ assert installed_registry.initial_state.alive_bond_ids == ("installed-bond-a",)
 assert installed_registry.bond_displacement_nm("installed-bond-a").tolist() == [1.03, 0.0]
 assert CascadeBudget(max_events=1, max_relaxations=2).max_events == 1
 
+trajectory_cell = TrajectoryCell2D(
+    origin_nm=(0.0, 0.0),
+    cell_matrix_nm=((4.0, 0.25), (0.0, 3.0)),
+    periodic_axes=(True, True),
+    axis_meanings=("axial", "hoop"),
+)
+assert TrajectoryCell2D.from_record(trajectory_cell.as_record()) == trajectory_cell
+
 controls_module = importlib.import_module("pgworld.simulation.controls")
+data_module = importlib.import_module("pgworld.data")
+schema_module = importlib.import_module("pgworld.data.schema")
 damage_module = importlib.import_module("pgworld.physics.damage")
 fracture_module = importlib.import_module("pgworld.simulation.fracture")
 topology_module = importlib.import_module("pgworld.simulation.topology")
 modules = {
     "pgworld": str(Path(pgworld.__file__).resolve()),
+    "pgworld.data": str(Path(data_module.__file__).resolve()),
+    "pgworld.data.schema": str(Path(schema_module.__file__).resolve()),
     "pgworld.physics.damage": str(Path(damage_module.__file__).resolve()),
     "pgworld.simulation.controls": str(Path(controls_module.__file__).resolve()),
     "pgworld.simulation.fracture": str(Path(fracture_module.__file__).resolve()),
@@ -372,6 +390,13 @@ print(json.dumps({
         "registry_id": installed_registry.registry_id,
         "explicit_image_offset": list(installed_registry.bond("installed-bond-a").image_offset_n_ij),
         "physical_time_claim": False,
+    },
+    "p03_01": {
+        "trajectory_schema_version": TRAJECTORY_SCHEMA_VERSION,
+        "access_schema_version": ACCESS_SCHEMA_VERSION,
+        "cell_round_trip": True,
+        "persistence_claim": False,
+        "gate_g3_claim": False,
     },
 }, sort_keys=True))
 """ % (LEGACY_MODULES,),

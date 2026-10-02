@@ -4,15 +4,22 @@ This document is a short, PI-facing roadmap for extending the inherited PG Netwo
 
 ## Current position
 
-At the foundation snapshot represented by commit `44dbbf0`, the repository has:
+The foundation through commit `44dbbf0` established the transactional rupture
+cascade. The current 2026-10-02 integrated state additionally includes reviewed
+P02-04 event localization/accounting and the P03-01 trajectory/access schema.
+The repository has:
 
 - preserved the inherited simulator, provenance, authorship, and parameter routes;
 - reproduced and repaired documented software and analysis defects;
 - verified energy, forces, virials, periodic geometry, native two-dimensional tension, and elastic response against analytical calculations and bounded serial LAMMPS fixtures;
 - implemented explicit quasi-static controls and a transactional rupture cascade with irreversible bond and dependent-angle removal, rollback, and fresh cascade reassessment; and
-- passed 331 tests on the integrated main revision.
+- passed 487 tests on the current integrated main revision.
 
-G0 environment and source acceptance and G1 numerical mechanics validation are accepted. Event localization, energy accounting, the canonical trajectory contract, trained models, frozen evaluation, the scientist-facing explorer, and release review remain incomplete.
+G0 environment and source acceptance and G1 numerical mechanics validation are
+accepted. Deterministic localization/accounting and the in-memory trajectory
+contract are accepted within their bounded scopes. Material-disorder provenance,
+restart/sensitivity, canonical solver export/storage, trained models, frozen
+evaluation, the scientist-facing explorer, and release review remain incomplete.
 
 ## Phase 1 Repository foundation and reproducibility
 
@@ -30,13 +37,19 @@ Verify coefficient conventions, units, periodic geometry, reference states, memb
 
 Apply controlled loading, identify mechanically triggered rupture, remove physical bonds and dependent angles irreversibly, localize events, and separate loading, deletion, held-control boundary work, and relaxation terms.
 
-**Status:** In progress. The transactional cascade is integrated; deterministic event localization and phase-specific accounting are the immediate mechanics tasks.
+**Status:** In progress. The transactional cascade, deterministic event
+localization, and phase-specific accounting are integrated for the certified
+tiny harmonic fixture. Sample-once material-disorder provenance and
+restart/load-step sensitivity remain before G2; the work does not yet establish
+general nonlinear-peptide fracture or biological rupture parameters.
 
 ## Phase 4 Trajectory data and study cohorts
 
 Define a versioned graph-trajectory format with persistent identities, complete provenance, immutable reference state, topology events, observed and hidden fields, censoring rules, and grouped nonleaking splits.
 
-**Status:** In progress. The schema must pass adversarial review before canonical export, dataset generation, or cohort freezing.
+**Status:** In progress. The strict opaque-ID in-memory/replay schema passed
+adversarial review. Canonical solver export, HDF5 shards, grouped splits, loader
+round trips, and G3 remain incomplete.
 
 ## Phase 5 Simulation campaign and baseline models
 
@@ -70,13 +83,19 @@ Related trajectories from the same base network will remain in one split. Normal
 
 ## Immediate next steps
 
-1. Complete deterministic rupture-event localization and phase-correct mechanical accounting.
-2. Accept the versioned trajectory schema and canonical export contract.
-3. Profile a small simulation pilot and report runtime, memory, storage, and convergence before requesting a larger campaign.
-4. Generate grouped study cohorts and evaluate mechanistic and learned baselines.
-5. Train and evaluate the joint topology-and-mechanics world model.
-6. Build the scientist-facing explorer from verified solver and model outputs.
-7. Complete open-source comparison, independent review, and release evidence.
+1. Complete sample-once material-disorder/conditional-replicate provenance.
+2. Validate restart equivalence and load-step/refinement sensitivity; accept G2
+   only if the real bounded rupture workflow passes.
+3. Export accepted solver states/events into the reviewed schema, implement
+   immutable storage and grouped splits, and accept G3 only after round-trip
+   evidence.
+4. Profile a small simulation pilot and report runtime, memory, storage, and
+   convergence before requesting a larger campaign.
+5. Generate grouped study cohorts and evaluate mechanistic and learned
+   baselines.
+6. Train and evaluate the joint topology-and-mechanics world model.
+7. Build the scientist-facing explorer from verified solver and model outputs.
+8. Complete open-source comparison, independent review, and release evidence.
 
 ## Scientific guidance requested
 

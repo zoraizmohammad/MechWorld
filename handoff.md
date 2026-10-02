@@ -3,10 +3,19 @@
 ## 🎯 Current Mission & Goals
 
 - **Ultimate goal:** Complete the evidence-gated MechWorld-PG program: verified inherited mechanics, irreversible topology change, reproducible graph trajectories, trained/evaluated physics-structured world models, actual experimental integration, a scientist-facing explorer, and an evidence-linked release candidate.
-- **Current session objective:** Implement and independently review P02-04 event localization/energy accounting while a second isolated specialist corrects the dependency-eligible P03-01 versioned data-access schema after adversarial rejection.
+- **Current session objective:** Accept and integrate the independently reviewed
+  P02-04 event-localization/accounting and corrected P03-01 trajectory/access
+  schema returns, synchronize the shared contract/package/ledgers, then assign
+  dependency-eligible P02-05 from the resulting clean pushed main revision.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
-- **Gate state:** G0 and G1 are accepted; G2-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-05A, P01-06 through P01-11, P02-01 through P02-03, and P10-01 are done. P02-04 and corrected P03-01 are active in separate isolated worktrees; neither G2 nor G3 is accepted. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
+- **Gate state:** G0 and G1 are accepted; G2-G11 remain not accepted. P00-01
+  through P00-06, P01-01 through P01-04, P01-05A, P01-06 through P01-11,
+  P02-01 through P02-04, P03-01, and P10-01 are done. P02-05 is the next
+  dependency-eligible implementation task; P02-06 remains required for G2 and
+  P03-02 through P03-06 remain required for G3. P01-05 remains blocked on final
+  biological review, P08-01 on actual lab access, and production/public release
+  remain unauthorized.
 
 ## 📊 Transient State & What Changed
 
@@ -36,7 +45,24 @@
 - P03-01 is dependency-eligible from accepted P02-02 and is assigned from pushed main `0222b6d` to `research/p03-01-schema` at `C:/Users/mzora/MechWorld-wt-p03-01`. Its editing specialist is limited to the new `pgworld.data` schema package, focused tests, a decision record, and its own evidence/report. The integrator retains `docs/DATA_AND_MODEL_CONTRACTS.md`, README/handoff/TASKS, package tests, dependency files, manifests, and gate decisions. This runs tangentially to P02-03 without sharing write surfaces or launching additional solver/training work.
 - P02-03 returned immutable sole-author commits `08b9ab0`, `96b4808`, and report-only correction `23d9ed5`; the independent reviewer issued FINAL ACCEPT. They were integrated as `1ea1d25`, `875f298`, and `056dd98`. Main independently passed 60 focused and 331 full tests. Its exact deletion/re-relaxation, rollback, replay, and constrained real-LAMMPS fixture contract is accepted within documented limitations; G2 remains unaccepted.
 - P02-04 is assigned from integrated main `056dd98` to `research/p02-04-localization` at `C:/Users/mzora/MechWorld-wt-p02-04`. Ownership is limited to `fracture.py`, its dedicated accounting tests, decision/report, and evidence. It must localize accepted threshold crossings with deterministic bounded refinement, restore every rejected/invalid trial without resampling or mutation, and keep conservative loading work, deletion energy, held-control boundary work, and relaxation loss separate.
-- P03-01's first immutable return `c489b8f`/`c38e4ab` passed its own tests but was independently rejected. Reproduced blockers include relationally forgeable access projections; incomplete fixed-reference/tension/convergence replay; incompatible multigraph/angle rules; undeclared coefficient changes; endpoint/event/control/censor/status mismatches; missing threshold visibility; inactive-edge image ambiguity; incomplete boundary/energy semantics; and geometry/criterion inconsistency. Exact correction reds are preserved and the task remains in progress; no first-return commit is integrated.
+- P03-01's first immutable return `c489b8f`/`c38e4ab` passed its own tests but was independently rejected. Reproduced blockers include relationally forgeable access projections; incomplete fixed-reference/tension/convergence replay; incompatible multigraph/angle rules; undeclared coefficient changes; endpoint/event/control/censor/status mismatches; missing threshold visibility; inactive-edge image ambiguity; incomplete boundary/energy semantics; and geometry/criterion inconsistency. Exact correction reds are preserved; that first return was not accepted on its own and required the later reviewed correction commits described below.
+- P02-04 completed six adversarial correction cycles plus bounded real-LAMMPS
+  review and was independently accepted at immutable tip `56684df`. Its three
+  sole-Mohammad commits were cherry-picked above the preserved pushed project-
+  phases commit `eef8159`. The accepted scope is deterministic localization and
+  phase accounting for the certified tiny harmonic fixture; restart/sensitivity,
+  nonlinear-peptide localization, and G2 are explicitly excluded.
+- P03-01 completed four preserved correction rounds and was independently
+  accepted at immutable tip `8f22341` (source `9f94f79`). Its full reviewed
+  range, including rejected-first-pass evidence, was cherry-picked without
+  conflict. The integrator reconciled `docs/DATA_AND_MODEL_CONTRACTS.md`,
+  `docs/migration.md`, and the strict wheel allowlist. The result is an
+  in-memory/JSON-compatible replay schema only; real solver export, HDF5,
+  datasets, splits, normalizers, models, and G3 remain later tasks.
+- The two accepted ranges do not share source paths and remain byte-equivalent
+  to their reviewed immutable tips. The newer `eef8159` PI-facing project-phase
+  document was preserved unchanged. No private data or public artifact was
+  added.
 
 ## ✅ Verification & Hard Evidence
 
@@ -67,6 +93,17 @@
 - Integrated P02-01 quasi-static controls: exact defect-first and adversarial red records cover the missing module, forged direct constructors, mutable metadata, inverted/inconsistent tensors, pressure/mode relabeling, arbitrary path progress, and invalid selectors. Final focused verification passed **40 tests**; a fresh installed-wheel run passed **1 test in 128.540 s** with strict allowlist and clean `pip check`; the subagent full suite passed **213 tests in 155.742 s**. The integrated main checkout independently passed **213 tests in 150.22 s** with no failures/errors/skips. The accepted contract provides explicit deformation/tension schedules and prescribed stable-ID interventions, not rupture or solver execution. Evidence: `evidence/subagents/P02-01/` and `evidence/integration/P02-01/`.
 - Integrated P02-02 phenomenological damage/events: exact red rounds captured the missing module; cross-record, constructor, replay, and endpoint defects; a forged event/post-state bond mismatch; mixed-law aggregation; and solver-error relabeling. Final focused verification passed **58 tests**; a fresh installed-wheel run passed **1 test in 122.26 s** with strict allowlist and clean `pip check`; the subagent full suite passed **271 tests in 114.80 s**. Integrated `main` independently passed **271 tests in 110.49 s** with no failures/errors/skips. This accepts logical event semantics, not the P02-03 solver/topology cascade or G2. Evidence: `evidence/subagents/P02-02/` and `evidence/integration/P02-02/`.
 - Integrated P02-03 transactional fracture cascade: independent review accepted the three-commit immutable return after repeated exact replay, rollback, boundary, reference-tension, real-fixture, and report-accuracy corrections. Subagent final evidence passed **18 topology**, **39 fake/replay**, **3 real serial LAMMPS**, **331 full-suite**, and **1 isolated-wheel** test after one preserved dependency-install timeout and the single authorized retry. Integrated main independently passed **60 focused in 9.07 s** and **331 total in 552.04 s**; the initial focused environment failure is preserved. Evidence: `evidence/subagents/P02-03/` and `evidence/integration/P02-03/`.
+- Integrated P02-04/P03-01 acceptance: path/identity review proved both
+  cherry-picked ranges byte-equivalent to their accepted immutable tips and
+  found no shared source-path conflict. The first combined main run passed
+  **156** tests but used pytest's default JUnit family, so its single evidence-
+  property warning is preserved. The final focused/package run passed **163 in
+  3.98 s**; the isolated installed-wheel run passed **1 in 115.98 s**; and the
+  full suite passed **487 with 14 warnings in 119.37 s**. The wheel imported
+  `pgworld.data` only from its fresh site-packages, preserved the exact member
+  allowlist/private-artifact boundary, passed `pip check`, and completed its
+  authorized real-LAMMPS checks. Evidence and SHA-256 values:
+  `evidence/integration/P02-04-P03-01/verification.md`.
 - Packet archive limitation: no ZIP was present; the historical archive SHA-256 could not be recomputed. Live inventory matches the packet's counts, but byte identity is `[UNVERIFIED]`.
 
 ## 🚫 Constraints & "Do Not Touch" Zones
@@ -88,10 +125,21 @@
 7. [x] Implement, independently review, and integrate P02-01 explicit quasi-static loading/control protocols while P01-05 biological review and lab inputs remain blocked.
 8. [x] Complete the isolated P02-02 implementation and independent review of phenomenological damage, irreversible-event semantics, and distinct failure endpoints.
 9. [x] Complete and integrate the independently reviewed P02-03 apply-control/relax/assess/delete-dependent-topology/re-relax cascade; keep G2 unaccepted until P02-04 through P02-06 evidence exists.
-10. [ ] Complete active P02-04 deterministic event localization and phase-correct work/deletion/relaxation accounting without admitting invalid trials as labels.
-11. [ ] Correct and independently re-review P03-01 strict typed schema and observed/target/privileged access contract; then reconcile `docs/DATA_AND_MODEL_CONTRACTS.md` and the strict wheel allowlist under integrator ownership. No HDF5/export/G3 claim belongs to this task.
+10. [x] Complete, independently review, and integrate P02-04 deterministic
+    event localization and phase-correct work/deletion/relaxation accounting
+    without admitting invalid trials as labels.
+11. [x] Correct, independently re-review, and integrate P03-01 strict typed
+    schema and observed/target/privileged access contract; reconcile
+    `docs/DATA_AND_MODEL_CONTRACTS.md`, migration notes, and the strict wheel
+    allowlist without making an HDF5/export/G3 claim.
 12. [ ] Refresh P10-01 after project results and obtain independent claim review before any manuscript priority language; the current audit is targeted through 2026-10-01, not exhaustive.
 13. [ ] Do not begin a main dataset sweep before G2/G3 schema and rupture acceptance; do not begin model claims before real rupture, schema, split, and pilot gates.
+14. [ ] Assign P02-05 from the clean accepted pushed main revision. Implement
+    sample-once material-disorder/conditional-replicate provenance using the
+    P01-04 seed namespaces and P02-02 threshold field; keep the event RNG
+    reserved and unconsumed unless a separate load-progress hazard is later
+    justified and validated. Use a separate implementer worktree and read-only
+    reviewer; do not run LAMMPS for the core contract.
 
 **Active jobs:** none. **Persistent simulation/training jobs:** none. Inspect `reports/jobs.jsonl` before starting any future job.
 

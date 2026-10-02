@@ -288,3 +288,15 @@ explicit diagnostic when refinement/solver/retry budgets are exhausted.
 Energy accounting must keep conservative fixed-topology loading work,
 same-coordinate deletion change, held-control boundary work, and post-delete
 relaxation loss as separately named quantities with units and provenance.
+
+Twelfth/thirteenth-wave integration state: the P03-01 specialist completed four
+preserved adversarial correction rounds and the reviewer accepted immutable tip
+`8f22341`; the P02-04 specialist completed bounded fake and real-LAMMPS review
+and the reviewer accepted immutable tip `56684df`. Both reviewed ranges were
+cherry-picked above the preserved `eef8159` main commit. The integrator
+reconciled the shared data contract, migration notes, strict wheel allowlist,
+root task/README/handoff state, and integrated evidence. Main passed 163
+focused/package tests, 487 full-suite tests, and one isolated installed-wheel
+test. Editing ownership for P02-04 and P03-01 is cleared. No agent owns G2/G3,
+solver export, HDF5 storage, datasets, or root ledgers as a consequence of
+these acceptances.
