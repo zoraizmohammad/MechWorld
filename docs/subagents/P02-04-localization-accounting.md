@@ -126,7 +126,11 @@ closed backend.
 | `wheel-install.xml` | `fda7388837743c35245847e0334e8858c123164559e33cf460b5ad5289689ec6` |
 | `wheel-report.json` | `b7fd02aee1994183cb57757ce1a8e09a64cfabd2adc79d730cdd15d66e9bf0b3` |
 
-Source contract hashes at verification were:
+Runtime working-tree byte hashes at verification were as follows. These hash
+the exact Windows-materialized files used by the test commands; they are not
+Git blob object IDs. Commit
+`d73df3dd27375b8866351442dd7d7b8f8534fbcc` is the immutable source content
+identity.
 
 | Path | SHA-256 |
 |---|---|
