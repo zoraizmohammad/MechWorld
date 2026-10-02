@@ -4,7 +4,7 @@ Physics-structured world models for bacterial cell-wall mechanics, built on the 
 
 ## Current status
 
-Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independently reviewing, integrating, verifying, and pushing P02-02, then assigning P02-03 topology-changing rupture/relaxation in an isolated worktree after two parallel read-only preflights. Final biological parameter review remains blocked.
+Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independently reviewing, integrating, verifying, and pushing P02-02, assigning P02-03 topology-changing rupture/relaxation, and starting the dependency-eligible P03-01 schema contract in a second isolated implementation worktree. Final biological parameter review remains blocked.
 
 | Area | Status | Evidence or limitation |
 |---|---|---|
@@ -16,7 +16,7 @@ Last synchronized with `handoff.md` and `TASKS.json`: 2026-10-01 after independe
 | Inherited mechanics repair | G1 accepted | P01-01 through P01-11 are integrated or explicitly retained as provisional/blocked; the installable wheel and `pgworld doctor` passed fresh-environment real-LAMMPS checks |
 | Physics/units contract | Immutable provisional profiles verified; biological review pending | Four route-specific hashes separate historical execution from the required new virial-only policy and reject tampered persisted snapshots. Coarse-graining, angle mapping, nonlinear-fit recovery, and the final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
-| Rupture, dataset, models, evaluation, explorer | P02-01/P02-02 done; P02-03 active | Controls and damage/event semantics are accepted; the actual transactional solver topology/angle mutation and re-relaxation cascade is isolated on `research/p02-03-fracture-cascade`; G2 and later gates remain unaccepted |
+| Rupture, dataset, models, evaluation, explorer | P02-01/P02-02 done; P02-03 and P03-01 active | The transactional solver topology/angle mutation cascade and the versioned observed/target/privileged trajectory contract are isolated on separate branches with disjoint edit ownership; G2 and later gates remain unaccepted |
 | Experimental validation | P08-01 blocked on access | AFM plus matched morphology is the proposed target, but actual lab protocol, custodian, permissions, acquisition, raw files, calibration, and review remain unconfirmed |
 | Release | Foundation and mechanics gates accepted | G0 and numerical/software mechanics gate G1 are accepted; G2-G11 remain unaccepted and no public hosting, data/model release, or paper submission is authorized |
 
@@ -39,12 +39,13 @@ Latest integration verification: P02-02 passed 271 total tests on integrated `ma
 - P02-01 is done after independent adversarial review. Forty focused cases enforce absolute/increment replay, coordinate covariance, cyclic path progress, closed-cylinder pressure assumptions, stable-ID intervention locality, and the separation of prescribed interventions from material rupture.
 - P02-02 is done after multiple independent defect rounds. Fifty-eight focused cases enforce registered-profile/reference binding, immutable threshold/event/state replay, stable-ID sample-once disorder, invalid-reference handling, irreversible masks, excluded event origins, cyclic path-progress censoring, and separate failure endpoints. Integrated `main` passed 271/271 tests. P02-03 is now eligible to implement the actual solver/topology cascade; G2 is not yet accepted.
 - P02-03 is active from pushed main `0ee6194` after two parallel read-only preflights. Its isolated contract adds an external opaque-ID topology registry and a transactional real-LAMMPS delete-dependent-angles/delete-bond/re-relax loop with rollback, persistent edge-image identity, retained disconnected fragments, raw phase-labelled mechanics, and fake-backend failure budgets. Localization/derived energy accounting, restart sensitivity, and the canonical trajectory schema remain later owned tasks.
+- P03-01 is active from pushed main `0222b6d` in `research/p03-01-schema`. A second implementation specialist owns only the new `pgworld.data` schema code, focused tests, decision record, and its evidence/report; the integrator retains the shared data/model contract, root ledgers, strict package tests, and gate state. The task must encode opaque stable identities, cell/image geometry, phases/controls/provenance/units, reconstructible current coefficients, and recursively separated observed, target-only, and privileged access paths. It does not yet write HDF5 shards, export rupture trajectories, or accept G3.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
 - Compatibility follow-up complete: the seven inherited nested-f-string quote failures were repaired without changing plotting semantics, and the tracked-source compilation regression now covers all 80 Python files.
 
 ## Remaining path
 
-G0 environment/source acceptance and G1 numerical mechanics validation are complete. The remaining critical sequence is G2 irreversible rupture, G3 canonical trajectories, G4 frozen nonleaking study cohorts, G5 baselines, G6 trained joint world model, and G7 frozen evaluation. Experimental G8 proceeds in parallel when real lab inputs exist; the explorer reaches G9 only with actual solver/model data; release and independent audit are G10-G11.
+G0 environment/source acceptance and G1 numerical mechanics validation are complete. P02-03 and the independently eligible P03-01 contract are active in parallel. The remaining critical sequence is G2 irreversible rupture, G3 canonical trajectories, G4 frozen nonleaking study cohorts, G5 baselines, G6 trained joint world model, and G7 frozen evaluation. Experimental G8 proceeds in parallel when real lab inputs exist; the explorer reaches G9 only with actual solver/model data; release and independent audit are G10-G11.
 
 The machine-readable source of task truth is `TASKS.json`. The detailed current state, commands, evidence, active ownership, and blockers are in `handoff.md`. With every future handoff, this README must be updated in the same logical change so the status and tasks left do not drift.
 

@@ -3,10 +3,10 @@
 ## 🎯 Current Mission & Goals
 
 - **Ultimate goal:** Complete the evidence-gated MechWorld-PG program: verified inherited mechanics, irreversible topology change, reproducible graph trajectories, trained/evaluated physics-structured world models, actual experimental integration, a scientist-facing explorer, and an evidence-linked release candidate.
-- **Current session objective:** Implement and independently review P02-03 actual quasi-static topology-changing rupture/relaxation cascade after two parallel read-only interface/LAMMPS preflights.
+- **Current session objective:** Implement and independently review P02-03 actual quasi-static topology-changing rupture/relaxation while a second isolated specialist implements the dependency-eligible P03-01 versioned data-access schema.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
-- **Gate state:** G0 and G1 are accepted; G2-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-05A, P01-06 through P01-11, P02-01, P02-02, and P10-01 are done. P02-03 is active in an isolated worktree; G2 remains unaccepted. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
+- **Gate state:** G0 and G1 are accepted; G2-G11 remain not accepted. P00-01 through P00-06, P01-01 through P01-04, P01-05A, P01-06 through P01-11, P02-01, P02-02, and P10-01 are done. P02-03 and P03-01 are active in separate isolated worktrees; neither G2 nor G3 is accepted. P01-05 remains blocked on final biological review, P08-01 on actual lab access, and production/public release remain unauthorized.
 
 ## 📊 Transient State & What Changed
 
@@ -33,6 +33,7 @@
 - P02-01 returned four reviewed commits and was integrated as `c4e71c0`, `5c4907c`, `1999149`, and `736fe51`. The reviewer accepted the immutable 35-path range after three adversarial correction rounds and a final evidence-format correction. Forty focused tests cover control semantics; the subagent full suite passed 213/213, the separate installed-wheel run passed 1/1, and integrated `main` independently passed 213/213 in 150.22 seconds. Editing ownership is cleared; root ledgers, physics profiles, solver/oracle code, shared trajectory schemas, and gate state remain integrator-only.
 - P02-02 returned three reviewed commits and was integrated as `15df7b8`, `06889af`, and `343296e`. The reviewer accepted the immutable 41-path range after multiple adversarial correction rounds. Fifty-eight focused tests cover phenomenological threshold, replay, provenance, transition, censoring, and endpoint semantics; the subagent full suite passed 271/271, the separate installed-wheel run passed 1/1, and integrated `main` independently passed 271/271 in 110.49 seconds. Editing ownership is cleared. A separate read-only subagent is preflighting P02-03; root ledgers and gate decisions remain integrator-only.
 - P02-02 acceptance/ledger commit `0ee6194` was pushed and verified identical to `origin/main`. Two read-only P02-03 preflights completed in parallel: one verified the exact LAMMPS 20260902 `delete_bonds` endpoint/type pattern on a 3-bond/2-angle fixture and defined transactional rollback; the other defined the minimal opaque-ID, periodic-image, state-snapshot, transition-envelope, hidden-metadata, and P03 ownership contract. P02-03 is assigned from `0ee6194` to `research/p02-03-fracture-cascade` at `C:/Users/mzora/MechWorld-wt-p02-03` with the expanded bounded paths in `TASKS.json`/`docs/ownership.md`.
+- P03-01 is dependency-eligible from accepted P02-02 and is assigned from pushed main `0222b6d` to `research/p03-01-schema` at `C:/Users/mzora/MechWorld-wt-p03-01`. Its editing specialist is limited to the new `pgworld.data` schema package, focused tests, a decision record, and its own evidence/report. The integrator retains `docs/DATA_AND_MODEL_CONTRACTS.md`, README/handoff/TASKS, package tests, dependency files, manifests, and gate decisions. This runs tangentially to P02-03 without sharing write surfaces or launching additional solver/training work.
 
 ## ✅ Verification & Hard Evidence
 
@@ -83,7 +84,7 @@
 7. [x] Implement, independently review, and integrate P02-01 explicit quasi-static loading/control protocols while P01-05 biological review and lab inputs remain blocked.
 8. [x] Complete the isolated P02-02 implementation and independent review of phenomenological damage, irreversible-event semantics, and distinct failure endpoints.
 9. [ ] Complete the active isolated P02-03 apply-control/relax/assess/delete-dependent-topology/re-relax cascade with independent review; do not accept G2 on logical event records alone.
-10. [ ] Preserve P03-01 ownership of canonical persistent per-edge image offsets and stable edge identity; the P01-01 inferred minimum image is not a trajectory identity substitute.
+10. [ ] Complete the active isolated P03-01 strict typed schema and observed/target/privileged access contract; the P01-01 inferred minimum image is not a trajectory identity substitute, and no HDF5/export/G3 claim belongs to this task.
 11. [ ] Refresh P10-01 after project results and obtain independent claim review before any manuscript priority language; the current audit is targeted through 2026-10-01, not exhaustive.
 12. [ ] Do not begin a main dataset sweep before G2/G3 schema and rupture acceptance; do not begin model claims before real rupture, schema, split, and pilot gates.
 

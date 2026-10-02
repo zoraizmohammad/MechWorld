@@ -1195,7 +1195,7 @@
       "id": "P03-01",
       "work_package": "WP3",
       "title": "Freeze versioned graph, control, and event schemas",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "integrator",
       "execution_kind": "agent",
       "mandatory": true,
@@ -1203,9 +1203,13 @@
         "P02-02"
       ],
       "owned_paths": [
+        "src/pgworld/data/__init__.py",
         "src/pgworld/data/schema.py",
         "docs/DATA_AND_MODEL_CONTRACTS.md",
-        "tests/unit/test_schema.py"
+        "tests/unit/test_schema.py",
+        "docs/decisions/trajectory_schema.md",
+        "docs/subagents/P03-01-schema.md",
+        "evidence/subagents/P03-01/"
       ],
       "expected_outputs": [
         "typed manifest and schema versions",
@@ -1223,7 +1227,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": ""
+      "notes": "Assigned from accepted and pushed main revision 0222b6d6fdee180e2e2daa86ccfebb276c91f1f6 to research/p03-01-schema in isolated worktree C:/Users/mzora/MechWorld-wt-p03-01. The editing specialist owns only src/pgworld/data/__init__.py, src/pgworld/data/schema.py, tests/unit/test_schema.py, docs/decisions/trajectory_schema.md, docs/subagents/P03-01-schema.md, and evidence/subagents/P03-01/. The integrator retains docs/DATA_AND_MODEL_CONTRACTS.md, root ledgers, package/release tests, dependency files, manifests, and gate state. Begin with exact failing regressions. Define strict versioned typed records and replay validation for stable opaque node/edge/angle/event identities; column-vector H, origin, periodic axes, signed per-edge n_ij; fixed-reference provenance; controls/load progress/phases/status/units; immutable reference and reconstructible current effective edge parameters; and explicit observed, target-only, and privileged access paths. Predictor-visible records must recursively exclude hidden threshold values/seeds/realization proxies, future reference states/events/topology, rejected trials, test-derived normalizers, and private access metadata. Preserve same-load event substeps, irreversible masks, angle dependencies, censoring/invalid diagnostics, static/dynamic/event separation, grouped lineage, source/profile/reference/law hashes, and schema capability flags. Reconcile opaque string IDs with the earlier int64 draft without lossy coercion, reject unknown/tampered/mixed-schema fields, and provide migration/version failure tests. Do not implement HDF5 persistence, export real trajectories, alter P02-03 records, weaken package exclusions, use private data, or claim G3. Commit solely as Mohammad Zoraiz and do not push."
     },
     {
       "id": "P03-02",

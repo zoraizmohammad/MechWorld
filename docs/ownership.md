@@ -238,3 +238,20 @@ commits; and explicit limitations. A separate read-only reviewer must audit the
 immutable return before integration. P02-04 owns localization and derived
 energy/work accounting; P02-06 owns restart/load-step sensitivity; P03-01 owns
 canonical storage and observed/target/privileged access paths.
+
+## Twelfth wave
+
+The assignment uses accepted and pushed main revision
+`0222b6d6fdee180e2e2daa86ccfebb276c91f1f6`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Data-schema specialist | `research/p03-01-schema`; `C:/Users/mzora/MechWorld-wt-p03-01` | P03-01: exact red-first typed graph/control/state/event/provenance schema with stable opaque identity, column-vector cell/image geometry, reconstructible coefficients, strict replay, and recursively separated observed/target/privileged access | `src/pgworld/data/__init__.py`, `src/pgworld/data/schema.py`, `tests/unit/test_schema.py`, `docs/decisions/trajectory_schema.md`, `docs/subagents/P03-01-schema.md`, `evidence/subagents/P03-01/` | No edits to `docs/DATA_AND_MODEL_CONTRACTS.md`, root ledgers/README, P02-03 files, package/release tests, dependencies, manifests, gates, or paths outside ownership; no HDF5 writer/export, private data, dataset generation, model input leakage, G3 decision, public action, or push |
+
+The specialist must preserve same-load event substeps and explicit invalid,
+rejected, censored, and incomplete status; make reference versus effective
+current coefficients reconstructible; fail closed on unknown/tampered/mixed
+schema records; and exclude hidden thresholds/seeds/realization proxies,
+future reference states/events/topology, test-derived normalizers, and private
+access metadata from predictor-visible records. The integrator owns the shared
+contract reconciliation and strict package allowlist after independent review.
