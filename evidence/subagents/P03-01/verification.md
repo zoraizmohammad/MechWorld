@@ -120,16 +120,17 @@ its artifact was recorded.
 
 ## Frozen artifact SHA-256
 
-These values were generated mechanically with `Get-FileHash -Algorithm
-SHA256` after the files stopped changing.
+These values are SHA-256 hashes of the immutable Git blob bytes after the files
+stopped changing. This avoids ambiguity from Windows working-tree newline
+materialization.
 
 | Artifact | SHA-256 |
 |---|---|
-| `correction-projection-red.xml` | `b1ed6670839936c71761accabb456bb01ad0134b1e75b708f5340ab33e32f86f` |
-| `correction-contract-red.xml` | `20377636f9c620a635193b97e76210a4fc2c3c8057e434b27ade4dfdf2bd5cd2` |
-| `correction-geometry-red.xml` | `9b74174621155589fa9e96606e6163d01de68259ac71a2f62839945df1b6d5af` |
-| `correction-physics-red.xml` | `44832603a46be41956f1b2c25198d41903932cca1f0de877449683858f21cbbf` |
-| `correction-control-red.xml` | `b68f034b2aba28b8b16920165873cf37f0e664b01411ed06b3e221494bf21b02` |
+| `correction-projection-red.xml` | `51ad8919385b93ceaa22b9036d242f7fbe35e92134bb7e305b90dfe947886bd3` |
+| `correction-contract-red.xml` | `e272f00ee909757e8df425ca27d342fb67ad8e78f32cbc145ee7ad7ef9a1573c` |
+| `correction-geometry-red.xml` | `6a654b6a18e11f2adf7f425e13b0483705f95a046d5b82e0d2b6a31949b28578` |
+| `correction-physics-red.xml` | `a168342d08526abb8633607da50e533789c022db72d1c2a6d2ba46d4ae1ff43c` |
+| `correction-control-red.xml` | `87489fe0b2cf4c4217357d6ad4df256341ec5ed9f5772fdd2b48840ff5d5f14a` |
 | `correction-focused.xml` | `11b1e15b58d55d039dbda9a822206a99300c8afc3b47dda9b1aaacd2274fd829` |
 | `correction-compatibility.xml` | `212ed5fc43d17e60471c52e215ffa5e33433bb29b426b0c0124cb56a2fe1d054` |
 | `correction-no-wheel.xml` | `4f0bad2c4191215c09b2d9ba7e99f406e0564e3ef7de9fd67e5caaa8752770d3` |
@@ -142,19 +143,14 @@ normalization. The actual committed hashes are: `red.xml`
 and failed environmental `no-wheel-full.xml`
 `ec26bfe0a0ab2c691f5d758048d08db18442e1d8030ff394a0e59b7eb53f0c00`.
 
-The same eight correction hashes are stored in `artifact-hashes.sha256`. This
-post-freeze PowerShell verification exited 0 and printed `verified 8 artifact
+The same eight correction hashes are stored in `artifact-hashes.sha256`. A
+post-freeze check reads each immutable blob through `git cat-file`, compares
+its SHA-256 to the manifest, exits 0, and prints `verified 8 committed artifact
 hashes`:
 
-```powershell
-$root='evidence/subagents/P03-01'
-$rows=Get-Content "$root/artifact-hashes.sha256"
-foreach ($row in $rows) {
-  $expected,$name=$row -split ' \*',2
-  $actual=(Get-FileHash -Algorithm SHA256 -LiteralPath "$root/$name").Hash.ToLower()
-  if ($actual -ne $expected) { throw "hash mismatch: $name" }
-}
-"verified $($rows.Count) artifact hashes"
+```text
+For each manifest row, read `git cat-file blob HEAD:<path>`, compute SHA-256,
+and require equality with the recorded digest.
 ```
 
 ## Limitations
