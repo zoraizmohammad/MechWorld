@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="0.412" timestamp="2026-10-02T11:40:51.768320" hostname="MZoraiz_P15"><testcase classname="" name="tests.physics.test_stochastic_events" time="0.000"><error message="collection failure">..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\runner.py:341: in from_call
+    result: Optional[TResult] = func()
+..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\runner.py:372: in &lt;lambda&gt;
+    call = CallInfo.from_call(lambda: list(collector.collect()), "collect")
+..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:531: in collect
+    self._inject_setup_module_fixture()
+..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:545: in _inject_setup_module_fixture
+    self.obj, ("setUpModule", "setup_module")
+..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:310: in obj
+    self._obj = obj = self._getobj()
+..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:528: in _getobj
+    return self._importtestmodule()
+..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\python.py:617: in _importtestmodule
+    mod = import_path(self.path, mode=importmode, root=self.config.rootpath)
+..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\pathlib.py:567: in import_path
+    importlib.import_module(module_name)
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+&lt;frozen importlib._bootstrap&gt;:1204: in _gcd_import
+    ???
+&lt;frozen importlib._bootstrap&gt;:1176: in _find_and_load
+    ???
+&lt;frozen importlib._bootstrap&gt;:1147: in _find_and_load_unlocked
+    ???
+&lt;frozen importlib._bootstrap&gt;:690: in _load_unlocked
+    ???
+..\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\assertion\rewrite.py:186: in exec_module
+    exec(co, module.__dict__)
+tests\physics\test_stochastic_events.py:390: in &lt;module&gt;
+    (_replicate(index=1, material_seed=22), "material_disorder seeds"),
+tests\physics\test_stochastic_events.py:112: in _replicate
+    return build_quenched_replicate(
+src\pgworld\physics\stochasticity.py:1158: in build_quenched_replicate
+    return ConditionalReplicate.create(
+src\pgworld\physics\stochasticity.py:532: in create
+    return cls(
+&lt;string&gt;:33: in __init__
+    ???
+src\pgworld\physics\stochasticity.py:440: in __post_init__
+    if self.replicate_id != _record_id(self._body()):
+src\pgworld\physics\stochasticity.py:471: in _body
+    "events_seed_consumed": self.events_seed_consumed,
+E   AttributeError: 'ConditionalReplicate' object has no attribute 'events_seed_consumed'</error></testcase></testsuite></testsuites>

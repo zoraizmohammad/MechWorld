@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="27" time="0.563" timestamp="2026-10-02T11:41:44.222489" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_stochastic_events" name="test_p01_04_seed_mapping_is_exact_stable_and_allows_coincident_values" time="0.001" /><testcase classname="tests.physics.test_stochastic_events" name="test_materialization_delegates_to_p02_02_and_is_order_retry_invariant" time="0.009" /><testcase classname="tests.physics.test_stochastic_events" name="test_rejected_solver_and_localization_retries_do_not_resample_opportunities" time="0.009" /><testcase classname="tests.physics.test_stochastic_events" name="test_event_seed_is_reserved_and_cannot_change_quenched_outcomes" time="0.005" /><testcase classname="tests.physics.test_stochastic_events" name="test_material_seed_changes_hidden_field_under_one_observable_condition" time="0.006" /><testcase classname="tests.physics.test_stochastic_events" name="test_hidden_predictor_projection_is_an_exact_recursive_allowlist" time="0.004" /><testcase classname="tests.physics.test_stochastic_events" name="test_visible_threshold_projection_exposes_only_declared_values_not_seeds" time="0.004" /><testcase classname="tests.physics.test_stochastic_events" name="test_predictor_projection_validation_rejects_unbound_self_consistent_view" time="0.003"><failure message="pgworld.physics.stochasticity.StochasticityValidationError: predictor criterion unit mismatch">def test_predictor_projection_validation_rejects_unbound_self_consistent_view() -&gt; None:
+        replicate = _replicate()
+        body = replicate.predictor_view().as_record()
+        body["criterion_unit"] = "pN"
+        _rewrite_hash(body, "projection_id")
+&gt;       forged = PredictorReplicateView.from_record(body)
+
+tests\physics\test_stochastic_events.py:371: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\physics\stochasticity.py:807: in from_record
+    return cls(**kwargs)  # type: ignore[arg-type]
+&lt;string&gt;:16: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = PredictorReplicateView(projection_id='sha256:af9d1d9ba12c0d572bec3af1c4a21ed5e0d6ad12d12408632b646cac65f19bd2', criter...d', event_process_exposure_unit=None, load_coordinate_kind='quasi_static_not_physical_time', physical_time_valid=False)
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != PREDICTOR_VIEW_SCHEMA_VERSION:
+            raise StochasticityValidationError("invalid predictor-view schema_version")
+        if self.access != _PREDICTOR_ACCESS:
+            raise StochasticityValidationError("predictor view must use the strict allowlist")
+        if self.criterion not in _CRITERION_UNITS:
+            raise StochasticityValidationError("unsupported predictor criterion")
+        if self.criterion_unit != _CRITERION_UNITS[self.criterion]:
+&gt;           raise StochasticityValidationError("predictor criterion unit mismatch")
+E           pgworld.physics.stochasticity.StochasticityValidationError: predictor criterion unit mismatch
+
+src\pgworld\physics\stochasticity.py:638: StochasticityValidationError</failure></testcase><testcase classname="tests.physics.test_stochastic_events" name="test_conditional_material_cohort_is_canonical_and_varies_only_material_seed" time="0.005" /><testcase classname="tests.physics.test_stochastic_events" name="test_cohort_rejects_duplicate_or_confounded_replicates[second0-material_disorder seeds]" time="0.013" /><testcase classname="tests.physics.test_stochastic_events" name="test_cohort_rejects_duplicate_or_confounded_replicates[second1-observable graph]" time="0.013" /><testcase classname="tests.physics.test_stochastic_events" name="test_cohort_rejects_duplicate_or_confounded_replicates[second2-only material_disorder]" time="0.013" /><testcase classname="tests.physics.test_stochastic_events" name="test_cohort_rejects_duplicate_or_confounded_replicates[second3-only material_disorder]" time="0.013" /><testcase classname="tests.physics.test_stochastic_events" name="test_cohort_rejects_duplicate_or_confounded_replicates[second4-only material_disorder]" time="0.012" /><testcase classname="tests.physics.test_stochastic_events" name="test_cohort_rejects_duplicate_or_confounded_replicates[second5-observable graph]" time="0.017" /><testcase classname="tests.physics.test_stochastic_events" name="test_cohort_rejects_duplicate_or_confounded_replicates[second6-observable graph]" time="0.013" /><testcase classname="tests.physics.test_stochastic_events" name="test_cohort_rejects_duplicate_or_confounded_replicates[second7-observable graph]" time="0.012" /><testcase classname="tests.physics.test_stochastic_events" name="test_cohort_rejects_duplicate_or_confounded_replicates[second8-law/profile/reference]" time="0.012" /><testcase classname="tests.physics.test_stochastic_events" name="test_cohort_rejects_duplicate_or_confounded_replicates[second9-bond universe]" time="0.013" /><testcase classname="tests.physics.test_stochastic_events" name="test_event_process_randomness_hazard_and_physical_time_fail_closed" time="0.005" /><testcase classname="tests.physics.test_stochastic_events" name="test_all_public_records_roundtrip_strictly_and_are_deeply_immutable" time="0.017" /><testcase classname="tests.physics.test_stochastic_events" name="test_replay_rejects_forged_hashes_and_cross_record_provenance" time="0.008"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'criterion'&#10; Input: 'replicate law ID does not match the embedded law/field'">def test_replay_rejects_forged_hashes_and_cross_record_provenance() -&gt; None:
+        replicate = _replicate()
+        record = replicate.as_record()
+        record["replicate_id"] = "sha256:" + "f" * 64
+        with pytest.raises(StochasticityValidationError, match="replicate_id"):
+            ConditionalReplicate.from_record(record)
+    
+        with pytest.raises(StochasticityValidationError, match="material seed"):
+            replace(replicate, rng_namespace=_seeds(material_disorder=999))
+        with pytest.raises(StochasticityValidationError, match="bond universe"):
+            replace(replicate, physical_bond_ids=("bond-a", "bond-b"))
+        with pytest.raises(StochasticityValidationError, match="law fingerprint"):
+            replace(replicate, damage_law=_law(relative_half_width=0.3))
+        with pytest.raises(StochasticityValidationError, match="reference state"):
+            replace(replicate, reference_state_id="foreign-reference")
+        with pytest.raises(StochasticityValidationError, match="criterion"):
+&gt;           replace(
+                replicate,
+                damage_law=_law(criterion="bond_tension"),
+            )
+
+tests\physics\test_stochastic_events.py:539: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\AppData\Local\Programs\Python\Python311\Lib\dataclasses.py:1503: in replace
+    return obj.__class__(**changes)
+&lt;string&gt;:34: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ConditionalReplicate(replicate_id='sha256:a267fbba1c31c476735ed40b3dab67c12938c46709e4256962bca4c2505fa89b', cohort_id...t_physical_time', physical_time=None, physical_time_valid=False, schema_version='pgworld.conditional_stochasticity.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != STOCHASTICITY_SCHEMA_VERSION:
+            raise StochasticityValidationError("invalid replicate schema_version")
+        _text(self.cohort_id, "cohort_id")
+        object.__setattr__(
+            self, "replicate_index", _nonnegative_int(self.replicate_index, "replicate_index")
+        )
+        _text(self.parent_network_id, "parent_network_id")
+        _digest(self.graph_identity_hash, "graph_identity_hash")
+        _digest(self.geometry_realization_id, "geometry_realization_id")
+        _digest(self.conditioned_observable_state_id, "conditioned_observable_state_id")
+        object.__setattr__(
+            self,
+            "physical_bond_ids",
+            _stable_ids(
+                self.physical_bond_ids,
+                "physical_bond_ids",
+                require_canonical=True,
+            ),
+        )
+        if not isinstance(self.rng_namespace, RNGNamespaceRecord):
+            raise StochasticityValidationError(
+                "rng_namespace must be a validated RNGNamespaceRecord"
+            )
+        if not isinstance(self.damage_law, DamageLaw):
+            raise StochasticityValidationError("damage_law must be validated")
+        if not isinstance(self.threshold_field, ThresholdField):
+            raise StochasticityValidationError("threshold_field must be validated")
+        if self.damage_law.law_kind != "quenched_heterogeneous_threshold":
+            raise StochasticityValidationError(
+                "conditional material replicas require a quenched heterogeneous threshold law"
+            )
+        law_pairs = (
+            (self.law_id, self.damage_law.law_id, "law ID"),
+            (self.law_fingerprint, self.damage_law.fingerprint, "law fingerprint"),
+            (self.physics_profile_id, self.damage_law.physics_profile_id, "physics profile ID"),
+            (self.physics_profile_hash, self.damage_law.physics_profile_hash, "physics profile hash"),
+            (self.reference_state_id, self.damage_law.reference_state_id, "reference state"),
+            (self.criterion, self.damage_law.criterion, "criterion"),
+            (self.criterion_unit, self.damage_law.criterion_unit, "criterion unit"),
+            (self.predictor_visibility, self.damage_law.predictor_visibility, "predictor visibility"),
+            (
+                self.threshold_realization_id,
+                self.threshold_field.realization_id,
+                "threshold realization",
+            ),
+        )
+        for recorded, expected, label in law_pairs:
+            if recorded != expected:
+&gt;               raise StochasticityValidationError(
+                    f"replicate {label} does not match the embedded law/field"
+                )
+E               pgworld.physics.stochasticity.StochasticityValidationError: replicate law ID does not match the embedded law/field
+
+src\pgworld\physics\stochasticity.py:358: StochasticityValidationError
+
+During handling of the above exception, another exception occurred:
+
+    def test_replay_rejects_forged_hashes_and_cross_record_provenance() -&gt; None:
+        replicate = _replicate()
+        record = replicate.as_record()
+        record["replicate_id"] = "sha256:" + "f" * 64
+        with pytest.raises(StochasticityValidationError, match="replicate_id"):
+            ConditionalReplicate.from_record(record)
+    
+        with pytest.raises(StochasticityValidationError, match="material seed"):
+            replace(replicate, rng_namespace=_seeds(material_disorder=999))
+        with pytest.raises(StochasticityValidationError, match="bond universe"):
+            replace(replicate, physical_bond_ids=("bond-a", "bond-b"))
+        with pytest.raises(StochasticityValidationError, match="law fingerprint"):
+            replace(replicate, damage_law=_law(relative_half_width=0.3))
+        with pytest.raises(StochasticityValidationError, match="reference state"):
+            replace(replicate, reference_state_id="foreign-reference")
+&gt;       with pytest.raises(StochasticityValidationError, match="criterion"):
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'criterion'
+E        Input: 'replicate law ID does not match the embedded law/field'
+
+tests\physics\test_stochastic_events.py:538: AssertionError</failure></testcase><testcase classname="tests.physics.test_stochastic_events" name="test_namespace_projection_and_cohort_hashes_are_bound" time="0.013" /><testcase classname="tests.physics.test_stochastic_events" name="test_input_and_serialized_record_mutation_cannot_change_objects" time="0.007"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'reference'&#10; Input: 'replicate threshold realization does not match the embedded law/field'">def test_input_and_serialized_record_mutation_cannot_change_objects() -&gt; None:
+        seeds = {
+            "geometry": 11,
+            "material_disorder": 22,
+            "events": 33,
+            "model_training": 44,
+        }
+        namespace = RNGNamespaceRecord.from_p01_04_mapping(seeds)
+        seeds["events"] = 999
+        assert namespace.events_seed == 33
+    
+        replicate = _replicate()
+        record = replicate.as_record()
+        record["physical_bond_ids"].append("forged-bond")  # type: ignore[union-attr]
+        record["threshold_field"]["thresholds"][0]["threshold"] = 999.0  # type: ignore[index]
+        assert replicate.physical_bond_ids == BONDS
+        assert replicate.threshold_field.threshold_for("bond-a") != 999.0
+    
+        record = replicate.as_record()
+        record["threshold_field"]["reference_state_id"] = "foreign-reference"  # type: ignore[index]
+        threshold_body = copy.deepcopy(record["threshold_field"])  # type: ignore[arg-type]
+        threshold_body.pop("realization_id")
+        record["threshold_field"]["realization_id"] = _record_hash(threshold_body)  # type: ignore[index]
+        _rewrite_hash(record, "replicate_id")
+        with pytest.raises(StochasticityValidationError, match="reference"):
+&gt;           ConditionalReplicate.from_record(record)
+
+tests\physics\test_stochastic_events.py:592: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\physics\stochasticity.py:609: in from_record
+    return cls(**kwargs)  # type: ignore[arg-type]
+&lt;string&gt;:34: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ConditionalReplicate(replicate_id='sha256:eb88e46d031e6223895332aa35381e3f5866a41bb6013cc8c56e9bbb00b1777c', cohort_id...t_physical_time', physical_time=None, physical_time_valid=False, schema_version='pgworld.conditional_stochasticity.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != STOCHASTICITY_SCHEMA_VERSION:
+            raise StochasticityValidationError("invalid replicate schema_version")
+        _text(self.cohort_id, "cohort_id")
+        object.__setattr__(
+            self, "replicate_index", _nonnegative_int(self.replicate_index, "replicate_index")
+        )
+        _text(self.parent_network_id, "parent_network_id")
+        _digest(self.graph_identity_hash, "graph_identity_hash")
+        _digest(self.geometry_realization_id, "geometry_realization_id")
+        _digest(self.conditioned_observable_state_id, "conditioned_observable_state_id")
+        object.__setattr__(
+            self,
+            "physical_bond_ids",
+            _stable_ids(
+                self.physical_bond_ids,
+                "physical_bond_ids",
+                require_canonical=True,
+            ),
+        )
+        if not isinstance(self.rng_namespace, RNGNamespaceRecord):
+            raise StochasticityValidationError(
+                "rng_namespace must be a validated RNGNamespaceRecord"
+            )
+        if not isinstance(self.damage_law, DamageLaw):
+            raise StochasticityValidationError("damage_law must be validated")
+        if not isinstance(self.threshold_field, ThresholdField):
+            raise StochasticityValidationError("threshold_field must be validated")
+        if self.damage_law.law_kind != "quenched_heterogeneous_threshold":
+            raise StochasticityValidationError(
+                "conditional material replicas require a quenched heterogeneous threshold law"
+            )
+        law_pairs = (
+            (self.law_id, self.damage_law.law_id, "law ID"),
+            (self.law_fingerprint, self.damage_law.fingerprint, "law fingerprint"),
+            (self.physics_profile_id, self.damage_law.physics_profile_id, "physics profile ID"),
+            (self.physics_profile_hash, self.damage_law.physics_profile_hash, "physics profile hash"),
+            (self.reference_state_id, self.damage_law.reference_state_id, "reference state"),
+            (self.criterion, self.damage_law.criterion, "criterion"),
+            (self.criterion_unit, self.damage_law.criterion_unit, "criterion unit"),
+            (self.predictor_visibility, self.damage_law.predictor_visibility, "predictor visibility"),
+            (
+                self.threshold_realization_id,
+                self.threshold_field.realization_id,
+                "threshold realization",
+            ),
+        )
+        for recorded, expected, label in law_pairs:
+            if recorded != expected:
+&gt;               raise StochasticityValidationError(
+                    f"replicate {label} does not match the embedded law/field"
+                )
+E               pgworld.physics.stochasticity.StochasticityValidationError: replicate threshold realization does not match the embedded law/field
+
+src\pgworld\physics\stochasticity.py:358: StochasticityValidationError
+
+During handling of the above exception, another exception occurred:
+
+    def test_input_and_serialized_record_mutation_cannot_change_objects() -&gt; None:
+        seeds = {
+            "geometry": 11,
+            "material_disorder": 22,
+            "events": 33,
+            "model_training": 44,
+        }
+        namespace = RNGNamespaceRecord.from_p01_04_mapping(seeds)
+        seeds["events"] = 999
+        assert namespace.events_seed == 33
+    
+        replicate = _replicate()
+        record = replicate.as_record()
+        record["physical_bond_ids"].append("forged-bond")  # type: ignore[union-attr]
+        record["threshold_field"]["thresholds"][0]["threshold"] = 999.0  # type: ignore[index]
+        assert replicate.physical_bond_ids == BONDS
+        assert replicate.threshold_field.threshold_for("bond-a") != 999.0
+    
+        record = replicate.as_record()
+        record["threshold_field"]["reference_state_id"] = "foreign-reference"  # type: ignore[index]
+        threshold_body = copy.deepcopy(record["threshold_field"])  # type: ignore[arg-type]
+        threshold_body.pop("realization_id")
+        record["threshold_field"]["realization_id"] = _record_hash(threshold_body)  # type: ignore[index]
+        _rewrite_hash(record, "replicate_id")
+&gt;       with pytest.raises(StochasticityValidationError, match="reference"):
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'reference'
+E        Input: 'replicate threshold realization does not match the embedded law/field'
+
+tests\physics\test_stochastic_events.py:591: AssertionError</failure></testcase><testcase classname="tests.physics.test_stochastic_events" name="test_replay_rejects_duplicate_bonds_nonsequences_and_one_shot_generators" time="0.022" /><testcase classname="tests.physics.test_stochastic_events" name="test_material_seed_produces_reproducible_conditional_first_event_difference" time="0.021" /><testcase classname="tests.physics.test_stochastic_events" name="test_records_make_no_time_rate_probability_or_biological_claim" time="0.003" /></testsuite></testsuites>

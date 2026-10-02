@@ -1,0 +1,511 @@
+{
+  "checkout_paths_absent_from_installed_sys_path": true,
+  "commands": {
+    "build": [
+      "C:\\Users\\mzora\\MechWorld\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "build",
+      "--wheel",
+      "--outdir",
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\wheelhouse"
+    ],
+    "console_doctor": [
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Scripts\\pgworld.exe",
+      "doctor"
+    ],
+    "create_venv": [
+      "C:\\Users\\mzora\\MechWorld\\.venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "venv",
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv"
+    ],
+    "install_locked_dependencies": [
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "pip",
+      "install",
+      "-r",
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock"
+    ],
+    "install_wheel": [
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "pip",
+      "install",
+      "--no-deps",
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\wheelhouse\\mechworld_pg-0.1.0.dev0-py3-none-any.whl"
+    ],
+    "installed_smoke": [
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Scripts\\python.exe",
+      "-B",
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\installed_smoke.py"
+    ],
+    "locked_versions": [
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Scripts\\python.exe",
+      "-B",
+      "-c",
+      "import importlib.metadata as m,json; names=['annotated-types', 'build', 'colorama', 'contourpy', 'cycler', 'fonttools', 'h5py', 'iniconfig', 'kiwisolver', 'matplotlib', 'numpy', 'packaging', 'pandas', 'pillow', 'pluggy', 'pydantic', 'pydantic-core', 'pyparsing', 'pyproject-hooks', 'pytest', 'python-dateutil', 'scipy', 'setuptools', 'six', 'typing-extensions', 'typing-inspection', 'tzdata', 'wheel']; print(json.dumps({n:m.version(n) for n in names},sort_keys=True))"
+    ],
+    "pip_check": [
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Scripts\\python.exe",
+      "-B",
+      "-m",
+      "pip",
+      "check"
+    ],
+    "tamper_check": [
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Scripts\\python.exe",
+      "-B",
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\tamper_profile.py"
+    ]
+  },
+  "doctor": {
+    "bond_break_check": {
+      "configuration_attempted": true,
+      "configuration_succeeded": true,
+      "invoked_by_dynamics": false,
+      "note": "Availability/configuration only; fix bond/break was not run and this check does not implement or validate quasi-static fracture.",
+      "quasistatic_fracture_validated": false,
+      "rupture_events_observed": null
+    },
+    "bonded_fixture": {
+      "all_energy_checks_passed": true,
+      "angle_count": 1,
+      "atom_count": 3,
+      "bond_count": 2,
+      "coefficient_source": "packaged immutable physics profile",
+      "coefficients_used_unchanged": {
+        "harmonic_angle": [
+          41.8,
+          180.0
+        ],
+        "harmonic_bond": [
+          5570.0,
+          1.03
+        ],
+        "nonlinear_bond": [
+          185.328520541486,
+          1.0,
+          4.034069292365436
+        ]
+      },
+      "energy_checks": {
+        "component_sum": true,
+        "harmonic_angle": true,
+        "harmonic_bond": true,
+        "nonlinear_bond": true
+      },
+      "executed": true,
+      "expected_counts_present": true,
+      "expected_energy": {
+        "harmonic_angle": 11.45970733237597,
+        "harmonic_bond": 160.97299999999987,
+        "nonlinear_bond": 0.45665091424033305
+      },
+      "minimization_performed": false,
+      "note": "The fixture checks runtime evaluation of the inherited style/coefficient tuples; it does not approve their scientific units or parameter provenance.",
+      "observed_energy": {
+        "harmonic_angle": 11.45970733237597,
+        "harmonic_bond": 160.9730000000003,
+        "nonlinear_bond": 0.45665091424033105,
+        "potential_total": 172.8893582466166
+      },
+      "physics_profile": {
+        "biological_parameter_certification": false,
+        "canonical_hash": "sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b",
+        "profile_id": "legacy_python_2026_03_12_v1",
+        "review_status": "legacy_unreviewed_reproduction_only",
+        "units": {
+          "angle_input": "degree",
+          "angle_internal": "radian",
+          "energy": "pN nm",
+          "force": "pN",
+          "lammps_style": "nano",
+          "length": "nm",
+          "membrane_tension_internal": "pN/nm",
+          "membrane_tension_summary": "N/m",
+          "pN_nm_to_J": 1e-21,
+          "pN_per_nm_to_N_per_m": 0.001
+        }
+      },
+      "run_steps": 0
+    },
+    "errors": [],
+    "lammps": {
+      "accelerator_config": {
+        "GPU": {
+          "api": [
+            "opencl"
+          ],
+          "precision": [
+            "mixed"
+          ]
+        },
+        "INTEL": {
+          "api": [],
+          "precision": []
+        },
+        "KOKKOS": {
+          "api": [
+            "openmp",
+            "serial"
+          ],
+          "precision": [
+            "double"
+          ]
+        },
+        "OPENMP": {
+          "api": [
+            "openmp"
+          ],
+          "precision": [
+            "double"
+          ]
+        }
+      },
+      "closed": true,
+      "imported": true,
+      "installed_packages": [
+        "AMOEBA",
+        "ASPHERE",
+        "BOCS",
+        "BODY",
+        "BPM",
+        "BROWNIAN",
+        "CG-DNA",
+        "CG-SPICA",
+        "CLASS2",
+        "COLLOID",
+        "COLVARS",
+        "COMPRESS",
+        "CORESHELL",
+        "DIELECTRIC",
+        "DIFFRACTION",
+        "DIPOLE",
+        "DPD-BASIC",
+        "DPD-MESO",
+        "DPD-REACT",
+        "DPD-SMOOTH",
+        "DRUDE",
+        "EFF",
+        "ELECTRODE",
+        "EXTRA-COMMAND",
+        "EXTRA-COMPUTE",
+        "EXTRA-DUMP",
+        "EXTRA-FIX",
+        "EXTRA-MOLECULE",
+        "EXTRA-PAIR",
+        "FEP",
+        "GPU",
+        "GRANSURF",
+        "GRANULAR",
+        "GRAPHICS",
+        "INTERLAYER",
+        "KOKKOS",
+        "KSPACE",
+        "LEPTON",
+        "MACHDYN",
+        "MANIFOLD",
+        "MANYBODY",
+        "MC",
+        "MDI",
+        "MEAM",
+        "MESONT",
+        "MGPT",
+        "MISC",
+        "ML-HDNNP",
+        "ML-IAP",
+        "ML-POD",
+        "ML-SNAP",
+        "ML-UF3",
+        "MOFFF",
+        "MOLECULE",
+        "MOLFILE",
+        "OPENMP",
+        "OPT",
+        "ORIENT",
+        "PERI",
+        "PHONON",
+        "PLUGIN",
+        "PTM",
+        "QEQ",
+        "QTB",
+        "REACTION",
+        "REAXFF",
+        "REPLICA",
+        "RHEO",
+        "RIGID",
+        "SHOCK",
+        "SMTBQ",
+        "SPH",
+        "SPIN",
+        "SRD",
+        "TALLY",
+        "UEF",
+        "VORONOI",
+        "YAFF"
+      ],
+      "instance_created": true,
+      "module_file": "C:\\Users\\mzora\\AppData\\Local\\LAMMPS 64-bit 2Sep2026 with GUI\\Python\\lammps\\__init__.py",
+      "mpi_support": false,
+      "os_build_info": "Windows 11 25H2, Windows ABI 10.0 (26200) on x86_64\nMinGW-w64 64bit 13.0 / GNU C++ 16.1.1 20260501 (Fedora MinGW 16.1.1-1.fc44) with OpenMP 5.2",
+      "version_integer": 20260902
+    },
+    "ok": true,
+    "python": {
+      "executable": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Scripts\\python.exe",
+      "implementation": "CPython",
+      "version": "3.11.9"
+    },
+    "required_styles": {
+      "angle:harmonic": true,
+      "bond:harmonic": true,
+      "bond:nonlinear": true,
+      "fix:bond/break": true
+    },
+    "schema_version": 1,
+    "scope": {
+      "physical_time_validation": false,
+      "purpose": "bounded LAMMPS runtime and required-style capability probe",
+      "quasistatic_fracture_validation": false,
+      "scientific_parameter_validation": false
+    }
+  },
+  "external_lammps_python_path": "C:\\Users\\mzora\\AppData\\Local\\LAMMPS 64-bit 2Sep2026 with GUI\\Python",
+  "fresh_environment": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv",
+  "fresh_site_packages": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages",
+  "installed_smoke": {
+    "lammps_module": "C:\\Users\\mzora\\AppData\\Local\\LAMMPS 64-bit 2Sep2026 with GUI\\Python\\lammps\\__init__.py",
+    "modules": {
+      "assemble_pg_network": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\assemble_pg_network.py",
+      "import_data_from_dumps": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\import_data_from_dumps.py",
+      "lammps_PG_objects": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\lammps_PG_objects.py",
+      "pgworld": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\pgworld\\__init__.py",
+      "pgworld.data": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\pgworld\\data\\__init__.py",
+      "pgworld.data.schema": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\pgworld\\data\\schema.py",
+      "pgworld.physics.damage": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\pgworld\\physics\\damage.py",
+      "pgworld.physics.stochasticity": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\pgworld\\physics\\stochasticity.py",
+      "pgworld.simulation.controls": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\pgworld\\simulation\\controls.py",
+      "pgworld.simulation.fracture": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\pgworld\\simulation\\fracture.py",
+      "pgworld.simulation.topology": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\pgworld\\simulation\\topology.py",
+      "process_elastic_tensor": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\process_elastic_tensor.py",
+      "process_network_ensembles": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\process_network_ensembles.py",
+      "process_orientation": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\process_orientation.py",
+      "process_pores": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\process_pores.py",
+      "run_lammps_elastic_tensor": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\run_lammps_elastic_tensor.py",
+      "run_lammps_isotropic_strain": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\run_lammps_isotropic_strain.py",
+      "simulation_constants_settings": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\simulation_constants_settings.py",
+      "units": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\units.py",
+      "utils_helpers": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages\\utils_helpers.py"
+    },
+    "p01_06": {
+      "energy_error_pN_nm": 0.0,
+      "max_force_error_pN": 0.0,
+      "max_virial_error_pN_nm": 0.0,
+      "solver_closed": true
+    },
+    "p01_07": {
+      "all_instances_closed": true,
+      "backend": "LAMMPS_serial_library",
+      "fixed_topology": true,
+      "fixture_base_pair_positions_nm": [
+        [
+          -0.5,
+          -0.4375
+        ],
+        [
+          0.5,
+          0.4375
+        ]
+      ],
+      "fixture_bond_count": 8,
+      "fixture_kind": "periodic_harmonic_ring",
+      "instances_closed": 7,
+      "instances_started": 7,
+      "minimization_performed": true,
+      "physical_time_claim": false,
+      "solver_version": 20260902
+    },
+    "p02_01": {
+      "mode": "axial",
+      "physical_time_claim": false,
+      "schema_version": "pgworld.quasistatic_control.v1"
+    },
+    "p02_02": {
+      "law_kind": "deterministic_threshold",
+      "physical_time_claim": false,
+      "predictor_visibility": "hidden_from_predictor",
+      "schema_version": "pgworld.quasistatic_damage.v1",
+      "threshold_realization_id": "sha256:d981120c10ca53290007daa01e31d7db3031266162d26c2ae48f9036f491e4e8"
+    },
+    "p02_03": {
+      "explicit_image_offset": [
+        0,
+        0
+      ],
+      "fracture_schema_version": "pgworld.fracture_execution.v1",
+      "physical_time_claim": false,
+      "registry_id": "sha256:c71369693c089f446092567ea6313cb66d642a1fed4e7f0e3462b6206a296d00",
+      "topology_schema_version": "pgworld.fracture_topology.v1"
+    },
+    "p02_05": {
+      "event_process_kind": "disabled_no_validated_hazard",
+      "events_seed_consumed": false,
+      "hidden_predictor_projection": true,
+      "material_sampling_backend": "p02_02_keyed_sha256_u64",
+      "physical_time_claim": false,
+      "replicate_id": "sha256:6f3cae34f93e92cdb634c77cf5954d9f4b915da43bcc5165c68c7f5dce43bda4"
+    },
+    "p03_01": {
+      "access_schema_version": "pgworld.trajectory_access.v1",
+      "cell_round_trip": true,
+      "gate_g3_claim": false,
+      "persistence_claim": false,
+      "trajectory_schema_version": "pgworld.trajectory.v1"
+    },
+    "profile_hashes": {
+      "legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1": "sha256:b005c666d187538d60bbe6f924959473d6823e2287089e11621a1fc0dbc43771",
+      "legacy_direct_isotropic_pre_unit_fix_v1": "sha256:9307aa15c01a557f671fff08d50793dccbf4837f0cd3c78eb0d3d9d7ab3b1df0",
+      "legacy_python_2026_03_12_v1": "sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b",
+      "reviewed_physics_provisional_v0": "sha256:22bde60ac1400a9627e520dad9d3e501f2328ab7b3c80315f61d0b7cddd9aba5"
+    },
+    "sys_path": [
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0",
+      "C:\\Users\\mzora\\AppData\\Local\\Programs\\Python\\Python311\\python311.zip",
+      "C:\\Users\\mzora\\AppData\\Local\\Programs\\Python\\Python311\\DLLs",
+      "C:\\Users\\mzora\\AppData\\Local\\Programs\\Python\\Python311\\Lib",
+      "C:\\Users\\mzora\\AppData\\Local\\Programs\\Python\\Python311",
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv",
+      "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Lib\\site-packages",
+      "C:\\Users\\mzora\\AppData\\Local\\LAMMPS 64-bit 2Sep2026 with GUI\\Python"
+    ]
+  },
+  "limitations": [
+    "LAMMPS 20260902 is supplied by an external installer path and has no Python distribution metadata.",
+    "The exact requirements lock is verified for this CPython 3.11 Windows workstation, not as a universal binary lock.",
+    "The fixtures validate numerical implementation consistency, not biological parameter correctness or public release readiness."
+  ],
+  "private_or_generated_payload_absent": true,
+  "pythonpath_cleared": true,
+  "results": {
+    "build": {
+      "elapsed_seconds": 9.682621200045105,
+      "exit_code": 0
+    },
+    "console_doctor": {
+      "elapsed_seconds": 0.43324980000033975,
+      "exit_code": 0
+    },
+    "create_venv": {
+      "elapsed_seconds": 10.54655820003245,
+      "exit_code": 0
+    },
+    "install_locked_dependencies": {
+      "elapsed_seconds": 63.45808880002005,
+      "exit_code": 0,
+      "stderr": "\n[notice] A new release of pip is available: 24.0 -> 26.2.1\n[notice] To update, run: C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\Scripts\\python.exe -m pip install --upgrade pip\n",
+      "stdout": "Collecting annotated-types==0.7.0 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 5))\n  Using cached annotated_types-0.7.0-py3-none-any.whl.metadata (15 kB)\nCollecting build==1.3.0 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 6))\n  Using cached build-1.3.0-py3-none-any.whl.metadata (5.6 kB)\nCollecting colorama==0.4.6 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 7))\n  Using cached colorama-0.4.6-py2.py3-none-any.whl.metadata (17 kB)\nCollecting contourpy==1.3.3 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 8))\n  Using cached contourpy-1.3.3-cp311-cp311-win_amd64.whl.metadata (5.5 kB)\nCollecting cycler==0.12.1 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 9))\n  Using cached cycler-0.12.1-py3-none-any.whl.metadata (3.8 kB)\nCollecting fonttools==4.66.1 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 10))\n  Using cached fonttools-4.66.1-cp311-cp311-win_amd64.whl.metadata (132 kB)\nCollecting h5py==3.16.0 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 11))\n  Using cached h5py-3.16.0-cp311-cp311-win_amd64.whl.metadata (3.1 kB)\nCollecting iniconfig==2.1.0 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 12))\n  Using cached iniconfig-2.1.0-py3-none-any.whl.metadata (2.7 kB)\nCollecting kiwisolver==1.5.1 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 13))\n  Using cached kiwisolver-1.5.1-cp311-cp311-win_amd64.whl.metadata (5.2 kB)\nCollecting matplotlib==3.11.2 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 14))\n  Using cached matplotlib-3.11.2-cp311-cp311-win_amd64.whl.metadata (80 kB)\nCollecting numpy==2.2.2 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 15))\n  Using cached numpy-2.2.2-cp311-cp311-win_amd64.whl.metadata (60 kB)\nCollecting packaging==25.0 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 16))\n  Using cached packaging-25.0-py3-none-any.whl.metadata (3.3 kB)\nCollecting pandas==3.0.6 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 17))\n  Using cached pandas-3.0.6-cp311-cp311-win_amd64.whl.metadata (19 kB)\nCollecting pillow==11.1.0 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 18))\n  Using cached pillow-11.1.0-cp311-cp311-win_amd64.whl.metadata (9.3 kB)\nCollecting pydantic==2.11.7 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 19))\n  Using cached pydantic-2.11.7-py3-none-any.whl.metadata (67 kB)\nCollecting pydantic_core==2.33.2 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 20))\n  Using cached pydantic_core-2.33.2-cp311-cp311-win_amd64.whl.metadata (6.9 kB)\nCollecting pluggy==1.6.0 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 21))\n  Using cached pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)\nCollecting pyparsing==3.3.3 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 22))\n  Using cached pyparsing-3.3.3-py3-none-any.whl.metadata (5.9 kB)\nCollecting pyproject_hooks==1.2.0 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 23))\n  Using cached pyproject_hooks-1.2.0-py3-none-any.whl.metadata (1.3 kB)\nCollecting pytest==7.4.3 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 24))\n  Using cached pytest-7.4.3-py3-none-any.whl.metadata (7.9 kB)\nCollecting python-dateutil==2.9.0.post0 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 25))\n  Using cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)\nCollecting scipy==1.16.1 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 26))\n  Using cached scipy-1.16.1-cp311-cp311-win_amd64.whl.metadata (60 kB)\nRequirement already satisfied: setuptools==65.5.0 in c:\\users\\mzora\\appdata\\local\\temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\fresh-venv\\lib\\site-packages (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 27)) (65.5.0)\nCollecting six==1.17.0 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 28))\n  Using cached six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)\nCollecting typing_extensions==4.14.0 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 29))\n  Using cached typing_extensions-4.14.0-py3-none-any.whl.metadata (3.0 kB)\nCollecting typing-inspection==0.4.1 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 30))\n  Using cached typing_inspection-0.4.1-py3-none-any.whl.metadata (2.6 kB)\nCollecting tzdata==2025.2 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 31))\n  Using cached tzdata-2025.2-py2.py3-none-any.whl.metadata (1.4 kB)\nCollecting wheel==0.45.1 (from -r C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0\\source\\requirements.lock (line 32))\n  Using cached wheel-0.45.1-py3-none-any.whl.metadata (2.3 kB)\nUsing cached annotated_types-0.7.0-py3-none-any.whl (13 kB)\nUsing cached build-1.3.0-py3-none-any.whl (23 kB)\nUsing cached colorama-0.4.6-py2.py3-none-any.whl (25 kB)\nUsing cached contourpy-1.3.3-cp311-cp311-win_amd64.whl (225 kB)\nUsing cached cycler-0.12.1-py3-none-any.whl (8.3 kB)\nUsing cached fonttools-4.66.1-cp311-cp311-win_amd64.whl (1.6 MB)\nUsing cached h5py-3.16.0-cp311-cp311-win_amd64.whl (3.2 MB)\nUsing cached iniconfig-2.1.0-py3-none-any.whl (6.0 kB)\nUsing cached kiwisolver-1.5.1-cp311-cp311-win_amd64.whl (70 kB)\nUsing cached matplotlib-3.11.2-cp311-cp311-win_amd64.whl (9.3 MB)\nUsing cached numpy-2.2.2-cp311-cp311-win_amd64.whl (12.9 MB)\nUsing cached packaging-25.0-py3-none-any.whl (66 kB)\nUsing cached pandas-3.0.6-cp311-cp311-win_amd64.whl (9.9 MB)\nUsing cached pillow-11.1.0-cp311-cp311-win_amd64.whl (2.6 MB)\nUsing cached pydantic-2.11.7-py3-none-any.whl (444 kB)\nUsing cached pydantic_core-2.33.2-cp311-cp311-win_amd64.whl (2.0 MB)\nUsing cached pluggy-1.6.0-py3-none-any.whl (20 kB)\nUsing cached pyparsing-3.3.3-py3-none-any.whl (126 kB)\nUsing cached pyproject_hooks-1.2.0-py3-none-any.whl (10 kB)\nUsing cached pytest-7.4.3-py3-none-any.whl (325 kB)\nUsing cached python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)\nUsing cached scipy-1.16.1-cp311-cp311-win_amd64.whl (38.6 MB)\nUsing cached six-1.17.0-py2.py3-none-any.whl (11 kB)\nUsing cached typing_extensions-4.14.0-py3-none-any.whl (43 kB)\nUsing cached typing_inspection-0.4.1-py3-none-any.whl (14 kB)\nUsing cached tzdata-2025.2-py2.py3-none-any.whl (347 kB)\nUsing cached wheel-0.45.1-py3-none-any.whl (72 kB)\nInstalling collected packages: wheel, tzdata, typing_extensions, six, pyproject_hooks, pyparsing, pluggy, pillow, packaging, numpy, kiwisolver, iniconfig, fonttools, cycler, colorama, annotated-types, typing-inspection, scipy, python-dateutil, pytest, pydantic_core, h5py, contourpy, build, pydantic, pandas, matplotlib\nSuccessfully installed annotated-types-0.7.0 build-1.3.0 colorama-0.4.6 contourpy-1.3.3 cycler-0.12.1 fonttools-4.66.1 h5py-3.16.0 iniconfig-2.1.0 kiwisolver-1.5.1 matplotlib-3.11.2 numpy-2.2.2 packaging-25.0 pandas-3.0.6 pillow-11.1.0 pluggy-1.6.0 pydantic-2.11.7 pydantic_core-2.33.2 pyparsing-3.3.3 pyproject_hooks-1.2.0 pytest-7.4.3 python-dateutil-2.9.0.post0 scipy-1.16.1 six-1.17.0 typing-inspection-0.4.1 typing_extensions-4.14.0 tzdata-2025.2 wheel-0.45.1\n"
+    },
+    "install_wheel": {
+      "elapsed_seconds": 1.739177200011909,
+      "exit_code": 0
+    },
+    "installed_smoke": {
+      "elapsed_seconds": 10.207465499988757,
+      "exit_code": 0
+    },
+    "locked_versions": {
+      "annotated-types": "0.7.0",
+      "build": "1.3.0",
+      "colorama": "0.4.6",
+      "contourpy": "1.3.3",
+      "cycler": "0.12.1",
+      "fonttools": "4.66.1",
+      "h5py": "3.16.0",
+      "iniconfig": "2.1.0",
+      "kiwisolver": "1.5.1",
+      "matplotlib": "3.11.2",
+      "numpy": "2.2.2",
+      "packaging": "25.0",
+      "pandas": "3.0.6",
+      "pillow": "11.1.0",
+      "pluggy": "1.6.0",
+      "pydantic": "2.11.7",
+      "pydantic-core": "2.33.2",
+      "pyparsing": "3.3.3",
+      "pyproject-hooks": "1.2.0",
+      "pytest": "7.4.3",
+      "python-dateutil": "2.9.0.post0",
+      "scipy": "1.16.1",
+      "setuptools": "65.5.0",
+      "six": "1.17.0",
+      "typing-extensions": "4.14.0",
+      "typing-inspection": "0.4.1",
+      "tzdata": "2025.2",
+      "wheel": "0.45.1"
+    },
+    "pip_check": {
+      "elapsed_seconds": 0.7439790000207722,
+      "exit_code": 0,
+      "stdout": "No broken requirements found.\n"
+    },
+    "tamper_check": {
+      "elapsed_seconds": 0.1282618999830447,
+      "exit_code": 0,
+      "stdout": "PhysicsProfileError: canonical hash mismatch: declared sha256:d4469fdf77c3a1102f5d086dc00b9b0be295763c976d3879559d97fb03274b0b, computed sha256:41bfd89fa6c5faf36f36ecb70ddf81d60890a3d74ab58445c3748a7795233ef2\n"
+    }
+  },
+  "schema_version": "pgworld.p01_11.wheel_verification.v1",
+  "source_checkout": "C:\\Users\\mzora\\MechWorld-wt-p02-05",
+  "system_site_packages_enabled": false,
+  "temporary_root": "C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-287\\test_wheel_installs_profiles_l0",
+  "wheel": {
+    "filename": "mechworld_pg-0.1.0.dev0-py3-none-any.whl",
+    "members": [
+      "assemble_pg_network.py",
+      "import_data_from_dumps.py",
+      "lammps_PG_objects.py",
+      "mechworld_pg-0.1.0.dev0.dist-info/METADATA",
+      "mechworld_pg-0.1.0.dev0.dist-info/RECORD",
+      "mechworld_pg-0.1.0.dev0.dist-info/WHEEL",
+      "mechworld_pg-0.1.0.dev0.dist-info/entry_points.txt",
+      "mechworld_pg-0.1.0.dev0.dist-info/top_level.txt",
+      "pgworld/__init__.py",
+      "pgworld/cli.py",
+      "pgworld/config/__init__.py",
+      "pgworld/config/physics_profiles.py",
+      "pgworld/config/profiles/legacy_direct_elastic_2d_zero_temp_pre_unit_fix_v1.json",
+      "pgworld/config/profiles/legacy_direct_isotropic_pre_unit_fix_v1.json",
+      "pgworld/config/profiles/legacy_python_2026_03_12_v1.json",
+      "pgworld/config/profiles/reviewed_physics_provisional_v0.json",
+      "pgworld/data/__init__.py",
+      "pgworld/data/schema.py",
+      "pgworld/doctor.py",
+      "pgworld/physics/__init__.py",
+      "pgworld/physics/damage.py",
+      "pgworld/physics/energy_force_virial.py",
+      "pgworld/physics/lammps_oracle.py",
+      "pgworld/physics/stochasticity.py",
+      "pgworld/simulation/__init__.py",
+      "pgworld/simulation/controls.py",
+      "pgworld/simulation/fracture.py",
+      "pgworld/simulation/run_manager.py",
+      "pgworld/simulation/topology.py",
+      "process_elastic_tensor.py",
+      "process_network_ensembles.py",
+      "process_orientation.py",
+      "process_pores.py",
+      "run_lammps_elastic_tensor.py",
+      "run_lammps_isotropic_strain.py",
+      "simulation_constants_settings.py",
+      "units.py",
+      "utils_helpers.py"
+    ],
+    "sha256": "1b29a82e4a8a97af899657ffaf8495c8adb8373e4c091aab7996fb7b721ddeb3",
+    "strict_allowlist_passed": true
+  }
+}
