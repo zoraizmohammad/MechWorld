@@ -20,7 +20,7 @@ biological parameter review remains blocked.
 | Inherited mechanics repair | G1 accepted | P01-01 through P01-11 are integrated or explicitly retained as provisional/blocked; the installable wheel and `pgworld doctor` passed fresh-environment real-LAMMPS checks |
 | Physics/units contract | Immutable provisional profiles verified; biological review pending | Four route-specific hashes separate historical execution from the required new virial-only policy and reject tampered persisted snapshots. Coarse-graining, angle mapping, nonlinear-fit recovery, and the final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
-| Rupture, dataset, models, evaluation, explorer | P02-01 through P02-05 and P03-01 done; P02-06 next | Sample-once quenched material-disorder provenance, deterministic localization/accounting, and strict in-memory trajectory/access replay are integrated; restart/sensitivity, solver export/storage, datasets, models, evaluation, and the explorer remain incomplete; G2 and later gates remain unaccepted |
+| Rupture, dataset, models, evaluation, explorer | P02-01 through P02-05 and P03-01 done; P02-06 active | Sample-once quenched material-disorder provenance, deterministic localization/accounting, and strict in-memory trajectory/access replay are integrated; stable-boundary restart/sensitivity is assigned in an isolated worktree, while solver export/storage, datasets, models, evaluation, and the explorer remain incomplete; G2 and later gates remain unaccepted |
 | Experimental validation | P08-01 blocked on access | AFM plus matched morphology is the proposed target, but actual lab protocol, custodian, permissions, acquisition, raw files, calibration, and review remain unconfirmed |
 | Release | Foundation and mechanics gates accepted | G0 and numerical/software mechanics gate G1 are accepted; G2-G11 remain unaccepted and no public hosting, data/model release, or paper submission is authorized |
 
@@ -76,7 +76,8 @@ under `evidence/integration/P02-05/` and `evidence/subagents/P02-05/`.
   canonical field during replay, holds observed conditions fixed across
   material-only cohorts, and recursively hides seeds/thresholds/identifying
   proxies. It does not introduce event hazards, event draws, or physical time.
-  P02-06 is now the next eligible task and owns stable-boundary restart,
+  P02-06 is active from pushed main `6564a1e` in
+  `research/p02-06-fracture-resume` and owns stable-boundary restart,
   load-step/refinement sensitivity, a real bounded rupture-resume fixture, and
   only a candidate G2 report for integrator review.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
@@ -86,7 +87,7 @@ under `evidence/integration/P02-05/` and `evidence/subagents/P02-05/`.
 
 G0 environment/source acceptance and G1 numerical mechanics validation are
 complete. P02-04 and P03-01 are integrated, but neither G2 nor G3 is accepted.
-The remaining critical sequence starts with P02-06 restart/sensitivity and G2,
+The remaining critical sequence starts with active P02-06 restart/sensitivity and G2,
 P03-02 through P03-06 and G3, G4 frozen
 nonleaking study cohorts, G5 baselines, G6 trained joint world model, and G7
 frozen evaluation. Experimental G8 proceeds in parallel when real lab inputs

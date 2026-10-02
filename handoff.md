@@ -3,16 +3,16 @@
 ## 🎯 Current Mission & Goals
 
 - **Ultimate goal:** Complete the evidence-gated MechWorld-PG program: verified inherited mechanics, irreversible topology change, reproducible graph trajectories, trained/evaluated physics-structured world models, actual experimental integration, a scientist-facing explorer, and an evidence-linked release candidate.
-- **Current session objective:** Accept and integrate the independently reviewed
-  P02-05 sample-once material-disorder contract, synchronize evidence/README/
-  tasks, then assign P02-06 stable-boundary restart and sensitivity from the
-  resulting clean pushed main revision.
+- **Current session objective:** Execute P02-06 stable-boundary restart,
+  uninterrupted/resumed suffix equivalence, and load-step/refinement sensitivity
+  in an isolated worktree with independent review. The specialist may prepare
+  only `G2.candidate.json`; the integrator retains the G2 decision.
 - **Project lead / new commit identity:** Mohammad Zoraiz <zoraizmohammad@gmail.com>. Repository-local author and committer identity is verified; inherited history remains attributed to its original authors.
 - **Live branch/base:** `main`; inherited base `248644000c34dbb93c85976b3bf433bb2f7344c5` (`5245d459c426d3e0a1c78a0fd1eee985d13f741e` tree).
 - **Gate state:** G0 and G1 are accepted; G2-G11 remain not accepted. P00-01
   through P00-06, P01-01 through P01-04, P01-05A, P01-06 through P01-11,
-  P02-01 through P02-05, P03-01, and P10-01 are done. P02-06 is the next
-  dependency-eligible task and remains required for G2;
+  P02-01 through P02-05, P03-01, and P10-01 are done. P02-06 is active from
+  pushed clean main `6564a1e` and remains required for G2;
   P03-02 through P03-06 remain required for G3. P01-05 remains blocked on final
   biological review, P08-01 on actual lab access, and production/public release
   remain unauthorized.
@@ -85,6 +85,11 @@
   and must export canonical in-memory records only; P03-04 retains HDF5 shard
   ownership. The P02-06 specialist may prepare `G2.candidate.json`, while the
   integrator retains `G2.json` and the actual gate decision.
+- P02-05 integration evidence/ledgers were committed as `9645003`; a one-line
+  trailing-whitespace defect caught by the final diff check was corrected in
+  follow-up commit `6564a1e`. Both commits were pushed and local/remote main
+  were verified identical before P02-06 assignment. P02-06 now owns the
+  isolated `research/p02-06-fracture-resume` worktree at that exact base.
 
 ## ✅ Verification & Hard Evidence
 
@@ -171,7 +176,8 @@
     reserved and unconsumed unless a separate load-progress hazard is later
     justified and validated. The separate implementer worktree and read-only
     reviewer are assigned; do not run LAMMPS for the core contract.
-15. [ ] Assign P02-06 only from the clean pushed P02-05 acceptance. Implement a
+15. [ ] Complete active P02-06 from clean pushed P02-05 acceptance `6564a1e`.
+    Implement a
     canonical JSON plus hashed-binary restart bundle at stable accepted
     boundaries, preserve topology/damage/events/controls/progress/frozen
     thresholds and the reserved zero-draw event seed, and verify uninterrupted
@@ -179,8 +185,8 @@
     actual solver fixtures. The specialist writes `G2.candidate.json`; the
     integrator alone decides `G2.json`.
 
-**Active jobs:** none. No solver, simulation, training, or persistent job is
-running. **Persistent simulation/training jobs:** none. Inspect
+**Active jobs:** P02-06 source/test work only; no solver, simulation, training,
+or persistent job is running. **Persistent simulation/training jobs:** none. Inspect
 `reports/jobs.jsonl` before starting any future job.
 
 **Resume command:** `cd C:/Users/mzora/MechWorld; git status --short --branch; .venv/Scripts/python.exe -m pytest -q`

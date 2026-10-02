@@ -326,3 +326,22 @@ focused/upstream compatibility tests, 516 full-suite tests, and one isolated
 installed-wheel test. P02-05 editing ownership is cleared. P02-06 may begin
 only from the clean pushed acceptance commit; P03-02 remains dependency-blocked
 until P02-06 is accepted.
+
+## Fifteenth wave
+
+The assignment uses clean accepted and pushed main revision
+`6564a1ee110b638dfadc3e5c600e0cac1010b80f`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Fracture restart/sensitivity/evaluation | `research/p02-06-fracture-resume`; `C:/Users/mzora/MechWorld-wt-p02-06` | P02-06: canonical stable-boundary restart bundles, new-root resume, uninterrupted/resumed suffix equivalence, post-break continuation, and bounded load-step/refinement/minimizer sensitivity | `src/pgworld/simulation/restart.py`, narrow accepted-checkpoint/reopen additions in `src/pgworld/simulation/fracture.py`, `src/pgworld/simulation/__init__.py`, `tests/integration/test_fracture_resume.py`, exact new wheel member/import smoke in `tests/release/test_wheel_install.py`, `docs/decisions/fracture_restart.md`, `docs/subagents/P02-06-fracture-resume.md`, `evidence/subagents/P02-06/`, `reports/gates/G2.candidate.json` | No `G2.json` or self-acceptance; no root ledger/README, `run_manager.py`, damage/stochasticity/control/topology/profile/schema/data edits, unrelated package assertions, production campaign, private data, public action, physical-time claim, or push |
+
+The restart bundle must pair canonical JSON with a hashed LAMMPS binary restart
+and preserve full logical state: immutable run lineage, solver/build/source/
+config/schedule/profile/reference identity, topology/damage/events/controls/
+progress, the frozen P02-05 threshold field and material namespace, reserved
+zero-draw event seed, budgets/diagnostics, accepted mechanics, and raw-prefix
+hashes. Only stable accepted boundaries are publishable. Mid-localization or
+cascade interruption resumes the unfinished segment from the prior accepted
+state; partial/rejected trials never become labels. The reviewer controls
+clearance for the bounded real solver, full suite, and isolated wheel.

@@ -1167,7 +1167,7 @@
       "id": "P02-06",
       "work_package": "WP2",
       "title": "Accept fracture convergence, restart, and topology gate G2",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "evaluation",
       "execution_kind": "agent",
       "mandatory": true,
@@ -1176,8 +1176,15 @@
         "P01-08"
       ],
       "owned_paths": [
-        "reports/gates/G2.json",
-        "tests/integration/test_fracture_resume.py"
+        "src/pgworld/simulation/restart.py",
+        "src/pgworld/simulation/fracture.py",
+        "src/pgworld/simulation/__init__.py",
+        "tests/integration/test_fracture_resume.py",
+        "tests/release/test_wheel_install.py",
+        "docs/decisions/fracture_restart.md",
+        "docs/subagents/P02-06-fracture-resume.md",
+        "evidence/subagents/P02-06/",
+        "reports/gates/G2.candidate.json"
       ],
       "expected_outputs": [
         "load-step/refinement/convergence study",
@@ -1194,7 +1201,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": ""
+      "notes": "Assigned from clean accepted and pushed main revision 6564a1ee110b638dfadc3e5c600e0cac1010b80f to branch research/p02-06-fracture-resume in isolated worktree C:/Users/mzora/MechWorld-wt-p02-06. Editing ownership is limited to a new restart module, the dedicated resume integration test/decision/report/evidence, G2.candidate.json, narrow fracture.py and simulation package exports required to persist/reopen a final accepted solver checkpoint, and the exact new wheel member/import smoke. The integrator alone owns reports/gates/G2.json and the gate decision. All root ledgers/README, run_manager.py, damage/stochasticity/control/topology/profile/schema/data paths, and unrelated package assertions are read-only unless a reproduced blocker is escalated before scope changes. Implement canonical JSON sidecar plus hashed LAMMPS binary restart and atomic publication at stable accepted boundaries only. A LAMMPS restart is insufficient by itself: bind run/resume lineage, LAMMPS/build/source/config/schedule/profile/reference hashes, topology/damage/event/control/progress state, frozen P02-05 threshold field and material namespace, reserved zero-draw event seed, budgets/diagnostics, last accepted observation, and raw-prefix hashes. Resume uses a new immutable run directory, validates live restored mechanics/topology, closes every solver on success/failure, and never publishes or resumes from a partial/rejected localization/cascade trial; unfinished work restarts from the prior accepted state. Red-first verification includes fake tamper/lifecycle cases, uninterrupted versus interrupted suffix equivalence, accepted post-event continuation, frozen-field/no-healing/no-repeat preservation, load-step/refinement/minimizer sensitivity, raw-versus-derived energy separation, and one bounded serial real-LAMMPS fixture. Use one process/two threads, coordinate all real/full/wheel runs, commit solely as Mohammad Zoraiz, do not push, and do not accept G2 yourself."
     },
     {
       "id": "P02-07",
