@@ -1,140 +1,170 @@
-# P03-01 verification record
+# P03-01 correction verification
 
-Date: 2026-10-01 (America/New_York)
+Date: 2026-10-02 (America/New_York)
 
-Worktree: `C:\Users\mzora\MechWorld-wt-p03-01`
+Worktree/branch: `C:\Users\mzora\MechWorld-wt-p03-01`,
+`research/p03-01-schema`
 
-Branch/base: `research/p03-01-schema` at
-`0222b6d6fdee180e2e2daa86ccfebb276c91f1f6` before the P03-01 commits.
+Accepted assignment base:
+`0222b6d6fdee180e2e2daa86ccfebb276c91f1f6`
 
-Evaluated implementation revision:
-`c489b8f7b1560ad1e18157303cc00633dd9fdae6`.
+First-pass commits `c489b8f7b1560ad1e18157303cc00633dd9fdae6` and
+`c38e4ab735b0c73ff229cc831d705b2433dfca49` were independently rejected.
+They and their evidence remain history, but their green result is not the
+acceptance basis. Corrected implementation revision evaluated here:
+`e54bbb4a0161a3e292bb0255b6b3dc508dab3810`.
 
-Runtime: `C:\Users\mzora\MechWorld\.venv\Scripts\python.exe`, Python
-3.11.9, pytest 7.4.3. All verification used `-B`. Test commands set
-`OMP_NUM_THREADS=2` and `OPENBLAS_NUM_THREADS=2`. The successful broader run
-also set `PYTHONPATH` to this worktree's resolved `src` followed by the
-authorized external LAMMPS path
+Runtime: `C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B`, Python
+3.11.9, pytest 7.4.3, `OMP_NUM_THREADS=2`, `OPENBLAS_NUM_THREADS=2`. Commands
+that exercise inherited solver tests set `PYTHONPATH` to this worktree's
+resolved `src` followed by the authorized external LAMMPS directory
 `C:\Users\mzora\AppData\Local\LAMMPS 64-bit 2Sep2026 with GUI\Python`.
-That module resolves to the same path and reports version 20260902.
+The imported module resolves there; a bounded open/version/close command
+returned `20260902`, exit 0 in 0.72 s.
 
-## Red evidence
+## Correction red evidence
 
-1. Initial missing-schema regression:
+All red runs used the worktree `src` on `PYTHONPATH` and the shared Python
+above. No implementation fix had been applied for the named regression when
+its artifact was recorded.
 
-   ```powershell
-   $env:PYTHONPATH=(Resolve-Path src).Path
-   $env:OMP_NUM_THREADS='2'
-   $env:OPENBLAS_NUM_THREADS='2'
-   C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B -m pytest tests/unit/test_schema.py -q --junitxml=evidence/subagents/P03-01/red.xml
-   ```
-
-   Exit 1 in 1.68 s. Collection failed exactly with
-   `ModuleNotFoundError: No module named 'pgworld.data'`; 0 tests ran.
-
-2. Expanded P02-control/provenance regression:
+1. Projection-relational replay:
 
    ```powershell
-   $env:PYTHONPATH=(Resolve-Path src).Path
-   $env:OMP_NUM_THREADS='2'
-   $env:OPENBLAS_NUM_THREADS='2'
-   C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B -m pytest tests/unit/test_schema.py -q --junitxml=evidence/subagents/P03-01/control-contract-red.xml
+   python -B -m pytest -q tests/unit/test_schema.py -k 'untyped_event_history or noncontiguous_state_sequence or forged_event_pre_state or inconsistent_censor_coordinate' --junitxml=evidence/subagents/P03-01/correction-projection-red.xml
    ```
 
-   Exit 1 in 1.94 s. Collection failed exactly because the stricter tests
-   required `PressureDerivation`, which did not yet exist; 0 tests ran.
+   Exit 1; 5 failed, 46 deselected in 3.19 s. Rehashed observed views accepted
+   string event sequence/criterion values and state sequence `[77,1]`; target
+   views accepted a forged pre-state and censor coordinate 99.
 
-## Green evidence
-
-1. Final focused schema suite:
+2. Typed reference/convergence/multigraph/dead-image contract:
 
    ```powershell
-   $env:PYTHONPATH=(Resolve-Path src).Path
-   $env:OMP_NUM_THREADS='2'
-   $env:OPENBLAS_NUM_THREADS='2'
-   C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B -m pytest tests/unit/test_schema.py -q --junitxml=evidence/subagents/P03-01/focused.xml
+   python -B -m pytest -q tests/unit/test_schema.py -k 'reference_state_is_typed or convergence_preserves_budget or selector_unambiguous or dead_edge_does_not_claim' --junitxml=evidence/subagents/P03-01/correction-contract-red.xml
    ```
 
-   Exit 0 in 2.12 s wall time; **46 passed in 0.78 s**, 0 failed, 0 errors,
-   0 skipped. The JUnit includes the final control/provenance and adversarial
-   tests. `focused-initial.xml` separately preserves the earlier 33-pass
-   checkpoint before those requested contract expansions.
+   Exit 1; 4 failed, 51 deselected in 2.29 s. The typed reference, convergence
+   budget/tolerance, solver selector, and nullable dead-edge image contracts
+   were absent.
 
-2. Relevant accepted-control/damage/tracked-source compatibility:
+3. Geometry/connectivity replay:
 
    ```powershell
-   $env:PYTHONPATH=(Resolve-Path src).Path
-   $env:OMP_NUM_THREADS='2'
-   $env:OPENBLAS_NUM_THREADS='2'
-   C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B -m pytest tests/physics/test_loading.py tests/physics/test_damage_law.py tests/release/test_tracked_python_compiles.py -q --junitxml=evidence/subagents/P03-01/compatibility.xml
+   python -B -m pytest -q tests/unit/test_schema.py -k 'component_partition_must or image_offsets_must or alive_edge_length_is' --junitxml=evidence/subagents/P03-01/correction-geometry-red.xml
    ```
 
-   Exit 0 in 6.53 s wall time; **99 passed in 4.31 s**, 0 failed/errors/skips.
-   Twelve inherited invalid-escape deprecation warnings were reported by the
-   tracked-source compilation test; no P03-01 file produced a warning.
+   Exit 1; 3 failed, 76 deselected in 0.54 s. Incorrect connected-component
+   partitions, nonperiodic-axis images, and forged stored length were accepted.
 
-3. Broader no-wheel run, first environmental attempt:
+4. Threshold/event/angle physics:
 
    ```powershell
-   $env:PYTHONPATH=(Resolve-Path src).Path
-   $env:OMP_NUM_THREADS='2'
-   $env:OPENBLAS_NUM_THREADS='2'
-   C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B -m pytest -q --ignore=tests/release/test_wheel_install.py --junitxml=evidence/subagents/P03-01/no-wheel-full.xml
+   python -B -m pytest -q tests/unit/test_schema.py -k 'threshold_values_obey or material_event_criterion_is or angle_dependencies_are' --junitxml=evidence/subagents/P03-01/correction-physics-red.xml
    ```
 
-   Exit 1 in 23.00 s wall time with 3 collection errors because replacing
-   `PYTHONPATH` with `src` alone hid the external, non-pip LAMMPS installation.
-   The affected inherited modules imported `lammps`; this was not a schema
-   assertion failure. The failed JUnit is retained rather than relabeled.
+   Exit 1; 5 failed, 79 deselected in 3.06 s. Negative/wrong-unit thresholds,
+   forged criterion values, and incomplete angle dependencies were accepted.
 
-4. Broader no-wheel run with the authorized external solver path restored:
+5. Control path and rotated pressure tensor:
 
    ```powershell
-   $src=(Resolve-Path src).Path
-   $lammps='C:\Users\mzora\AppData\Local\LAMMPS 64-bit 2Sep2026 with GUI\Python'
-   $env:PYTHONPATH="$src;$lammps"
-   $env:OMP_NUM_THREADS='2'
-   $env:OPENBLAS_NUM_THREADS='2'
-   C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B -m pytest -q --ignore=tests/release/test_wheel_install.py --junitxml=evidence/subagents/P03-01/no-wheel-full-with-lammps.xml
+   python -B -m pytest -q tests/unit/test_schema.py -k 'absolute_control_change or mixed_continuous_control or pressure_path_intervention or rotates_principal' --junitxml=evidence/subagents/P03-01/correction-control-red.xml
    ```
 
-   Exit 0 in 16.13 s wall time; **316 passed in 14.27 s**, 0 failed/errors/skips.
-   Fourteen warnings were the same twelve inherited invalid-escape warnings
-   plus two expected legacy elastic-output deprecation warnings.
+   Exit 1; 4 failed, 85 deselected in 3.11 s. Progress was not derived from
+   absolute load-coordinate change, mixed units/families were accepted,
+   pressure-path intervention was rejected, and the rotated pressure tensor
+   was rejected.
 
-5. Targeted compile:
+## Corrected green evidence
+
+1. Commit-sensitive focused schema suite:
 
    ```powershell
-   $env:PYTHONPATH=(Resolve-Path src).Path
-   C:\Users\mzora\MechWorld\.venv\Scripts\python.exe -B -m py_compile src/pgworld/data/schema.py src/pgworld/data/__init__.py tests/unit/test_schema.py
+   $env:PYTHONPATH='C:\Users\mzora\MechWorld-wt-p03-01\src'
+   python -B -m pytest -q tests/unit/test_schema.py --junitxml=evidence/subagents/P03-01/correction-focused.xml
    ```
 
-   Exit 0 in 0.80 s with no output.
+   Exit 0; **89 passed in 1.80 s**, 0 failed/errors/skips. This run occurred at
+   committed implementation `e54bbb4a...`.
 
-The strict wheel-install test was intentionally excluded: its payload allowlist
-is integrator-owned and has not yet been updated for the new `pgworld.data`
-package. This return makes no installed-wheel or G3 claim.
+2. Loading/damage/tracked-source compatibility:
 
-## Artifact SHA-256
+   ```powershell
+   python -B -m pytest -q tests/physics/test_loading.py tests/physics/test_damage_law.py tests/release/test_tracked_python_compiles.py --junitxml=evidence/subagents/P03-01/correction-compatibility.xml
+   ```
+
+   Exit 0; **99 passed in 9.67 s**, 0 failed/errors/skips, with 12 inherited
+   invalid-escape deprecation warnings from legacy plotting sources.
+
+3. Broader no-wheel suite with authorized external LAMMPS path:
+
+   ```powershell
+   python -B -m pytest -q --ignore=tests/release/test_wheel_install.py --junitxml=evidence/subagents/P03-01/correction-no-wheel.xml
+   ```
+
+   Exit 0; **359 passed in 84.05 s**, 0 failed/errors/skips, with 14 inherited
+   warnings (the 12 compilation warnings plus 2 expected legacy elastic-output
+   deprecations). The wheel test remains excluded because its payload allowlist
+   is integrator-owned.
+
+4. Targeted compilation:
+
+   ```powershell
+   python -B -m py_compile src/pgworld/data/schema.py src/pgworld/data/__init__.py tests/unit/test_schema.py
+   ```
+
+   Exit 0 in 1.30 s with no output before the implementation commit, and exit
+   0 again in the 3.41 s combined commit-sensitive focused/compile command.
+
+## Frozen artifact SHA-256
+
+These values were generated mechanically with `Get-FileHash -Algorithm
+SHA256` after the files stopped changing.
 
 | Artifact | SHA-256 |
 |---|---|
-| `red.xml` | `a7884bd5fb5c5bbd27805eb5cb5d75062429d10df72b4ca2355e549a4ce99b1b` |
-| `control-contract-red.xml` | `ac834f8a60c893cba1c1c1edfa9cb3f7aeb006655d44da2ec851c7662fa970d4` |
-| `focused-initial.xml` | `8534488e9820696b4c2f5499b63c359705396ce0aa87835d2a65014c0225b830` |
-| `focused.xml` | `00d6d6e2a9e67a2901e4217377172eee33c5d09761de20ef9ab7c7ac7d01d13e` |
-| `compatibility.xml` | `430051dbe5f814c097ff9f67b1dd344d11f43446fdeda8501ed02d0676384259` |
-| `no-wheel-full.xml` | `2ad1c3f8c4bcc2c37c9461bde3f2d6ab5e319a724d4edd509ac6285c96b90d45` |
-| `no-wheel-full-with-lammps.xml` | `dafa00c3b2ee6d64e819adadf17ae4c8f83181d5bdefb92d9c8d555a92b26dd3` |
+| `correction-projection-red.xml` | `b1ed6670839936c71761accabb456bb01ad0134b1e75b708f5340ab33e32f86f` |
+| `correction-contract-red.xml` | `20377636f9c620a635193b97e76210a4fc2c3c8057e434b27ade4dfdf2bd5cd2` |
+| `correction-geometry-red.xml` | `9b74174621155589fa9e96606e6163d01de68259ac71a2f62839945df1b6d5af` |
+| `correction-physics-red.xml` | `44832603a46be41956f1b2c25198d41903932cca1f0de877449683858f21cbbf` |
+| `correction-control-red.xml` | `b68f034b2aba28b8b16920165873cf37f0e664b01411ed06b3e221494bf21b02` |
+| `correction-focused.xml` | `11b1e15b58d55d039dbda9a822206a99300c8afc3b47dda9b1aaacd2274fd829` |
+| `correction-compatibility.xml` | `212ed5fc43d17e60471c52e215ffa5e33433bb29b426b0c0124cb56a2fe1d054` |
+| `correction-no-wheel.xml` | `4f0bad2c4191215c09b2d9ba7e99f406e0564e3ef7de9fd67e5caaa8752770d3` |
+
+The superseded first-pass verification contained stale text hashes after line
+normalization. The actual committed hashes are: `red.xml`
+`dfd039f7db3a635e3f8120faa6803e39125232ea60fa20a5ab51f979010ed004`,
+`control-contract-red.xml`
+`8e47ab2fcca56a8c68967ff2fe281ec031a09f2f78d2a23bfa30940dc8db563d`,
+and failed environmental `no-wheel-full.xml`
+`ec26bfe0a0ab2c691f5d758048d08db18442e1d8030ff394a0e59b7eb53f0c00`.
+
+The same eight correction hashes are stored in `artifact-hashes.sha256`. This
+post-freeze PowerShell verification exited 0 and printed `verified 8 artifact
+hashes`:
+
+```powershell
+$root='evidence/subagents/P03-01'
+$rows=Get-Content "$root/artifact-hashes.sha256"
+foreach ($row in $rows) {
+  $expected,$name=$row -split ' \*',2
+  $actual=(Get-FileHash -Algorithm SHA256 -LiteralPath "$root/$name").Hash.ToLower()
+  if ($actual -ne $expected) { throw "hash mismatch: $name" }
+}
+"verified $($rows.Count) artifact hashes"
+```
 
 ## Limitations
 
-- The schema is an in-memory/JSON-compatible contract. It does not write or
-  validate HDF5 and does not migrate old persisted records.
-- No actual solver trajectory, dataset, experimental file, private data, or
-  model input was produced.
-- P03-02 still must adapt accepted P02 records and compare exported values to
-  the source solver; P03-04 still owns shards/manifests/atomic completion.
-- Local stress, physical time, storage restart, split generation, and
-  observation-operator validation remain capability-gated or later work.
-- G3 remains not accepted.
+- This is an in-memory/JSON-compatible schema and replay contract, not an
+  HDF5/NPZ writer, dataset, migration tool, or trained model.
+- Profile identity strings are internally bound but registry membership is
+  not proven here.
+- P03-02 still owns full accepted-P02-to-schema solver value agreement; P03-04
+  owns canonical storage/manifests/splits. The integrator must reconcile the
+  older shared draft data contract after accepting this correction.
+- No real/private/experimental data or biological certification was used.
+  G3 remains unaccepted.

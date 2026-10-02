@@ -1,72 +1,72 @@
 # P03-01 schema specialist return
 
-Task: P03-01, freeze versioned graph, control, state, event, provenance, and
-access records.
+Task: freeze the versioned graph/control/reference/state/event/access contract.
 
 Base: `0222b6d6fdee180e2e2daa86ccfebb276c91f1f6`
 
 Branch/worktree: `research/p03-01-schema` at
 `C:\Users\mzora\MechWorld-wt-p03-01`
 
-Implementation commit:
-`c489b8f7b1560ad1e18157303cc00633dd9fdae6` (`Define versioned trajectory
-access schema`). Author and committer are solely Mohammad Zoraiz
-`<zoraizmohammad@gmail.com>`.
+The first-pass commits `c489b8f` and `c38e4ab` were rejected in independent
+review and are superseded. Corrected implementation commit:
+`e54bbb4a0161a3e292bb0255b6b3dc508dab3810` (`Correct trajectory replay and
+physics contracts`). New commits have Mohammad Zoraiz
+`<zoraizmohammad@gmail.com>` as sole author and committer. Nothing was pushed.
 
-## Returned implementation
+## Corrected implementation
 
-- Added the installable `pgworld.data` package with the frozen
-  `pgworld.trajectory.v1` and `pgworld.trajectory_access.v1` contracts.
-- Reconciled the planning draft's `int64` IDs with accepted P02 opaque string
-  identities without coercion; numeric-looking spellings remain exact.
-- Added immutable, content-hashed static graph and trajectory replay with
-  exact-version/exact-key validation, restricted-triclinic column-vector cell
-  geometry, origin/periodic axes, and signed per-edge `n_ij`.
-- Added immutable reference node/edge/angle records and reconstructible
-  per-state effective edge parameters, damage, alive masks, dependent-angle
-  masks, component labels, mechanics, convergence, and capability flags.
-- Added full P02-01-compatible controls: kind/mode, orthonormal axial/hoop
-  basis, absolute and incremental deformation/tension controls, cumulative
-  progress and increments, per-node constrained DOFs, local weakening/removal,
-  and explicit closed-cylinder pressure-to-tension provenance.
-- Replay binds deformation-state `H` to `F_absolute @ H_reference`, validates
-  deformation composition and additive tension targets, preserves same-load
-  subevents, and rejects healing, repeats, unrelated mutation, missing
-  dependent-angle deletion, source-phase forgery, or unlinked topology change.
-- Added full root/branch lineage plus source/profile/reference/law/config,
-  observation-model, and boundary-condition provenance. Split ID and
-  assignment/manifest hashes are optional as one all-or-none group and remain
-  predictor-hidden.
-- Added separately hash-bound `observed`, `target_only`, and `privileged`
-  projections. Observed payloads omit lineage/split/raw/private records and
-  recursively reject threshold/seed/disorder/future/oracle/rejected/
-  normalizer/privacy aliases before exact nested replay.
-- Documented canonical semantic event phases and the exact fail-closed P02
-  mapping: `pre_delete_relaxed -> pre_rupture`,
-  `post_delete_unrelaxed -> post_topology_change`, and
-  `post_event_relaxed -> post_event_equilibrium`.
+- Added relationally strict observed/target replay and an explicit
+  `validate_against(TrajectoryRecord)` derivation check. A projection hash is
+  documented only as content integrity, never parent provenance.
+- Added hash-bound fixed-cell equilibrated reference records with coordinates,
+  prestress, minimization limit/tolerance/result, profile identity, and graph
+  identity. State incremental tension is bound to total minus the invariant
+  reference total tension.
+- Added typed boundary semantics for stable/solver anchors, constrained DOFs,
+  affine remap, force/reaction availability, and residual-force scope.
+- Preserved accepted P02 convergence semantics, failure endpoint records,
+  threshold visibility, threshold realization/law/profile/reference identity,
+  raw energy names, phase mapping, load/progress semantics, and strict absence
+  of physical time.
+- Added exact geometry replay: signed images respect periodic axes, alive-edge
+  lengths derive from positions/full `H`/`n_ij`, dead edges carry no invented
+  current image, and component partitions equal alive-edge connectivity.
+- Reconciled P02 multigraph topology by requiring endpoint plus solver bond
+  type uniqueness. Chemical labels cannot hide solver ambiguity. Angle
+  dependencies are exactly the two adjacent segments with glycan semantics.
+- Effective coefficients reconstruct from immutable references plus ordered
+  declared weakening. Undeclared coefficient changes fail.
+- Event replay binds material criteria to pre-event edge geometry/tension/
+  energy and positive per-edge thresholds, distinguishes prescribed actions,
+  validates exact dependent-angle removal and cascade ancestry, and continues
+  evaluation after the damage-initiation endpoint.
+- Control replay derives progress from absolute load-coordinate changes,
+  prohibits mixed continuous families/units, lets interventions inherit the
+  parent deformation or pressure unit, and rotates the pressure-derived
+  principal tension tensor through the declared axis basis.
+- Added direct P02 topology and failure-endpoint adapters without editing P02.
 
-## Verification
+## Verification returned
 
-The detailed commands, environments, exits, timings, warnings, artifact hashes,
-and failure explanation are in
-`evidence/subagents/P03-01/verification.md`.
+Detailed commands, environment, exits, timings, failure causes, exact hashes,
+and limitations are in `evidence/subagents/P03-01/verification.md`.
 
-- Initial red: 1 collection error, missing `pgworld.data`.
-- Expanded-contract red: 1 collection error, missing typed pressure derivation.
-- Final focused: **46 passed**, no failures/errors/skips.
-- Relevant loading/damage/compile compatibility: **99 passed**, 12 inherited
-  deprecation warnings.
-- Broader no-wheel suite: the first run preserved 3 environmental collection
-  errors after omitting external LAMMPS from `PYTHONPATH`; the corrected run
-  with the authorized LAMMPS 20260902 path passed **316 tests** with 14 inherited/
-  expected deprecation warnings and no failures/errors/skips.
-- Targeted `py_compile`: exit 0.
-- Strict wheel install was not run because its allowlist is integrator-owned.
+- Five correction-red artifacts preserve 21 exact failures before fixes:
+  projection relations (5), typed contracts (4), geometry/connectivity (3),
+  threshold/event/angle physics (5), and control/basis semantics (4).
+- Commit-sensitive focused schema suite: **89 passed**, no failures/errors/
+  skips.
+- Loading/damage/tracked-source compatibility: **99 passed**, with 12 inherited
+  invalid-escape warnings.
+- Broader no-wheel suite with the authorized external LAMMPS 20260902 path:
+  **359 passed**, with 14 inherited/expected warnings and no failures/errors/
+  skips.
+- Targeted compilation passed. Diff/path/identity checks are recorded before
+  final return.
 
 ## Ownership proof
 
-The implementation/evidence range changes only the assigned paths:
+The correction changes only assigned path groups:
 
 - `src/pgworld/data/__init__.py`
 - `src/pgworld/data/schema.py`
@@ -75,18 +75,15 @@ The implementation/evidence range changes only the assigned paths:
 - `docs/subagents/P03-01-schema.md`
 - `evidence/subagents/P03-01/`
 
-No root ledger, README, task file, ownership ledger, shared contract, package
+No root README/handoff/task/ownership ledger, shared data contract, package
 manifest, release gate, dependency, P02 path, or private-data path was edited.
 
 ## Limitations and next ownership
 
-- P03-01 implements no HDF5/NPZ writer, shard, atomic completion, dataset,
-  split assignment, normalizer fitting, or migration tool.
-- P03-02 must implement/verify the actual accepted-P02-to-schema adapter and
-  solver-value agreement. P03-04 owns storage/manifests and can populate split
-  and manifest fields only after those artifacts exist.
-- The wheel payload allowlist/package installation proof belongs to the
-  integrator because release-test and package-manifest paths were explicitly
-  outside this assignment.
-- No real/private/experimental data, model, simulation campaign, or biological
-  certification was created. G3 is not accepted by this return.
+- No persistence, dataset, split, normalizer, migration, model, simulation
+  campaign, or experimental artifact was produced; G3 is not accepted.
+- Profile identity is consistently hash-bound but registry membership must be
+  checked by the consuming profile/solver adapter.
+- P03-02 owns full accepted-P02-to-schema solver value comparison. P03-04 owns
+  HDF5 shards/manifests/atomic completion. The integrator owns reconciliation
+  of the now-superseded shared draft data contract and package/wheel allowlist.
