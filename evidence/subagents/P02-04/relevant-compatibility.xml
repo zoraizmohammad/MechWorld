@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1" time="2.149" timestamp="2026-10-02T00:58:55.865171" hostname="MZoraiz_P15"><testcase classname="" name="tests.unit.test_legacy_control_flow" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-04\tests\unit\test_legacy_control_flow.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\unit\test_legacy_control_flow.py:13: in &lt;module&gt;
+    import process_network_ensembles
+src\process_network_ensembles.py:12: in &lt;module&gt;
+    from run_lammps_isotropic_strain import run_isotropic_prestrain_nve, run_isotropic_prestrain_minimize
+src\run_lammps_isotropic_strain.py:1: in &lt;module&gt;
+    from lammps import lammps
+E   ModuleNotFoundError: No module named 'lammps'</error></testcase></testsuite></testsuites>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.364" timestamp="2026-10-02T00:51:06.601739" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_fracture_accounting" name="test_harmonic_certificate_uses_angle_order_not_arbitrary_bond_orientation" time="0.017"><failure message="AssertionError: assert &lt;LocalizationStatus.UPPER_DOES_NOT_CROSS: 'upper_does_not_cross'&gt; is &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt;&#10; +  where &lt;LocalizationStatus.UPPER_DOES_NOT_CROSS: 'upper_does_not_cross'&gt; = EventLocalizationRecord(localization_id='sha256:039bbcbede5e917abe072e2818c6d6ed9b2089c5d3c16d5d9f1482624193b5f7', sta...stability=False, schema_version='pgworld.fracture_localization.v1'), schema_version='pgworld.fracture_localization.v1').status&#10; +    where EventLocalizationRecord(localization_id='sha256:039bbcbede5e917abe072e2818c6d6ed9b2089c5d3c16d5d9f1482624193b5f7', sta...stability=False, schema_version='pgworld.fracture_localization.v1'), schema_version='pgworld.fracture_localization.v1') = LocalizedCascadeResult(result_id='sha256:bc4e60e80bc5de24b65d4271f8548204b141272ae6dfd4ce9c98aea7d98cf02b', localizati..., 'dependent_bond_ids': ('b12', 'b23')}),)})}), backend_closed=True, schema_version='pgworld.fracture_localization.v1').localization&#10; +  and   &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt; = LocalizationStatus.DOMAIN_REJECTED">def test_harmonic_certificate_uses_angle_order_not_arbitrary_bond_orientation() -&gt; None:
+        registry = _folded_orientation_registry()
+        law, field, state = _damage(registry, threshold=1.1)
+        lower = _control(0.0, 0.0, step_index=0)
+        upper = _control(0.2, 0.2, step_index=1)
+        backend = AnalyticalLocalizationBackend(registry)
+        previous = _previous_snapshot(backend, lower, registry, state)
+        result = QuasiStaticFractureCascade(
+            backend, registry, law, field, CascadeBudget(1)
+        ).run_localized_step(
+            lower_control=lower, upper_control=upper, previous_accepted=previous,
+            damage_state=state, topology_state=registry.initial_state,
+            localization_budget=LocalizationBudget(8, 12, 0, 0.005, 0.005),
+            domain_certificate=_certificate(registry),
+        )
+&gt;       assert result.localization.status is LocalizationStatus.DOMAIN_REJECTED
+E       AssertionError: assert &lt;LocalizationStatus.UPPER_DOES_NOT_CROSS: 'upper_does_not_cross'&gt; is &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt;
+E        +  where &lt;LocalizationStatus.UPPER_DOES_NOT_CROSS: 'upper_does_not_cross'&gt; = EventLocalizationRecord(localization_id='sha256:039bbcbede5e917abe072e2818c6d6ed9b2089c5d3c16d5d9f1482624193b5f7', sta...stability=False, schema_version='pgworld.fracture_localization.v1'), schema_version='pgworld.fracture_localization.v1').status
+E        +    where EventLocalizationRecord(localization_id='sha256:039bbcbede5e917abe072e2818c6d6ed9b2089c5d3c16d5d9f1482624193b5f7', sta...stability=False, schema_version='pgworld.fracture_localization.v1'), schema_version='pgworld.fracture_localization.v1') = LocalizedCascadeResult(result_id='sha256:bc4e60e80bc5de24b65d4271f8548204b141272ae6dfd4ce9c98aea7d98cf02b', localizati..., 'dependent_bond_ids': ('b12', 'b23')}),)})}), backend_closed=True, schema_version='pgworld.fracture_localization.v1').localization
+E        +  and   &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt; = LocalizationStatus.DOMAIN_REJECTED
+
+tests\physics\test_fracture_accounting.py:782: AssertionError</failure></testcase></testsuite></testsuites>

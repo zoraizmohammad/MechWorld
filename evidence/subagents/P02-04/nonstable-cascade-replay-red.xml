@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="0.582" timestamp="2026-10-02T00:53:36.031268" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_fracture_accounting" name="test_localized_result_rejects_nonstable_cascade_status[event_budget_exhausted-event_budget_exhausted-max_events=1]" time="0.115"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;">status = 'event_budget_exhausted', kind = 'event_budget_exhausted'
+detail = 'max_events=1'
+
+    @pytest.mark.parametrize(
+        ("status", "kind", "detail"),
+        [
+            ("event_budget_exhausted", "event_budget_exhausted", "max_events=1"),
+            ("rolled_back", "rolled_back", "post-event transaction failed"),
+        ],
+    )
+    def test_localized_result_rejects_nonstable_cascade_status(
+        status: str, kind: str, detail: str
+    ) -&gt; None:
+        success, *_ = _run_fake()
+        record = deepcopy(success.as_record())
+        cascade = record["cascade_result"]
+        assert isinstance(cascade, dict)
+        cascade["status"] = status
+        cascade["diagnostic"] = CascadeDiagnostic.create(kind, detail).as_record()
+        cascade["result_id"] = _record_hash(
+            {key: value for key, value in cascade.items() if key != "result_id"}
+        )
+        record["result_id"] = _record_hash(
+            {key: value for key, value in record.items() if key != "result_id"}
+        )
+&gt;       with pytest.raises(FractureExecutionError, match="stable cascade"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;
+
+tests\physics\test_fracture_accounting.py:1130: Failed</failure></testcase><testcase classname="tests.physics.test_fracture_accounting" name="test_localized_result_rejects_nonstable_cascade_status[rolled_back-rolled_back-post-event transaction failed]" time="0.104"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;">status = 'rolled_back', kind = 'rolled_back'
+detail = 'post-event transaction failed'
+
+    @pytest.mark.parametrize(
+        ("status", "kind", "detail"),
+        [
+            ("event_budget_exhausted", "event_budget_exhausted", "max_events=1"),
+            ("rolled_back", "rolled_back", "post-event transaction failed"),
+        ],
+    )
+    def test_localized_result_rejects_nonstable_cascade_status(
+        status: str, kind: str, detail: str
+    ) -&gt; None:
+        success, *_ = _run_fake()
+        record = deepcopy(success.as_record())
+        cascade = record["cascade_result"]
+        assert isinstance(cascade, dict)
+        cascade["status"] = status
+        cascade["diagnostic"] = CascadeDiagnostic.create(kind, detail).as_record()
+        cascade["result_id"] = _record_hash(
+            {key: value for key, value in cascade.items() if key != "result_id"}
+        )
+        record["result_id"] = _record_hash(
+            {key: value for key, value in record.items() if key != "result_id"}
+        )
+&gt;       with pytest.raises(FractureExecutionError, match="stable cascade"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;
+
+tests\physics\test_fracture_accounting.py:1130: Failed</failure></testcase></testsuite></testsuites>

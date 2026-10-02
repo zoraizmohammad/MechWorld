@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.232" timestamp="2026-10-02T00:47:10.014220" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_fracture_accounting" name="test_second_diagnosed_transient_on_new_coordinate_does_not_retry" time="0.030" /></testsuite></testsuites>

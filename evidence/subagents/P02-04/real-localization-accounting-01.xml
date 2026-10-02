@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.520" timestamp="2026-10-02T00:56:19.502364" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_fracture_accounting" name="test_real_serial_lammps_localization_and_raw_phase_accounting" time="0.174"><failure message="AssertionError: assert ('b12',) == ('b23',)&#10;  At index 0 diff: 'b12' != 'b23'&#10;  Use -v to get more diff">tmp_path = WindowsPath('C:/Users/mzora/AppData/Local/Temp/pytest-of-mzora/pytest-274/test_real_serial_lammps_locali0')
+record_property = &lt;function record_property.&lt;locals&gt;.append_property at 0x00000171BA7B2AC0&gt;
+
+    def test_real_serial_lammps_localization_and_raw_phase_accounting(
+        tmp_path: Path, record_property: Any
+    ) -&gt; None:
+        pytest.importorskip("lammps")
+        registry = _periodic_registry()
+        backend = LammpsFractureBackend.tiny_harmonic_fixture(registry=registry, profile=PROFILE, work_directory=tmp_path)
+        law = DamageLaw(
+            law_id="p0204-real-extension-v1", law_kind="deterministic_threshold",
+            criterion="bond_extension_ratio", criterion_unit="dimensionless", base_threshold=1.1,
+            distribution=None, predictor_visibility="hidden_from_predictor",
+            physics_profile_id=PROFILE.profile_id, physics_profile_hash=PROFILE.canonical_hash,
+            reference_state_id=REFERENCE_ID,
+        )
+        field = materialize_thresholds(law, ("b12", "b23"))
+        state = initialize_damage_state(law, field, [CriterionObservation(bond_id, law.criterion, law.criterion_unit, value) for bond_id, value in backend.fixed_reference_criterion_values.items()])
+        lower = _control(0.0, 0.0, step_index=0)
+        upper = _control(0.2, 0.2, step_index=1)
+        previous = backend.observe_restored(control=lower, topology_state=registry.initial_state, damage_state=state)
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2, 8)).run_localized_step(
+            lower_control=lower, upper_control=upper, previous_accepted=previous,
+            damage_state=state, topology_state=registry.initial_state,
+            localization_budget=LocalizationBudget(9, 12, 0, 0.002, 0.002), domain_certificate=_certificate(registry),
+        )
+        assert result.localization.status is LocalizationStatus.LOCALIZED
+        event = result.cascade_result.transitions[0].material_event
+        assert 0.1 &lt;= event.load_coordinate &lt;= 0.102
+        accounting = result.energy_accounting[0]
+        energies = accounting.phase_energies_pN_nm
+        assert energies["U_after_control_before_relax"] == pytest.approx(energies["U_pre_event_relaxed"], rel=0.0, abs=1.0e-8)
+        assert energies["U_post_delete_unrelaxed"] == pytest.approx(0.5 * energies["U_pre_event_relaxed"], rel=0.0, abs=1.0e-8)
+        assert energies["U_post_event_relaxed"] == pytest.approx(0.0, abs=1.0e-8)
+        assert accounting.held_control_boundary_work_pN_nm == 0.0
+&gt;       assert result.cascade_result.final_snapshot.topology.alive_bond_ids == ("b23",)
+E       AssertionError: assert ('b12',) == ('b23',)
+E         At index 0 diff: 'b12' != 'b23'
+E         Use -v to get more diff
+
+tests\physics\test_fracture_accounting.py:1266: AssertionError</failure></testcase></testsuite></testsuites>

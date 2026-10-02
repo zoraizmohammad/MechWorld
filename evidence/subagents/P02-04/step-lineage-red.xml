@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="4" time="0.733" timestamp="2026-10-02T00:48:17.753595" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_replay_binds_one_step_lineage[initial_upper_control-far_future]" time="0.064"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;">target = 'initial_upper_control', step_source = 'far_future'
+
+    @pytest.mark.parametrize(
+        "target,step_source",
+        [
+            ("initial_upper_control", "far_future"),
+            ("initial_upper_control", "not_after_lower"),
+            ("lower_bracket_control", "far_future"),
+            ("upper_bracket_control", "far_future"),
+        ],
+    )
+    def test_localization_replay_binds_one_step_lineage(
+        target: str, step_source: str
+    ) -&gt; None:
+        success, *_ = _run_fake()
+        loc = success.localization
+        common = _localization_create_kwargs(loc)
+        source = common[target]
+        assert isinstance(source, QuasiStaticControlStep)
+        step_index = (
+            loc.initial_lower_control.step_index
+            if step_source == "not_after_lower"
+            else 999
+        )
+        common[target] = _control_with_step(source, step_index)
+&gt;       with pytest.raises(FractureExecutionError, match="step"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;
+
+tests\physics\test_fracture_accounting.py:939: Failed</failure></testcase><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_replay_binds_one_step_lineage[initial_upper_control-not_after_lower]" time="0.064"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;">target = 'initial_upper_control', step_source = 'not_after_lower'
+
+    @pytest.mark.parametrize(
+        "target,step_source",
+        [
+            ("initial_upper_control", "far_future"),
+            ("initial_upper_control", "not_after_lower"),
+            ("lower_bracket_control", "far_future"),
+            ("upper_bracket_control", "far_future"),
+        ],
+    )
+    def test_localization_replay_binds_one_step_lineage(
+        target: str, step_source: str
+    ) -&gt; None:
+        success, *_ = _run_fake()
+        loc = success.localization
+        common = _localization_create_kwargs(loc)
+        source = common[target]
+        assert isinstance(source, QuasiStaticControlStep)
+        step_index = (
+            loc.initial_lower_control.step_index
+            if step_source == "not_after_lower"
+            else 999
+        )
+        common[target] = _control_with_step(source, step_index)
+&gt;       with pytest.raises(FractureExecutionError, match="step"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;
+
+tests\physics\test_fracture_accounting.py:939: Failed</failure></testcase><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_replay_binds_one_step_lineage[lower_bracket_control-far_future]" time="0.067"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;">target = 'lower_bracket_control', step_source = 'far_future'
+
+    @pytest.mark.parametrize(
+        "target,step_source",
+        [
+            ("initial_upper_control", "far_future"),
+            ("initial_upper_control", "not_after_lower"),
+            ("lower_bracket_control", "far_future"),
+            ("upper_bracket_control", "far_future"),
+        ],
+    )
+    def test_localization_replay_binds_one_step_lineage(
+        target: str, step_source: str
+    ) -&gt; None:
+        success, *_ = _run_fake()
+        loc = success.localization
+        common = _localization_create_kwargs(loc)
+        source = common[target]
+        assert isinstance(source, QuasiStaticControlStep)
+        step_index = (
+            loc.initial_lower_control.step_index
+            if step_source == "not_after_lower"
+            else 999
+        )
+        common[target] = _control_with_step(source, step_index)
+&gt;       with pytest.raises(FractureExecutionError, match="step"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;
+
+tests\physics\test_fracture_accounting.py:939: Failed</failure></testcase><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_replay_binds_one_step_lineage[upper_bracket_control-far_future]" time="0.073"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'step'&#10; Input: 'localized result must publish exactly the crossing upper bound'">target = 'upper_bracket_control', step_source = 'far_future'
+
+    @pytest.mark.parametrize(
+        "target,step_source",
+        [
+            ("initial_upper_control", "far_future"),
+            ("initial_upper_control", "not_after_lower"),
+            ("lower_bracket_control", "far_future"),
+            ("upper_bracket_control", "far_future"),
+        ],
+    )
+    def test_localization_replay_binds_one_step_lineage(
+        target: str, step_source: str
+    ) -&gt; None:
+        success, *_ = _run_fake()
+        loc = success.localization
+        common = _localization_create_kwargs(loc)
+        source = common[target]
+        assert isinstance(source, QuasiStaticControlStep)
+        step_index = (
+            loc.initial_lower_control.step_index
+            if step_source == "not_after_lower"
+            else 999
+        )
+        common[target] = _control_with_step(source, step_index)
+        with pytest.raises(FractureExecutionError, match="step"):
+&gt;           EventLocalizationRecord.create(**common, retries=loc.retries)
+
+tests\physics\test_fracture_accounting.py:940:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\simulation\fracture.py:1129: in create
+    return cls(localization_id=_hash(body), **kwargs)  # type: ignore[arg-type]
+&lt;string&gt;:20: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = EventLocalizationRecord(localization_id='sha256:459fe685033197894d48ab46eba51a4a7a47f2025223fce8a5d4f755be0a41d1', sta...e64fe640277550bbd72b7b1a8918fee8cd5f910d43a9cdef5', diagnostic=None, schema_version='pgworld.fracture_localization.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != LOCALIZATION_SCHEMA_VERSION or not isinstance(self.status, LocalizationStatus):
+            raise FractureExecutionError("invalid localization record schema/status")
+        if not isinstance(self.budget, LocalizationBudget) or not isinstance(self.domain_certificate, TrialDomainCertificate):
+            raise FractureExecutionError("localization record requires validated budget/certificate")
+        controls = (self.initial_lower_control, self.initial_upper_control, self.lower_bracket_control, self.upper_bracket_control)
+        if any(not isinstance(item, QuasiStaticControlStep) for item in controls):
+            raise FractureExecutionError("localization bracket requires validated controls")
+        initial_progress = self.initial_lower_control.path_progress
+        terminal_progress = self.initial_upper_control.path_progress
+        if terminal_progress &lt;= initial_progress:
+            raise FractureExecutionError("localization path progress must increase")
+        for item in controls[1:]:
+            _validate_segment_control(item, self.initial_lower_control, self.initial_upper_control)
+            if item.path_progress &lt; initial_progress - 1e-12 or item.path_progress &gt; terminal_progress + 1e-12:
+                raise FractureExecutionError("localization bracket lies outside initial segment")
+        if self.lower_bracket_control.path_progress &gt;= self.upper_bracket_control.path_progress:
+            raise FractureExecutionError("localization lower bracket must precede crossing upper bracket")
+        for value, field in ((self.solver_trials, "solver_trials"), (self.refinements, "refinements"), (self.retries, "retries")):
+            _integer(value, field)
+        if self.solver_trials &gt; self.budget.max_solver_trials or self.refinements &gt; self.budget.max_refinements:
+            raise FractureExecutionError("localization counters exceed their explicit budgets")
+        if self.retries &gt; self.solver_trials:
+            raise FractureExecutionError("localization retries cannot exceed solver trials")
+        if self.retries &gt; self.budget.max_retries_per_trial:
+            raise FractureExecutionError("localization retries exceed the diagnosed-transient retry budget")
+        if self.refinements &gt; max(0, self.solver_trials - 1):
+            raise FractureExecutionError("accepted refinements cannot exceed solver trials after the upper trial")
+        if self.status in {
+            LocalizationStatus.DOMAIN_REJECTED,
+            LocalizationStatus.LIVE_LOWER_MISMATCH,
+            LocalizationStatus.INVALID_LOWER_BRACKET,
+        } and (self.solver_trials != 0 or self.refinements != 0 or self.retries != 0):
+            raise FractureExecutionError("pre-trial localization status cannot report trial counters")
+        if self.status in {
+            LocalizationStatus.LOCALIZED,
+            LocalizationStatus.UPPER_DOES_NOT_CROSS,
+            LocalizationStatus.REFINEMENT_BUDGET_EXHAUSTED,
+            LocalizationStatus.FINAL_TRANSACTION_ROLLED_BACK,
+            LocalizationStatus.FINAL_TRANSACTION_ROLLBACK_FAILED,
+        } and self.solver_trials &lt; 1:
+            raise FractureExecutionError("localization status requires at least one accepted solver trial")
+        if self.status is LocalizationStatus.REFINEMENT_BUDGET_EXHAUSTED and self.refinements != self.budget.max_refinements:
+            raise FractureExecutionError("refinement-budget status must stop at the exact refinement budget")
+        if self.status is LocalizationStatus.SOLVER_BUDGET_EXHAUSTED and self.solver_trials != self.budget.max_solver_trials:
+            raise FractureExecutionError("solver-budget status must stop at the exact solver budget")
+        if self.status is LocalizationStatus.UPPER_DOES_NOT_CROSS and self.refinements != 0:
+            raise FractureExecutionError("upper-no-cross status cannot contain refinements")
+        if self.status is LocalizationStatus.UPPER_DOES_NOT_CROSS and self.solver_trials != 1 + self.retries:
+            raise FractureExecutionError("upper-no-cross counters do not match upper/retry attempts")
+        if self.status is LocalizationStatus.REFINEMENT_BUDGET_EXHAUSTED and self.solver_trials != 1 + self.refinements + self.retries:
+            raise FractureExecutionError("refinement-budget counters do not match upper/refinement/retry attempts")
+        if self.status is LocalizationStatus.RETRY_BUDGET_EXHAUSTED and self.retries != self.budget.max_retries_per_trial:
+            raise FractureExecutionError("retry-budget status must stop at the exact retry budget")
+        if self.status is LocalizationStatus.NONCONVERGENCE_REJECTED and self.solver_trials &lt; 1:
+            raise FractureExecutionError("nonretryable nonconvergence requires a solver trial")
+        if self.status is LocalizationStatus.LOCALIZED and self.solver_trials != 1 + self.refinements + self.retries:
+            raise FractureExecutionError("localized counters do not match upper/refinement/retry attempts")
+        for identity, field in ((self.previous_accepted_observation_id, "previous_accepted_observation_id"), (self.topology_state_id, "topology_state_id"), (self.damage_state_id, "damage_state_id")):
+            if _HASH_RE.fullmatch(identity) is None:
+                raise FractureExecutionError(f"{field} must be sha256")
+        if self.status is LocalizationStatus.LOCALIZED:
+            if self.localized_control is None or self.localized_control.as_record() != self.upper_bracket_control.as_record() or self.diagnostic is not None:
+&gt;               raise FractureExecutionError("localized result must publish exactly the crossing upper bound")
+E               pgworld.simulation.fracture.FractureExecutionError: localized result must publish exactly the crossing upper bound
+
+src\pgworld\simulation\fracture.py:1048: FractureExecutionError
+
+During handling of the above exception, another exception occurred:
+
+target = 'upper_bracket_control', step_source = 'far_future'
+
+    @pytest.mark.parametrize(
+        "target,step_source",
+        [
+            ("initial_upper_control", "far_future"),
+            ("initial_upper_control", "not_after_lower"),
+            ("lower_bracket_control", "far_future"),
+            ("upper_bracket_control", "far_future"),
+        ],
+    )
+    def test_localization_replay_binds_one_step_lineage(
+        target: str, step_source: str
+    ) -&gt; None:
+        success, *_ = _run_fake()
+        loc = success.localization
+        common = _localization_create_kwargs(loc)
+        source = common[target]
+        assert isinstance(source, QuasiStaticControlStep)
+        step_index = (
+            loc.initial_lower_control.step_index
+            if step_source == "not_after_lower"
+            else 999
+        )
+        common[target] = _control_with_step(source, step_index)
+&gt;       with pytest.raises(FractureExecutionError, match="step"):
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'step'
+E        Input: 'localized result must publish exactly the crossing upper bound'
+
+tests\physics\test_fracture_accounting.py:939: AssertionError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="27" time="1.541" timestamp="2026-10-02T00:34:28.643893" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_fracture_accounting" name="test_localizes_first_crossing_and_binds_event_and_five_phase_accounting" time="0.087" /><testcase classname="tests.physics.test_fracture_accounting" name="test_coarse_and_fine_refinement_converge_without_publishing_trial_states" time="0.122" /><testcase classname="tests.physics.test_fracture_accounting" name="test_nonconverged_trial_retries_from_exact_lower_without_moving_bracket" time="0.056" /><testcase classname="tests.physics.test_fracture_accounting" name="test_exhausted_refinement_solver_and_retry_budgets_are_typed_and_restore_lower" time="0.045" /><testcase classname="tests.physics.test_fracture_accounting" name="test_initial_violation_and_non_crossing_upper_never_publish_an_event" time="0.005"><failure message="pgworld.simulation.fracture.FractureExecutionError: initial-threshold-violation references cannot be localized">def test_initial_violation_and_non_crossing_upper_never_publish_an_event() -&gt; None:
+        registry = _registry()
+        law, field, state = _damage(registry, threshold=0.9)
+        lower = _control(0.0, 0.0, step_index=0)
+        upper = _control(0.2, 0.2, step_index=1)
+        backend = AnalyticalLocalizationBackend(registry)
+        previous = _previous_snapshot(backend, lower, registry, state)
+        invalid = QuasiStaticFractureCascade(
+            backend, registry, law, field, CascadeBudget(2, 8)
+&gt;       ).run_localized_step(
+            lower_control=lower, upper_control=upper, previous_accepted=previous,
+            damage_state=state, topology_state=registry.initial_state,
+            localization_budget=LocalizationBudget(8, 12, 0, 0.005, 0.005),
+            domain_certificate=_certificate(registry),
+        )
+
+tests\physics\test_fracture_accounting.py:517:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\simulation\fracture.py:2149: in run_localized_step
+    raise active_error
+src\pgworld\simulation\fracture.py:2128: in run_localized_step
+    payload = self._execute_localized(
+src\pgworld\simulation\fracture.py:2173: in _execute_localized
+    self._validate_localization_inputs(
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;pgworld.simulation.fracture.QuasiStaticFractureCascade object at 0x000001DD2F45E2D0&gt;
+lower = QuasiStaticControlStep(control_id='axial:0:0:0', step_index=0, control_kind='deformation_gradient', loading_mode='axia...ne, incremental_tension_target_pN_per_nm=None, pressure_derivation=None, physical_time=None, physical_time_valid=False)
+upper = QuasiStaticControlStep(control_id='axial:1:0.20000000000000001:0.20000000000000001', step_index=1, control_kind='defor...ne, incremental_tension_target_pN_per_nm=None, pressure_derivation=None, physical_time=None, physical_time_valid=False)
+previous = BackendObservation(observation_id='sha256:62e3893bc3fa502a1bae0c044a943abbd478ab917ab76697396d23931c4cece2', phase='pr...l_degrees_of_freedom'}), physical_time=None, physical_time_valid=False, schema_version='pgworld.fracture_execution.v1')
+damage = DamageState(law_id='p0204-extension-v1', law_fingerprint='sha256:f74352cdc42fbca7adf684afd16c7680fe346068f14c404db7d22...3': True}), accepted_material_event_ids=(), first_damage_event_id=None, schema_version='pgworld.quasistatic_damage.v1')
+topology = TopologyState(registry_id='sha256:3226bf1a3110d90d1a732dc95b7d66f475c4a916f4f286edafd03537517cee11', node_ids=('n1', 'n2', 'n3'), alive_bond_ids=('b12', 'b23'), alive_angle_ids=('a123',), components=(('n1', 'n2', 'n3'),))
+budget = LocalizationBudget(max_refinements=8, max_solver_trials=12, max_retries_per_trial=0, load_tolerance=0.005, path_tolerance=0.005)
+certificate = TrialDomainCertificate(certificate_id='sha256:c3eead0e00f455690c30577ca20c8b1d237f92f8f627b600896ac35e0ff5bff7', domai...b', per_evaluation_domain_guard=True, stated_minimum_margin_nm=None, schema_version='pgworld.fracture_localization.v1')
+
+    def _validate_localization_inputs(
+        self,
+        lower: QuasiStaticControlStep,
+        upper: QuasiStaticControlStep,
+        previous: BackendObservation,
+        damage: DamageState,
+        topology: TopologyState,
+        budget: LocalizationBudget,
+        certificate: TrialDomainCertificate,
+    ) -&gt; None:
+        if not isinstance(budget, LocalizationBudget) or not isinstance(certificate, TrialDomainCertificate):
+            raise FractureExecutionError("validated localization budget/certificate are required")
+        self._validate_before_commands(upper, damage, topology)
+        self._validate_observation(previous, lower, damage, topology, expected_phase="pre_delete_relaxed")
+        if not previous.convergence.accepted:
+            raise FractureExecutionError("localization lower state must be an accepted equilibrium")
+        if damage.has_initial_threshold_violation:
+&gt;           raise FractureExecutionError("initial-threshold-violation references cannot be localized")
+E           pgworld.simulation.fracture.FractureExecutionError: initial-threshold-violation references cannot be localized
+
+src\pgworld\simulation\fracture.py:2648: FractureExecutionError</failure></testcase><testcase classname="tests.physics.test_fracture_accounting" name="test_cyclic_unloading_lambda_decreases_while_progress_and_event_exposure_increase" time="0.058" /><testcase classname="tests.physics.test_fracture_accounting" name="test_simultaneous_crossing_uses_p0202_stable_id_tie_order_once" time="0.063" /><testcase classname="tests.physics.test_fracture_accounting" name="test_final_transaction_failure_restores_original_lower_and_publishes_no_event" time="0.048" /><testcase classname="tests.physics.test_fracture_accounting" name="test_trial_phase_exception_restores_lower_and_returns_typed_no_publication[apply]" time="0.012" /><testcase classname="tests.physics.test_fracture_accounting" name="test_trial_phase_exception_restores_lower_and_returns_typed_no_publication[relax]" time="0.012" /><testcase classname="tests.physics.test_fracture_accounting" name="test_trial_phase_exception_restores_lower_and_returns_typed_no_publication[checkpoint]" time="0.015" /><testcase classname="tests.physics.test_fracture_accounting" name="test_trial_restore_failure_is_distinct_and_never_publishes_event" time="0.015" /><testcase classname="tests.physics.test_fracture_accounting" name="test_live_backend_lower_mismatch_is_rejected_before_any_trial_control" time="0.014" /><testcase classname="tests.physics.test_fracture_accounting" name="test_harmonic_certificate_cannot_bypass_peptide_or_nonmonotone_response" time="0.017" /><testcase classname="tests.physics.test_fracture_accounting" name="test_nonlinear_peptide_without_per_evaluation_domain_guard_rejects_before_commands" time="0.009" /><testcase classname="tests.physics.test_fracture_accounting" name="test_accounting_replay_rejects_mixed_phase_event_and_reference_records" time="0.084" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_records_are_hash_bound_strict_and_deeply_immutable" time="0.097" /><testcase classname="tests.physics.test_fracture_accounting" name="test_upper_incremental_F_must_map_exact_original_lower_before_commands" time="0.005" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localized_result_binds_failure_and_success_to_original_lower_ids" time="0.017" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_replay_binds_retry_count_to_solver_trials" time="0.061" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localized_result_binds_complete_original_lower_control" time="0.079" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localized_result_binds_domain_certificate_to_privileged_registry" time="0.072" /><testcase classname="tests.physics.test_fracture_accounting" name="test_success_result_binds_lower_observation_damage_and_topology_ids" time="0.073" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[nan]" time="0.000" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[inf]" time="0.000" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[-1.0]" time="0.000" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[True]" time="0.000" /></testsuite></testsuites>

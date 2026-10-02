@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.549" timestamp="2026-10-02T00:46:40.088412" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_fracture_accounting" name="test_second_diagnosed_transient_on_new_coordinate_does_not_retry" time="0.050"><failure message="pgworld.simulation.fracture.FractureExecutionError: localization retries exceed the diagnosed-transient retry budget">def test_second_diagnosed_transient_on_new_coordinate_does_not_retry() -&gt; None:
+&gt;       result, backend, *_ = _run_fake(
+            threshold=1.15,
+            backend_kwargs={
+                "nonconverged_progress_attempts": {0.2: 1, 0.1: 1},
+            },
+            budget_kwargs={"max_retries_per_trial": 1},
+        )
+
+tests\physics\test_fracture_accounting.py:538:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\physics\test_fracture_accounting.py:436: in _run_fake
+    ).run_localized_step(
+src\pgworld\simulation\fracture.py:2204: in run_localized_step
+    raise active_error
+src\pgworld\simulation\fracture.py:2183: in run_localized_step
+    payload = self._execute_localized(
+src\pgworld\simulation\fracture.py:2587: in _execute_localized
+    localization = EventLocalizationRecord.create(
+src\pgworld\simulation\fracture.py:1129: in create
+    return cls(localization_id=_hash(body), **kwargs)  # type: ignore[arg-type]
+&lt;string&gt;:20: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = EventLocalizationRecord(localization_id='sha256:9693eab90ce9e68ab19e451cfebf2eb286e481bca08154b0340e545b2a1af086', sta...0fd14ff10f43e697143fe901526ef7f7b5d2d2803bfcab591', diagnostic=None, schema_version='pgworld.fracture_localization.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != LOCALIZATION_SCHEMA_VERSION or not isinstance(self.status, LocalizationStatus):
+            raise FractureExecutionError("invalid localization record schema/status")
+        if not isinstance(self.budget, LocalizationBudget) or not isinstance(self.domain_certificate, TrialDomainCertificate):
+            raise FractureExecutionError("localization record requires validated budget/certificate")
+        controls = (self.initial_lower_control, self.initial_upper_control, self.lower_bracket_control, self.upper_bracket_control)
+        if any(not isinstance(item, QuasiStaticControlStep) for item in controls):
+            raise FractureExecutionError("localization bracket requires validated controls")
+        initial_progress = self.initial_lower_control.path_progress
+        terminal_progress = self.initial_upper_control.path_progress
+        if terminal_progress &lt;= initial_progress:
+            raise FractureExecutionError("localization path progress must increase")
+        for item in controls[1:]:
+            _validate_segment_control(item, self.initial_lower_control, self.initial_upper_control)
+            if item.path_progress &lt; initial_progress - 1e-12 or item.path_progress &gt; terminal_progress + 1e-12:
+                raise FractureExecutionError("localization bracket lies outside initial segment")
+        if self.lower_bracket_control.path_progress &gt;= self.upper_bracket_control.path_progress:
+            raise FractureExecutionError("localization lower bracket must precede crossing upper bracket")
+        for value, field in ((self.solver_trials, "solver_trials"), (self.refinements, "refinements"), (self.retries, "retries")):
+            _integer(value, field)
+        if self.solver_trials &gt; self.budget.max_solver_trials or self.refinements &gt; self.budget.max_refinements:
+            raise FractureExecutionError("localization counters exceed their explicit budgets")
+        if self.retries &gt; self.solver_trials:
+            raise FractureExecutionError("localization retries cannot exceed solver trials")
+        if self.retries &gt; self.budget.max_retries_per_trial:
+&gt;           raise FractureExecutionError("localization retries exceed the diagnosed-transient retry budget")
+E           pgworld.simulation.fracture.FractureExecutionError: localization retries exceed the diagnosed-transient retry budget
+
+src\pgworld\simulation\fracture.py:1010: FractureExecutionError</failure></testcase></testsuite></testsuites>

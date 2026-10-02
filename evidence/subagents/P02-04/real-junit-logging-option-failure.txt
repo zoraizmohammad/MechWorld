@@ -1,0 +1,24 @@
+P02-04 preserved verification failure (no pytest collection or solver start)
+
+Date: 2026-10-02 America/New_York
+CWD: C:\Users\mzora\MechWorld-wt-p02-04
+Interpreter: C:\Users\mzora\AppData\Local\Programs\Python\Python311\python.exe
+Environment:
+  OMP_NUM_THREADS=2
+  OPENBLAS_NUM_THREADS=2
+  MKL_NUM_THREADS=2
+  NUMEXPR_NUM_THREADS=2
+  PYTHONPATH=C:/Users/mzora/MechWorld-wt-p02-04/src;C:/Users/mzora/AppData/Local/LAMMPS 64-bit 2Sep2026 with GUI/Python
+Command:
+  python -m pytest tests/physics/test_fracture_accounting.py -k "real_serial_lammps" -q --junitxml=evidence/subagents/P02-04/real-localization-accounting-01.xml --junit-logging=all
+Exit status: 1
+Result:
+  ERROR: unrecognized arguments: --junit-logging=all
+  inifile: None
+  rootdir: C:\Users\mzora\MechWorld-wt-p02-04
+
+This installed pytest version rejected the CLI option during command-line
+parsing. It did not collect a test, import LAMMPS, or start a solver. The
+subsequent real solver invocation omitted that unsupported option. The
+distinct `real-localization-accounting-01.xml` was then produced by the first
+actual solver run and is a preserved test-oracle failure, not this CLI error.

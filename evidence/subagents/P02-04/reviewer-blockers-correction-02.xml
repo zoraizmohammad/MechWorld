@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="22" time="1.383" timestamp="2026-10-02T00:29:48.655527" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_fracture_accounting" name="test_localizes_first_crossing_and_binds_event_and_five_phase_accounting" time="0.095" /><testcase classname="tests.physics.test_fracture_accounting" name="test_coarse_and_fine_refinement_converge_without_publishing_trial_states" time="0.135" /><testcase classname="tests.physics.test_fracture_accounting" name="test_nonconverged_trial_retries_from_exact_lower_without_moving_bracket" time="0.063" /><testcase classname="tests.physics.test_fracture_accounting" name="test_exhausted_refinement_solver_and_retry_budgets_are_typed_and_restore_lower" time="0.056" /><testcase classname="tests.physics.test_fracture_accounting" name="test_cyclic_unloading_lambda_decreases_while_progress_and_event_exposure_increase" time="0.065" /><testcase classname="tests.physics.test_fracture_accounting" name="test_simultaneous_crossing_uses_p0202_stable_id_tie_order_once" time="0.068" /><testcase classname="tests.physics.test_fracture_accounting" name="test_final_transaction_failure_restores_original_lower_and_publishes_no_event" time="0.053" /><testcase classname="tests.physics.test_fracture_accounting" name="test_trial_phase_exception_restores_lower_and_returns_typed_no_publication[apply]" time="0.013" /><testcase classname="tests.physics.test_fracture_accounting" name="test_trial_phase_exception_restores_lower_and_returns_typed_no_publication[relax]" time="0.014" /><testcase classname="tests.physics.test_fracture_accounting" name="test_trial_phase_exception_restores_lower_and_returns_typed_no_publication[checkpoint]" time="0.020" /><testcase classname="tests.physics.test_fracture_accounting" name="test_trial_restore_failure_is_distinct_and_never_publishes_event" time="0.016" /><testcase classname="tests.physics.test_fracture_accounting" name="test_live_backend_lower_mismatch_is_rejected_before_any_trial_control" time="0.012" /><testcase classname="tests.physics.test_fracture_accounting" name="test_harmonic_certificate_cannot_bypass_peptide_or_nonmonotone_response" time="0.018" /><testcase classname="tests.physics.test_fracture_accounting" name="test_nonlinear_peptide_without_per_evaluation_domain_guard_rejects_before_commands" time="0.011" /><testcase classname="tests.physics.test_fracture_accounting" name="test_accounting_replay_rejects_mixed_phase_event_and_reference_records" time="0.099" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_records_are_hash_bound_strict_and_deeply_immutable" time="0.113" /><testcase classname="tests.physics.test_fracture_accounting" name="test_upper_incremental_F_must_map_exact_original_lower_before_commands" time="0.007" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localized_result_binds_failure_and_success_to_original_lower_ids" time="0.022"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'final snapshot'&#10; Input: 'localized law/field/registry provenance is inconsistent'">def test_localized_result_binds_failure_and_success_to_original_lower_ids() -&gt; None:
+        failed, _backend, registry, *_ = _run_fake(
+            budget_kwargs={"max_refinements": 0}
+        )
+        forged_topology = registry.apply_plan(
+            registry.initial_state,
+            registry.plan_bond_removal(registry.initial_state, "b12"),
+        )
+        with pytest.raises(FractureExecutionError, match="final snapshot"):
+&gt;           LocalizedCascadeResult.create(
+                localization=failed.localization, cascade_result=None,
+                energy_accounting=(), final_damage_state=failed.final_damage_state,
+                final_topology_state=forged_topology,
+                final_snapshot=failed.final_snapshot,
+                privileged_reference_metadata=failed.privileged_reference_metadata,
+                backend_closed=True,
+            )
+
+tests\physics\test_fracture_accounting.py:710:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\simulation\fracture.py:1961: in create
+    return cls(result_id=_hash(body), **kwargs)  # type: ignore[arg-type]
+&lt;string&gt;:13: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = LocalizedCascadeResult(result_id='sha256:32d305bceb86ba677019b3be44285dcf7ff681416a2a431d1d6d06ec4106009a', localizati..., 'dependent_bond_ids': ('b12', 'b23')}),)})}), backend_closed=True, schema_version='pgworld.fracture_localization.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != LOCALIZATION_SCHEMA_VERSION or not isinstance(self.localization, EventLocalizationRecord):
+            raise FractureExecutionError("invalid localized cascade schema")
+        rows = tuple(_sequence(self.energy_accounting, "energy_accounting"))
+        if any(not isinstance(item, FractureEnergyAccounting) for item in rows):
+            raise FractureExecutionError("energy_accounting must contain validated records")
+        object.__setattr__(self, "energy_accounting", rows)
+        if not isinstance(self.final_damage_state, DamageState) or not isinstance(self.final_topology_state, TopologyState) or not isinstance(self.final_snapshot, BackendObservation):
+            raise FractureExecutionError("localized result final state is invalid")
+        metadata = _mapping(self.privileged_reference_metadata, "localized privileged metadata")
+        _keys(metadata, {"access", "damage_law", "threshold_field", "topology_registry"}, "localized privileged metadata")
+        try:
+            law = DamageLaw.from_record(metadata["damage_law"])  # type: ignore[arg-type]
+            field = ThresholdField.from_record(metadata["threshold_field"])  # type: ignore[arg-type]
+            registry = TopologyRegistry.from_record(metadata["topology_registry"])  # type: ignore[arg-type]
+        except Exception as error:
+            raise FractureExecutionError("localized privileged replay metadata is invalid") from error
+        if (
+            metadata["access"] != "diagnostic_reference_only_never_predictor_input"
+            or field.law_id != law.law_id
+            or field.law_fingerprint != law.fingerprint
+            or field.physics_profile_id != law.physics_profile_id
+            or field.physics_profile_hash != law.physics_profile_hash
+            or field.reference_state_id != law.reference_state_id
+            or field.criterion != law.criterion
+            or field.criterion_unit != law.criterion_unit
+            or field.predictor_visibility != law.predictor_visibility
+            or tuple(sorted(field.thresholds)) != tuple(sorted(bond.stable_bond_id for bond in registry.bonds))
+            or self.final_damage_state.law_id != law.law_id
+            or self.final_damage_state.law_fingerprint != law.fingerprint
+            or self.final_damage_state.threshold_realization_id != field.realization_id
+            or self.final_damage_state.physics_profile_id != law.physics_profile_id
+            or self.final_damage_state.physics_profile_hash != law.physics_profile_hash
+            or self.final_damage_state.reference_state_id != law.reference_state_id
+            or self.final_damage_state.physical_bond_ids != tuple(sorted(field.thresholds))
+            or self.final_topology_state.registry_id != registry.registry_id
+            or tuple(
+                bond_id for bond_id in self.final_damage_state.physical_bond_ids
+                if self.final_damage_state.alive_mask[bond_id]
+            ) != self.final_topology_state.alive_bond_ids
+            or self.localization.domain_certificate.physics_profile_id != law.physics_profile_id
+            or self.localization.domain_certificate.physics_profile_hash != law.physics_profile_hash
+            or self.localization.domain_certificate.reference_state_id != law.reference_state_id
+            or self.localization.domain_certificate.physical_bond_ids != tuple(sorted(field.thresholds))
+        ):
+&gt;           raise FractureExecutionError("localized law/field/registry provenance is inconsistent")
+E           pgworld.simulation.fracture.FractureExecutionError: localized law/field/registry provenance is inconsistent
+
+src\pgworld\simulation\fracture.py:1865: FractureExecutionError
+
+During handling of the above exception, another exception occurred:
+
+    def test_localized_result_binds_failure_and_success_to_original_lower_ids() -&gt; None:
+        failed, _backend, registry, *_ = _run_fake(
+            budget_kwargs={"max_refinements": 0}
+        )
+        forged_topology = registry.apply_plan(
+            registry.initial_state,
+            registry.plan_bond_removal(registry.initial_state, "b12"),
+        )
+&gt;       with pytest.raises(FractureExecutionError, match="final snapshot"):
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'final snapshot'
+E        Input: 'localized law/field/registry provenance is inconsistent'
+
+tests\physics\test_fracture_accounting.py:709: AssertionError</failure></testcase><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[nan]" time="0.001" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[inf]" time="0.000" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[-1.0]" time="0.000" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[True]" time="0.001" /></testsuite></testsuites>

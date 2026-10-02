@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="14" time="1.295" timestamp="2026-10-02T00:20:55.520042" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_fracture_accounting" name="test_localizes_first_crossing_and_binds_event_and_five_phase_accounting" time="0.084"><failure message="AssertionError: assert {'criterion':...sion-v1', ...} == mappingproxy(...alid': False})&#10;  Use -v to get more diff">def test_localizes_first_crossing_and_binds_event_and_five_phase_accounting() -&gt; None:
+        result, backend, _registry_value, _law, field, state, _previous = _run_fake()
+        assert result.localization.status is LocalizationStatus.LOCALIZED
+        assert result.cascade_result is not None
+        assert len(result.cascade_result.transitions) == 1
+        event = result.cascade_result.transitions[0].material_event
+        localized = result.localization.localized_control
+        assert localized is not None
+        assert event.control_id == localized.control_id
+        assert event.load_coordinate == localized.lambda_load
+        assert event.path_progress == localized.path_progress
+        assert event.physical_bond_id == "b12"
+        assert state.as_record()["accepted_material_event_ids"] == []
+&gt;       assert field.as_record() == result.privileged_reference_metadata["threshold_field"]
+E       AssertionError: assert {'criterion':...sion-v1', ...} == mappingproxy(...alid': False})
+E         Use -v to get more diff
+
+tests\physics\test_fracture_accounting.py:416: AssertionError</failure></testcase><testcase classname="tests.physics.test_fracture_accounting" name="test_coarse_and_fine_refinement_converge_without_publishing_trial_states" time="0.125" /><testcase classname="tests.physics.test_fracture_accounting" name="test_nonconverged_trial_retries_from_exact_lower_without_moving_bracket" time="0.063" /><testcase classname="tests.physics.test_fracture_accounting" name="test_exhausted_refinement_solver_and_retry_budgets_are_typed_and_restore_lower" time="0.072" /><testcase classname="tests.physics.test_fracture_accounting" name="test_cyclic_unloading_lambda_decreases_while_progress_and_event_exposure_increase" time="0.084" /><testcase classname="tests.physics.test_fracture_accounting" name="test_simultaneous_crossing_uses_p0202_stable_id_tie_order_once" time="0.073" /><testcase classname="tests.physics.test_fracture_accounting" name="test_final_transaction_failure_restores_original_lower_and_publishes_no_event" time="0.052" /><testcase classname="tests.physics.test_fracture_accounting" name="test_nonlinear_peptide_without_per_evaluation_domain_guard_rejects_before_commands" time="0.011" /><testcase classname="tests.physics.test_fracture_accounting" name="test_accounting_replay_rejects_mixed_phase_event_and_reference_records" time="0.113" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_records_are_hash_bound_strict_and_deeply_immutable" time="0.174"><failure message="ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()">def test_localization_records_are_hash_bound_strict_and_deeply_immutable() -&gt; None:
+        result, *_ = _run_fake()
+        assert LocalizedCascadeResult.from_record(result.as_record()) == result
+&gt;       assert EventLocalizationRecord.from_record(result.localization.as_record()) == result.localization
+
+tests\physics\test_fracture_accounting.py:553:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+&lt;string&gt;:4: in __eq__
+    ???
+&lt;string&gt;:4: in __eq__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = AxisFrame(x_meaning='axial', y_meaning='hoop', basis=array([[1., 0.],
+       [0., 1.]]))
+other = AxisFrame(x_meaning='axial', y_meaning='hoop', basis=array([[1., 0.],
+       [0., 1.]]))
+
+&gt;   ???
+E   ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+
+&lt;string&gt;:4: ValueError</failure></testcase><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[nan]" time="0.001" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[inf]" time="0.001" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[-1.0]" time="0.000" /><testcase classname="tests.physics.test_fracture_accounting" name="test_localization_budget_rejects_nonfinite_negative_or_boolean_tolerance[True]" time="0.001" /></testsuite></testsuites>

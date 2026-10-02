@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="0.477" timestamp="2026-10-02T00:41:50.195425" hostname="MZoraiz_P15"><testcase classname="tests.physics.test_fracture_accounting" name="test_harmonic_monotone_certificate_rejects_uncertified_geometry_before_control[bent-chain]" time="0.017"><failure message="AssertionError: assert &lt;LocalizationStatus.UPPER_DOES_NOT_CROSS: 'upper_does_not_cross'&gt; is &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt;&#10; +  where &lt;LocalizationStatus.UPPER_DOES_NOT_CROSS: 'upper_does_not_cross'&gt; = EventLocalizationRecord(localization_id='sha256:81a82421915de38717c08792e552008d4c88364f50757c5ff1f39666c49b8644', sta...stability=False, schema_version='pgworld.fracture_localization.v1'), schema_version='pgworld.fracture_localization.v1').status&#10; +    where EventLocalizationRecord(localization_id='sha256:81a82421915de38717c08792e552008d4c88364f50757c5ff1f39666c49b8644', sta...stability=False, schema_version='pgworld.fracture_localization.v1'), schema_version='pgworld.fracture_localization.v1') = LocalizedCascadeResult(result_id='sha256:4aca30876f5b528b0b48f6f2e6605041eb7f1907f2fe6a881ce0c9ba099178b5', localizati..., 'dependent_bond_ids': ('b12', 'b23')}),)})}), backend_closed=True, schema_version='pgworld.fracture_localization.v1').localization&#10; +  and   &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt; = LocalizationStatus.DOMAIN_REJECTED">registry = &lt;pgworld.simulation.topology.TopologyRegistry object at 0x0000016EB0C86F40&gt;
+
+    @pytest.mark.parametrize(
+        "registry",
+        [_bounded_shape_registry(bent=True), _bounded_shape_registry(skew_cell=True)],
+        ids=["bent-chain", "skew-cell"],
+    )
+    def test_harmonic_monotone_certificate_rejects_uncertified_geometry_before_control(
+        registry: TopologyRegistry,
+    ) -&gt; None:
+        law, field, state = _damage(registry, threshold=1.1)
+        lower = _control(0.0, 0.0, step_index=0)
+        upper = _control(0.2, 0.2, step_index=1)
+        backend = AnalyticalLocalizationBackend(registry)
+        previous = _previous_snapshot(backend, lower, registry, state)
+        result = QuasiStaticFractureCascade(
+            backend, registry, law, field, CascadeBudget(1)
+        ).run_localized_step(
+            lower_control=lower, upper_control=upper, previous_accepted=previous,
+            damage_state=state, topology_state=registry.initial_state,
+            localization_budget=LocalizationBudget(8, 12, 0, 0.005, 0.005),
+            domain_certificate=_certificate(registry),
+        )
+&gt;       assert result.localization.status is LocalizationStatus.DOMAIN_REJECTED
+E       AssertionError: assert &lt;LocalizationStatus.UPPER_DOES_NOT_CROSS: 'upper_does_not_cross'&gt; is &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt;
+E        +  where &lt;LocalizationStatus.UPPER_DOES_NOT_CROSS: 'upper_does_not_cross'&gt; = EventLocalizationRecord(localization_id='sha256:81a82421915de38717c08792e552008d4c88364f50757c5ff1f39666c49b8644', sta...stability=False, schema_version='pgworld.fracture_localization.v1'), schema_version='pgworld.fracture_localization.v1').status
+E        +    where EventLocalizationRecord(localization_id='sha256:81a82421915de38717c08792e552008d4c88364f50757c5ff1f39666c49b8644', sta...stability=False, schema_version='pgworld.fracture_localization.v1'), schema_version='pgworld.fracture_localization.v1') = LocalizedCascadeResult(result_id='sha256:4aca30876f5b528b0b48f6f2e6605041eb7f1907f2fe6a881ce0c9ba099178b5', localizati..., 'dependent_bond_ids': ('b12', 'b23')}),)})}), backend_closed=True, schema_version='pgworld.fracture_localization.v1').localization
+E        +  and   &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt; = LocalizationStatus.DOMAIN_REJECTED
+
+tests\physics\test_fracture_accounting.py:702: AssertionError</failure></testcase><testcase classname="tests.physics.test_fracture_accounting" name="test_harmonic_monotone_certificate_rejects_uncertified_geometry_before_control[skew-cell]" time="0.065"><failure message="AssertionError: assert &lt;LocalizationStatus.LOCALIZED: 'localized'&gt; is &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt;&#10; +  where &lt;LocalizationStatus.LOCALIZED: 'localized'&gt; = EventLocalizationRecord(localization_id='sha256:6bb1db626d5b83597446f1b013147288f3c4d5b8179608c5f2fd437fb0ddd64c', sta...9dcc106be1d4b95c8281988bf403915ad078bbeda3f55cee2', diagnostic=None, schema_version='pgworld.fracture_localization.v1').status&#10; +    where EventLocalizationRecord(localization_id='sha256:6bb1db626d5b83597446f1b013147288f3c4d5b8179608c5f2fd437fb0ddd64c', sta...9dcc106be1d4b95c8281988bf403915ad078bbeda3f55cee2', diagnostic=None, schema_version='pgworld.fracture_localization.v1') = LocalizedCascadeResult(result_id='sha256:bb0f66a1779a56c6101b3fb77cb1b5b4c4ea5ec05dffc5f84f697f94bfa57282', localizati..., 'dependent_bond_ids': ('b12', 'b23')}),)})}), backend_closed=True, schema_version='pgworld.fracture_localization.v1').localization&#10; +  and   &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt; = LocalizationStatus.DOMAIN_REJECTED">registry = &lt;pgworld.simulation.topology.TopologyRegistry object at 0x0000016EB0FB82C0&gt;
+
+    @pytest.mark.parametrize(
+        "registry",
+        [_bounded_shape_registry(bent=True), _bounded_shape_registry(skew_cell=True)],
+        ids=["bent-chain", "skew-cell"],
+    )
+    def test_harmonic_monotone_certificate_rejects_uncertified_geometry_before_control(
+        registry: TopologyRegistry,
+    ) -&gt; None:
+        law, field, state = _damage(registry, threshold=1.1)
+        lower = _control(0.0, 0.0, step_index=0)
+        upper = _control(0.2, 0.2, step_index=1)
+        backend = AnalyticalLocalizationBackend(registry)
+        previous = _previous_snapshot(backend, lower, registry, state)
+        result = QuasiStaticFractureCascade(
+            backend, registry, law, field, CascadeBudget(1)
+        ).run_localized_step(
+            lower_control=lower, upper_control=upper, previous_accepted=previous,
+            damage_state=state, topology_state=registry.initial_state,
+            localization_budget=LocalizationBudget(8, 12, 0, 0.005, 0.005),
+            domain_certificate=_certificate(registry),
+        )
+&gt;       assert result.localization.status is LocalizationStatus.DOMAIN_REJECTED
+E       AssertionError: assert &lt;LocalizationStatus.LOCALIZED: 'localized'&gt; is &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt;
+E        +  where &lt;LocalizationStatus.LOCALIZED: 'localized'&gt; = EventLocalizationRecord(localization_id='sha256:6bb1db626d5b83597446f1b013147288f3c4d5b8179608c5f2fd437fb0ddd64c', sta...9dcc106be1d4b95c8281988bf403915ad078bbeda3f55cee2', diagnostic=None, schema_version='pgworld.fracture_localization.v1').status
+E        +    where EventLocalizationRecord(localization_id='sha256:6bb1db626d5b83597446f1b013147288f3c4d5b8179608c5f2fd437fb0ddd64c', sta...9dcc106be1d4b95c8281988bf403915ad078bbeda3f55cee2', diagnostic=None, schema_version='pgworld.fracture_localization.v1') = LocalizedCascadeResult(result_id='sha256:bb0f66a1779a56c6101b3fb77cb1b5b4c4ea5ec05dffc5f84f697f94bfa57282', localizati..., 'dependent_bond_ids': ('b12', 'b23')}),)})}), backend_closed=True, schema_version='pgworld.fracture_localization.v1').localization
+E        +  and   &lt;LocalizationStatus.DOMAIN_REJECTED: 'domain_rejected'&gt; = LocalizationStatus.DOMAIN_REJECTED
+
+tests\physics\test_fracture_accounting.py:702: AssertionError</failure></testcase></testsuite></testsuites>
