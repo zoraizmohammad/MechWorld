@@ -123,8 +123,16 @@ over Windows checkout materialization:
 | `tests/release/test_wheel_install.py` | `7ed7a2bb5f80a0e4ba3665a8b01386b1d179bd278cf372de91a453192b8ab94a` |
 | `docs/decisions/stochasticity.md` | `482a822bb5db043fc6d1b93293d6a9329c60663fae20433c120dfd449225c0ed` |
 
-Evidence hashes are SHA-256 over the runtime working-tree bytes committed in
-the evidence return:
+Evidence hashes are SHA-256 over the exact committed evidence materialization
+after the whitespace-only normalization commit. Two failed-run XML artifacts
+were normalized after execution so the base-to-tip diff would pass Git's
+trailing-whitespace check: `focused-correction-2.xml` originally had runtime
+SHA-256 `f30b287980abcccd61834619fb0916ed3bf1ccace73f6a2ede6f43cd40fa7339`,
+and `canonical-field-forgery-red.xml` originally had runtime SHA-256
+`3abb8019f1892650bc8fc4e22f703e338bf643185c149c920d0d7b900a9a6a06`.
+Only trailing spaces in traceback lines changed; JUnit cases, failure content,
+counts, and scientific results are unchanged. The table records the final
+committed bytes:
 
 | Artifact | SHA-256 |
 |---|---|
