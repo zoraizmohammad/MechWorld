@@ -513,6 +513,91 @@ def _trajectory() -> TrajectoryRecord:
     )
 
 
+def _two_event_trajectory() -> TrajectoryRecord:
+    trajectory = _trajectory()
+    pre2 = replace(
+        trajectory.states[-1],
+        sequence_index=4,
+        frame_id="frame:pre-2",
+        subevent_index=4,
+        phase="pre_rupture",
+        source_phase=None,
+    )
+    both_dead = (
+        pre2.edges[0],
+        replace(
+            pre2.edges[1],
+            alive=False,
+            image_offset_n_ij=None,
+            damage_value=1.0,
+            length_nm=None,
+            tension_pN=None,
+            energy_pN_nm=None,
+        ),
+    )
+    post2 = replace(
+        pre2,
+        sequence_index=5,
+        frame_id="frame:post-topology-2",
+        subevent_index=5,
+        phase="post_topology_change",
+        edges=both_dead,
+        component_ids={
+            "node:001": "component:001",
+            "node:002": "component:002",
+            "node:003": "component:003",
+        },
+        convergence=ConvergenceRecord(
+            converged=False,
+            accepted=False,
+            iterations=0,
+            max_iterations=100,
+            residual_force_pN=2.0,
+            force_tolerance_pN=1.0e-8,
+            reason="phase_not_relaxed",
+        ),
+    )
+    final2 = replace(
+        post2,
+        sequence_index=6,
+        frame_id="frame:post-equilibrium-2",
+        subevent_index=6,
+        phase="post_event_equilibrium",
+        convergence=ConvergenceRecord(
+            converged=True,
+            accepted=True,
+            iterations=12,
+            max_iterations=100,
+            residual_force_pN=1.0e-10,
+            force_tolerance_pN=1.0e-8,
+            reason="converged",
+        ),
+    )
+    event2 = replace(
+        trajectory.events[0],
+        event_id=_hash("7"),
+        sequence_index=1,
+        edge_id="edge:002",
+        subevent_index=5,
+        pre_state_id=pre2.frame_id,
+        post_topology_state_id=post2.frame_id,
+        post_equilibrium_state_id=final2.frame_id,
+        removed_angle_ids=(),
+        cascade_parent_event_id=trajectory.events[0].event_id,
+        criterion_value=(
+            pre2.edges[1].length_nm
+            / trajectory.static_graph.edges[1].reference_rest_length_nm
+        ),
+    )
+    return TrajectoryRecord.create(
+        **{
+            **trajectory.constructor_fields(),
+            "states": (*trajectory.states, pre2, post2, final2),
+            "events": (*trajectory.events, event2),
+        }
+    )
+
+
 def _walk_keys(value: Any) -> list[str]:
     if isinstance(value, Mapping):
         keys: list[str] = []
@@ -1965,6 +2050,204 @@ def test_prescribed_intervention_uses_distinct_phase_and_never_damage_initiation
     )
     assert replay.events[0].event_source == "prescribed_intervention"
     assert replay.censoring.damage_initiation.status == "right_censored"
+
+
+def test_schema_v1_rejects_unrepresented_local_stress_capability() -> None:
+    trajectory = _trajectory()
+    with pytest.raises(SchemaValidationError, match="local_stress"):
+        TrajectoryRecord.create(
+            **{
+                **trajectory.constructor_fields(),
+                "capabilities": replace(trajectory.capabilities, local_stress=True),
+            }
+        )
+
+
+def test_nonempty_graph_requires_one_immutable_threshold_per_edge() -> None:
+    trajectory = _trajectory()
+    privileged = replace(
+        trajectory.privileged,
+        threshold_values=NamedScalars({}, {}),
+    )
+    with pytest.raises(SchemaValidationError, match="threshold_values"):
+        TrajectoryRecord.create(
+            **{
+                **trajectory.constructor_fields(),
+                "states": (trajectory.states[0],),
+                "events": (),
+                "privileged": privileged,
+                "censoring": _right_censored(),
+            }
+        )
+
+
+def test_invalid_reference_cannot_retain_accepted_material_event() -> None:
+    trajectory = _trajectory()
+    with pytest.raises(SchemaValidationError, match="invalid_reference"):
+        TrajectoryRecord.create(
+            **{
+                **trajectory.constructor_fields(),
+                "quality_status": "invalid",
+                "termination_reason": "invalid_reference",
+            }
+        )
+
+
+def test_observed_material_event_id_must_remain_sha256_after_rehash() -> None:
+    record = _trajectory().observed_projection("frame:post-equilibrium").as_record()
+    record["payload"]["event_history"][0]["event_id"] = "event:not-a-hash"  # type: ignore[index]
+    record["projection_hash"] = AccessProjection.compute_hash(
+        record["access_kind"], record["anchor_frame_id"], record["payload"]
+    )
+    with pytest.raises(SchemaValidationError, match="event_id|SHA-256"):
+        AccessProjection.from_record(record)
+
+
+def test_component_labels_cannot_rename_without_topology_change() -> None:
+    trajectory = _trajectory()
+    renamed = replace(
+        trajectory.states[1],
+        component_ids={node_id: "component:renamed" for node_id in trajectory.static_graph.node_ids},
+    )
+    with pytest.raises(SchemaValidationError, match="component.*rename|stable component"):
+        TrajectoryRecord.create(
+            **{
+                **trajectory.constructor_fields(),
+                "states": (trajectory.states[0], renamed, *trajectory.states[2:]),
+            }
+        )
+
+
+def test_surviving_edge_image_cannot_rebranch_during_same_position_deletion() -> None:
+    trajectory = _trajectory()
+    rebranched_edge = replace(
+        trajectory.states[2].edges[1],
+        image_offset_n_ij=(0, 0),
+        length_nm=0.764,
+    )
+    rebranched = replace(
+        trajectory.states[2],
+        edges=(trajectory.states[2].edges[0], rebranched_edge),
+    )
+    with pytest.raises(SchemaValidationError, match="image.*surviving|rebranch"):
+        TrajectoryRecord.create(
+            **{
+                **trajectory.constructor_fields(),
+                "states": (*trajectory.states[:2], rebranched, trajectory.states[3]),
+            }
+        )
+
+
+def test_reference_factory_hashes_normalized_integer_reals() -> None:
+    graph = _graph()
+    reference = ReferenceStateRecord.create(
+        reference_state_id="reference:fixed-cell-001",
+        physics_profile_id="reviewed_physics_provisional_v0",
+        physics_profile_hash=_hash("b"),
+        static_graph_hash=graph.graph_hash,
+        cell=_reference_cell(),
+        node_positions_nm={
+            "node:001": (0, 0),
+            "node:002": (1, 0),
+            "node:003": (2, 0),
+        },
+        total_tension_pN_per_nm=((0, 0), (0, 0)),
+        minimization=ConvergenceRecord(
+            converged=True,
+            accepted=True,
+            iterations=1,
+            max_iterations=2,
+            residual_force_pN=0,
+            force_tolerance_pN=1,
+            reason="converged",
+        ),
+    )
+    assert ReferenceStateRecord.from_record(reference.as_record()) == reference
+
+
+def test_intervention_cannot_advance_load_without_mechanical_target_or_keep_stale_cell() -> None:
+    trajectory = _trajectory()
+    parent = replace(
+        trajectory.controls[0],
+        control_id="control:parent",
+        load_step_id="load-step:parent",
+    )
+    intervention = replace(
+        trajectory.controls[0],
+        control_id="control:intervention",
+        load_step_id="load-step:intervention",
+        control_family="prescribed_intervention",
+        control_kind="prescribed_intervention",
+        loading_mode="local_weakening",
+        step_index=1,
+        load_coordinate=0.2,
+        path_progress=0.2,
+        progress_increment=0.1,
+        absolute_deformation_gradient=None,
+        incremental_deformation_gradient=None,
+        local_weakening=(EdgeParameterChange("edge:002", ("K",), 0.5),),
+    )
+    weakened_edges = (
+        trajectory.states[0].edges[0],
+        replace(trajectory.states[0].edges[1], effective_parameters=_parameters(2785.0)),
+    )
+    stale = replace(
+        trajectory.states[0],
+        load_step_id=intervention.load_step_id,
+        control_id=intervention.control_id,
+        load_coordinate=0.2,
+        path_progress=0.2,
+        edges=weakened_edges,
+    )
+    censoring = replace(
+        _right_censored(),
+        damage_initiation=replace(
+            _right_censored().damage_initiation,
+            load_coordinate=0.2,
+            path_progress=0.2,
+        ),
+    )
+    with pytest.raises(SchemaValidationError, match="intervention.*load|mechanical target"):
+        TrajectoryRecord.create(
+            **{
+                **trajectory.constructor_fields(),
+                "controls": (parent, intervention),
+                "states": (stale,),
+                "events": (),
+                "censoring": censoring,
+            }
+        )
+
+
+def test_event_sequence_order_cannot_reverse_linked_state_chronology() -> None:
+    trajectory = _two_event_trajectory()
+    first, second = trajectory.events
+    reversed_events = (
+        replace(second, sequence_index=0, cascade_parent_event_id=None),
+        replace(first, sequence_index=1),
+    )
+    censoring = replace(
+        trajectory.censoring,
+        damage_initiation=replace(
+            trajectory.censoring.damage_initiation,
+            evidence_id=second.event_id,
+        ),
+    )
+    with pytest.raises(SchemaValidationError, match="event sequence.*chronolog"):
+        TrajectoryRecord.create(
+            **{
+                **trajectory.constructor_fields(),
+                "events": reversed_events,
+                "censoring": censoring,
+            }
+        )
+
+
+def test_target_projection_after_first_event_preserves_historical_damage_endpoint() -> None:
+    trajectory = _two_event_trajectory()
+    projection = trajectory.target_projection("frame:post-equilibrium")
+    assert AccessProjection.from_record(projection.as_record()) == projection
+    projection.validate_against(trajectory)
 
 
 def test_public_constructor_and_nested_replay_cannot_bypass_hash_or_order_binding() -> None:

@@ -1,0 +1,469 @@
+﻿<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="10" skipped="0" tests="10" time="0.683" timestamp="2026-10-02T00:18:45.615447" hostname="MZoraiz_P15"><testcase classname="tests.unit.test_schema" name="test_schema_v1_rejects_unrepresented_local_stress_capability" time="0.007"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_schema_v1_rejects_unrepresented_local_stress_capability() -&gt; None:
+        trajectory = _trajectory()
+&gt;       with pytest.raises(SchemaValidationError, match="local_stress"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2057: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_nonempty_graph_requires_one_immutable_threshold_per_edge" time="0.005"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_nonempty_graph_requires_one_immutable_threshold_per_edge() -&gt; None:
+        trajectory = _trajectory()
+        privileged = replace(
+            trajectory.privileged,
+            threshold_values=NamedScalars({}, {}),
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="threshold_values"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2072: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_invalid_reference_cannot_retain_accepted_material_event" time="0.005"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_invalid_reference_cannot_retain_accepted_material_event() -&gt; None:
+        trajectory = _trajectory()
+&gt;       with pytest.raises(SchemaValidationError, match="invalid_reference"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2086: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_observed_material_event_id_must_remain_sha256_after_rehash" time="0.017"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_observed_material_event_id_must_remain_sha256_after_rehash() -&gt; None:
+        record = _trajectory().observed_projection("frame:post-equilibrium").as_record()
+        record["payload"]["event_history"][0]["event_id"] = "event:not-a-hash"  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="event_id|SHA-256"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2102: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_component_labels_cannot_rename_without_topology_change" time="0.004"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_component_labels_cannot_rename_without_topology_change() -&gt; None:
+        trajectory = _trajectory()
+        renamed = replace(
+            trajectory.states[1],
+            component_ids={node_id: "component:renamed" for node_id in trajectory.static_graph.node_ids},
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="component.*rename|stable component"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2112: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_surviving_edge_image_cannot_rebranch_during_same_position_deletion" time="0.004"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_surviving_edge_image_cannot_rebranch_during_same_position_deletion() -&gt; None:
+        trajectory = _trajectory()
+        rebranched_edge = replace(
+            trajectory.states[2].edges[1],
+            image_offset_n_ij=(0, 0),
+            length_nm=0.764,
+        )
+        rebranched = replace(
+            trajectory.states[2],
+            edges=(trajectory.states[2].edges[0], rebranched_edge),
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="image.*surviving|rebranch"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2132: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_reference_factory_hashes_normalized_integer_reals" time="0.001"><failure message="pgworld.data.schema.SchemaValidationError: reference_state_hash does not match reference state content">def test_reference_factory_hashes_normalized_integer_reals() -&gt; None:
+        graph = _graph()
+&gt;       reference = ReferenceStateRecord.create(
+            reference_state_id="reference:fixed-cell-001",
+            physics_profile_id="reviewed_physics_provisional_v0",
+            physics_profile_hash=_hash("b"),
+            static_graph_hash=graph.graph_hash,
+            cell=_reference_cell(),
+            node_positions_nm={
+                "node:001": (0, 0),
+                "node:002": (1, 0),
+                "node:003": (2, 0),
+            },
+            total_tension_pN_per_nm=((0, 0), (0, 0)),
+            minimization=ConvergenceRecord(
+                converged=True,
+                accepted=True,
+                iterations=1,
+                max_iterations=2,
+                residual_force_pN=0,
+                force_tolerance_pN=1,
+                reason="converged",
+            ),
+        )
+
+tests\unit\test_schema.py:2143:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\data\schema.py:1457: in create
+    return cls(
+&lt;string&gt;:14: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = ReferenceStateRecord(reference_state_id='reference:fixed-cell-001', physics_profile_id='reviewed_physics_provisional_v...37527a8062a3476b2e', reference_kind='fixed_cell_equilibrated_not_zero_tension', schema_version='pgworld.trajectory.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != TRAJECTORY_SCHEMA_VERSION:
+            raise SchemaValidationError("reference state schema_version requires explicit migration")
+        object.__setattr__(self, "reference_state_id", _opaque(self.reference_state_id, "reference_state_id"))
+        object.__setattr__(self, "physics_profile_id", _opaque(self.physics_profile_id, "physics_profile_id"))
+        object.__setattr__(self, "physics_profile_hash", _sha256(self.physics_profile_hash, "physics_profile_hash"))
+        object.__setattr__(self, "static_graph_hash", _sha256(self.static_graph_hash, "static_graph_hash"))
+        if self.reference_kind != "fixed_cell_equilibrated_not_zero_tension":
+            raise SchemaValidationError("reference_kind must identify the fixed-cell equilibrated, possibly prestressed state")
+        if not isinstance(self.cell, Cell2D):
+            raise SchemaValidationError("reference state cell must be Cell2D")
+        object.__setattr__(self, "node_positions_nm", _position_mapping(self.node_positions_nm, "node_positions_nm"))
+        object.__setattr__(self, "total_tension_pN_per_nm", _matrix2(self.total_tension_pN_per_nm, "reference total_tension_pN_per_nm"))
+        if not isinstance(self.minimization, ConvergenceRecord):
+            raise SchemaValidationError("reference minimization must be ConvergenceRecord")
+        if not self.minimization.converged or not self.minimization.accepted:
+            raise SchemaValidationError("fixed-cell reference must have accepted converged minimization diagnostics")
+        object.__setattr__(self, "reference_state_hash", _sha256(self.reference_state_hash, "reference_state_hash"))
+        if self.reference_state_hash != _fingerprint(self._body()):
+&gt;           raise SchemaValidationError("reference_state_hash does not match reference state content")
+E           pgworld.data.schema.SchemaValidationError: reference_state_hash does not match reference state content
+
+src\pgworld\data\schema.py:1404: SchemaValidationError</failure></testcase><testcase classname="tests.unit.test_schema" name="test_intervention_cannot_advance_load_without_mechanical_target_or_keep_stale_cell" time="0.005"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_intervention_cannot_advance_load_without_mechanical_target_or_keep_stale_cell() -&gt; None:
+        trajectory = _trajectory()
+        parent = replace(
+            trajectory.controls[0],
+            control_id="control:parent",
+            load_step_id="load-step:parent",
+        )
+        intervention = replace(
+            trajectory.controls[0],
+            control_id="control:intervention",
+            load_step_id="load-step:intervention",
+            control_family="prescribed_intervention",
+            control_kind="prescribed_intervention",
+            loading_mode="local_weakening",
+            step_index=1,
+            load_coordinate=0.2,
+            path_progress=0.2,
+            progress_increment=0.1,
+            absolute_deformation_gradient=None,
+            incremental_deformation_gradient=None,
+            local_weakening=(EdgeParameterChange("edge:002", ("K",), 0.5),),
+        )
+        weakened_edges = (
+            trajectory.states[0].edges[0],
+            replace(trajectory.states[0].edges[1], effective_parameters=_parameters(2785.0)),
+        )
+        stale = replace(
+            trajectory.states[0],
+            load_step_id=intervention.load_step_id,
+            control_id=intervention.control_id,
+            load_coordinate=0.2,
+            path_progress=0.2,
+            edges=weakened_edges,
+        )
+        censoring = replace(
+            _right_censored(),
+            damage_initiation=replace(
+                _right_censored().damage_initiation,
+                load_coordinate=0.2,
+                path_progress=0.2,
+            ),
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="intervention.*load|mechanical target"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2210: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_event_sequence_order_cannot_reverse_linked_state_chronology" time="0.007"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_event_sequence_order_cannot_reverse_linked_state_chronology() -&gt; None:
+        trajectory = _two_event_trajectory()
+        first, second = trajectory.events
+        reversed_events = (
+            replace(second, sequence_index=0, cascade_parent_event_id=None),
+            replace(first, sequence_index=1),
+        )
+        censoring = replace(
+            trajectory.censoring,
+            damage_initiation=replace(
+                trajectory.censoring.damage_initiation,
+                evidence_id=second.event_id,
+            ),
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="event sequence.*chronolog"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2236: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_target_projection_after_first_event_preserves_historical_damage_endpoint" time="0.009"><failure message="pgworld.data.schema.SchemaValidationError: target censor/event evidence relation is inconsistent">def test_target_projection_after_first_event_preserves_historical_damage_endpoint() -&gt; None:
+        trajectory = _two_event_trajectory()
+&gt;       projection = trajectory.target_projection("frame:post-equilibrium")
+
+tests\unit\test_schema.py:2248:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\data\schema.py:3171: in target_projection
+    return AccessProjection.create("target_only", frame_id, payload)
+src\pgworld\data\schema.py:3574: in create
+    return cls(
+&lt;string&gt;:9: in __init__
+    ???
+src\pgworld\data\schema.py:3553: in __post_init__
+    _validate_projection_shape(self.access_kind, self.anchor_frame_id, payload)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+access_kind = 'target_only', anchor_frame_id = 'frame:post-equilibrium'
+payload = mappingproxy({'anchor_frame_id': 'frame:post-equilibrium', 'anchor_state': mappingproxy({'angles': (mappingproxy({'ali...pleted_schedule', 'trajectory_record_hash': 'sha256:1c360bd6d96e3360136beeaf03afe7a1a691ea3e34595447a6d57a181d6e5e32'})
+
+    def _validate_projection_shape(
+        access_kind: str, anchor_frame_id: str | None, payload: Mapping[str, object]
+    ) -&gt; None:
+        if access_kind == "observed":
+            required_observed = {
+                    "projection_contract",
+                    "provenance",
+                    "capabilities",
+                    "static_graph",
+                    "reference_state",
+                    "boundary_condition",
+                    "controls",
+                    "states",
+                    "event_history",
+            }
+            extra = set(payload) - required_observed
+            if extra not in (set(), {"material_limits"}):
+                raise SchemaValidationError(f"observed projection payload unexpected fields {sorted(extra)}")
+            if required_observed - set(payload):
+                raise SchemaValidationError("observed projection payload is incomplete")
+            if payload["projection_contract"] != "predictor_input_only":
+                raise SchemaValidationError("observed projection contract label changed")
+            provenance = _mapping(payload["provenance"], "observed provenance")
+            expected_provenance = {
+                "source_kind",
+                "physics_profile_id",
+                "physics_profile_hash",
+                "rupture_law_id",
+                "rupture_law_hash",
+                "simulator_version",
+                "build_features",
+                "observation_model_id",
+                "observation_model_hash",
+                "boundary_condition_id",
+                "boundary_condition_hash",
+            }
+            _exact_keys(provenance, expected_provenance, "observed provenance")
+            capabilities = _mapping(payload["capabilities"], "observed capabilities")
+            _exact_keys(
+                capabilities,
+                set(CapabilityFlags.__dataclass_fields__) - {"rejected_trials"},
+                "observed capabilities",
+            )
+            for key, value in capabilities.items():
+                _exact_bool(value, f"observed capabilities.{key}")
+            observed_graph = _mapping(payload["static_graph"], "observed static graph")
+            _exact_keys(
+                observed_graph,
+                {"schema_version", "reference_cell", "nodes", "edges", "angles"},
+                "observed static graph",
+            )
+            if observed_graph["schema_version"] != TRAJECTORY_SCHEMA_VERSION:
+                raise SchemaValidationError("observed static graph schema requires explicit migration")
+            cell = Cell2D.from_record(observed_graph["reference_cell"])  # type: ignore[arg-type]
+            nodes = tuple(NodeReference.from_record(row) for row in _record_sequence(observed_graph["nodes"], "observed nodes"))
+            edges = tuple(EdgeReference.from_record(row) for row in _record_sequence(observed_graph["edges"], "observed edges"))
+            angles = tuple(AngleReference.from_record(row) for row in _record_sequence(observed_graph["angles"], "observed angles"))
+            StaticGraph.create(
+                graph_id="access-validation-graph",
+                reference_state_id="access-validation-reference",
+                reference_cell=cell,
+                nodes=nodes,
+                edges=edges,
+                angles=angles,
+            )
+            reference = _mapping(payload["reference_state"], "observed reference state")
+            _exact_keys(reference, {"reference_kind", "cell", "node_positions_nm", "total_tension_pN_per_nm", "minimization"}, "observed reference state")
+            if reference["reference_kind"] != "fixed_cell_equilibrated_not_zero_tension":
+                raise SchemaValidationError("observed reference kind changed")
+            reference_cell = Cell2D.from_record(reference["cell"])  # type: ignore[arg-type]
+            if reference_cell != cell:
+                raise SchemaValidationError("observed reference/static cells differ")
+            positions = _position_mapping(reference["node_positions_nm"], "observed reference positions")
+            if tuple(positions) != tuple(row.node_id for row in nodes):
+                raise SchemaValidationError("observed reference positions differ from node universe")
+            reference_tension = _matrix2(reference["total_tension_pN_per_nm"], "observed reference tension")
+            reference_min = ConvergenceRecord.from_record(reference["minimization"])  # type: ignore[arg-type]
+            if not reference_min.converged:
+                raise SchemaValidationError("observed reference is not minimized")
+            BoundaryConditionRecord.from_record(payload["boundary_condition"])  # type: ignore[arg-type]
+            controls = tuple(
+                ControlRecord.from_record(row)
+                for row in _record_sequence(payload["controls"], "observed controls")
+            )
+            states = tuple(
+                StateRecord.from_record(row)
+                for row in _record_sequence(payload["states"], "observed states")
+            )
+            if not states or states[-1].frame_id != anchor_frame_id:
+                raise SchemaValidationError("observed states must end exactly at the anchor frame")
+            if [row.sequence_index for row in states] != list(range(len(states))):
+                raise SchemaValidationError("observed state sequence must be contiguous from zero")
+            if len({row.frame_id for row in states}) != len(states):
+                raise SchemaValidationError("observed states contain duplicate frame IDs")
+            control_ids = {row.control_id for row in controls}
+            if {row.control_id for row in states} != control_ids:
+                raise SchemaValidationError("observed controls must be exactly those reached by the state history")
+            controls_by_id = {row.control_id: row for row in controls}
+            node_ids = tuple(row.node_id for row in nodes)
+            edge_ids = tuple(row.edge_id for row in edges)
+            angle_ids = tuple(row.angle_id for row in angles)
+            for state in states:
+                if state.control_id not in controls_by_id:
+                    raise SchemaValidationError("observed state references unknown control")
+                if tuple(row.node_id for row in state.nodes) != node_ids or tuple(row.edge_id for row in state.edges) != edge_ids or tuple(row.angle_id for row in state.angles) != angle_ids:
+                    raise SchemaValidationError("observed state universe differs from static graph")
+                _validate_state_geometry_and_components(state, nodes, edges)
+                expected_increment = tuple(tuple(state.total_tension_pN_per_nm[i][j] - reference_tension[i][j] for j in range(2)) for i in range(2))
+                if not _matrix_close(state.incremental_tension_pN_per_nm, expected_increment):
+                    raise SchemaValidationError("observed incremental tension differs from fixed reference")
+            for before, after in zip(states, states[1:]):
+                if after.path_progress &lt; before.path_progress:
+                    raise SchemaValidationError("observed state path progress is not monotone")
+                if any(not left.alive and right.alive for left, right in zip(before.edges, after.edges, strict=True)):
+                    raise SchemaValidationError("observed state replay contains edge healing")
+                if any(not left.alive and right.alive for left, right in zip(before.angles, after.angles, strict=True)):
+                    raise SchemaValidationError("observed state replay contains angle healing")
+            history = tuple(ObservedEventRecord.from_record(row) for row in _record_sequence(payload["event_history"], "event_history"))
+            if [row.sequence_index for row in history] != list(range(len(history))):
+                raise SchemaValidationError("observed event history sequence must be contiguous")
+            included_frames = {row.frame_id for row in states}
+            frames = {row.frame_id: row for row in states}
+            prior_history: dict[str, ObservedEventRecord] = {}
+            for event in history:
+                if event.post_equilibrium_state_id not in included_frames:
+                    raise SchemaValidationError("observed event history contains a future event")
+                if not {event.pre_state_id, event.post_topology_state_id, event.post_equilibrium_state_id} &lt;= included_frames:
+                    raise SchemaValidationError("observed event links unknown states")
+                pre = frames[event.pre_state_id]
+                post_topology = frames[event.post_topology_state_id]
+                post_equilibrium = frames[event.post_equilibrium_state_id]
+                if not (pre.sequence_index &lt; post_topology.sequence_index &lt; post_equilibrium.sequence_index):
+                    raise SchemaValidationError("observed event state linkage is not chronological")
+                if event.triggering_control_id not in control_ids:
+                    raise SchemaValidationError("observed event references unknown control")
+                expected_pre = "pre_rupture" if event.event_source == "material_rupture" else "pre_intervention"
+                if pre.phase != expected_pre or post_topology.phase != "post_topology_change" or post_equilibrium.phase != "post_event_equilibrium":
+                    raise SchemaValidationError("observed event phases are inconsistent")
+                if any(
+                    state.control_id != event.triggering_control_id
+                    or state.load_step_id != event.load_step_id
+                    or state.load_coordinate != event.load_coordinate
+                    or state.path_progress != event.path_progress
+                    for state in (pre, post_topology, post_equilibrium)
+                ):
+                    raise SchemaValidationError("observed event control/load relation is inconsistent")
+                if event.cascade_parent_event_id is not None:
+                    if event.cascade_parent_event_id not in prior_history:
+                        raise SchemaValidationError("observed cascade parent is not earlier history")
+                    parent = prior_history[event.cascade_parent_event_id]
+                    if (parent.triggering_control_id, parent.load_step_id, parent.path_progress) != (
+                        event.triggering_control_id,
+                        event.load_step_id,
+                        event.path_progress,
+                    ):
+                        raise SchemaValidationError("observed cascade parent belongs to a different load cascade")
+                prior_history[event.event_id] = event
+            if "material_limits" in payload:
+                limits = _mapping(payload["material_limits"], "material_limits")
+                _exact_keys(limits, {"predictor_visibility", "criterion", "criterion_unit", "values"}, "material_limits")
+                if limits["predictor_visibility"] != "visible_to_predictor":
+                    raise SchemaValidationError("material limits must be explicitly visible")
+                values = NamedScalars.from_record(limits["values"])  # type: ignore[arg-type]
+                criterion_units = {"bond_extension_ratio": "dimensionless", "bond_tension": "pN", "bond_energy": "pN nm"}
+                if criterion_units.get(limits["criterion"]) != limits["criterion_unit"]:
+                    raise SchemaValidationError("visible material limit criterion/unit mismatch")
+                if set(values.values) != set(edge_ids):
+                    raise SchemaValidationError("visible material limits must cover the edge universe")
+                if any(unit != limits["criterion_unit"] for unit in values.units.values()):
+                    raise SchemaValidationError("visible material limit units differ from criterion unit")
+        elif access_kind == "target_only":
+            _exact_keys(
+                payload,
+                {
+                    "projection_contract",
+                    "trajectory_record_hash",
+                    "anchor_frame_id",
+                    "anchor_state",
+                    "static_graph",
+                    "reference_state",
+                    "controls",
+                    "prior_event_count",
+                    "states",
+                    "events",
+                    "quality_status",
+                    "termination_reason",
+                    "censoring",
+                },
+                "target projection payload",
+            )
+            if payload["projection_contract"] != "supervised_targets_only" or payload["anchor_frame_id"] != anchor_frame_id:
+                raise SchemaValidationError("target projection contract/anchor mismatch")
+            _sha256(payload["trajectory_record_hash"], "trajectory_record_hash")
+            target_graph = _mapping(payload["static_graph"], "target static graph")
+            _exact_keys(target_graph, {"schema_version", "reference_cell", "nodes", "edges", "angles"}, "target static graph")
+            if target_graph["schema_version"] != TRAJECTORY_SCHEMA_VERSION:
+                raise SchemaValidationError("target static graph schema requires explicit migration")
+            target_cell = Cell2D.from_record(target_graph["reference_cell"])  # type: ignore[arg-type]
+            target_nodes = tuple(NodeReference.from_record(row) for row in _record_sequence(target_graph["nodes"], "target nodes"))
+            target_edges = tuple(EdgeReference.from_record(row) for row in _record_sequence(target_graph["edges"], "target edges"))
+            target_angles = tuple(AngleReference.from_record(row) for row in _record_sequence(target_graph["angles"], "target angles"))
+            StaticGraph.create(
+                graph_id="target-access-validation-graph",
+                reference_state_id="target-access-validation-reference",
+                reference_cell=target_cell,
+                nodes=target_nodes,
+                edges=target_edges,
+                angles=target_angles,
+            )
+            target_reference = _mapping(payload["reference_state"], "target reference state")
+            _exact_keys(target_reference, {"reference_kind", "cell", "node_positions_nm", "total_tension_pN_per_nm", "minimization"}, "target reference state")
+            if target_reference["reference_kind"] != "fixed_cell_equilibrated_not_zero_tension":
+                raise SchemaValidationError("target reference kind changed")
+            if Cell2D.from_record(target_reference["cell"]) != target_cell:  # type: ignore[arg-type]
+                raise SchemaValidationError("target reference/static cells differ")
+            target_positions = _position_mapping(target_reference["node_positions_nm"], "target reference positions")
+            if tuple(target_positions) != tuple(row.node_id for row in target_nodes):
+                raise SchemaValidationError("target reference positions differ from node universe")
+            target_reference_tension = _matrix2(target_reference["total_tension_pN_per_nm"], "target reference tension")
+            target_minimization = ConvergenceRecord.from_record(target_reference["minimization"])  # type: ignore[arg-type]
+            if not target_minimization.converged:
+                raise SchemaValidationError("target reference is not minimized")
+            anchor = StateRecord.from_record(payload["anchor_state"])  # type: ignore[arg-type]
+            if anchor.frame_id != anchor_frame_id:
+                raise SchemaValidationError("target anchor state/ID mismatch")
+            future_states = tuple(StateRecord.from_record(row) for row in _record_sequence(payload["states"], "target states"))
+            if [row.sequence_index for row in future_states] != list(range(anchor.sequence_index + 1, anchor.sequence_index + 1 + len(future_states))):
+                raise SchemaValidationError("target future state sequence is not contiguous after anchor")
+            controls = tuple(ControlRecord.from_record(row) for row in _record_sequence(payload["controls"], "target controls"))
+            control_ids = {row.control_id for row in controls}
+            if anchor.control_id not in control_ids or any(row.control_id not in control_ids for row in future_states):
+                raise SchemaValidationError("target states reference unknown controls")
+            target_node_ids = tuple(row.node_id for row in target_nodes)
+            target_edge_ids = tuple(row.edge_id for row in target_edges)
+            target_angle_ids = tuple(row.angle_id for row in target_angles)
+            for state in (anchor, *future_states):
+                if tuple(row.node_id for row in state.nodes) != target_node_ids or tuple(row.edge_id for row in state.edges) != target_edge_ids or tuple(row.angle_id for row in state.angles) != target_angle_ids:
+                    raise SchemaValidationError("target state universe differs from static graph")
+                _validate_state_geometry_and_components(state, target_nodes, target_edges)
+                expected_increment = tuple(tuple(state.total_tension_pN_per_nm[i][j] - target_reference_tension[i][j] for j in range(2)) for i in range(2))
+                if not _matrix_close(state.incremental_tension_pN_per_nm, expected_increment):
+                    raise SchemaValidationError("target incremental tension differs from fixed reference")
+            events = tuple(EventRecord.from_record(row) for row in _record_sequence(payload["events"], "target events"))
+            prior_count = _nonnegative_int(payload["prior_event_count"], "prior_event_count")
+            if [row.sequence_index for row in events] != list(range(prior_count, prior_count + len(events))):
+                raise SchemaValidationError("target event sequence is not contiguous after prior history")
+            frames = {row.frame_id: row for row in (anchor, *future_states)}
+            for event in events:
+                if not {event.pre_state_id, event.post_topology_state_id, event.post_equilibrium_state_id} &lt;= set(frames):
+                    raise SchemaValidationError("target event pre_state/post_state links are outside anchor/future states")
+                if not (frames[event.pre_state_id].sequence_index &lt; frames[event.post_topology_state_id].sequence_index &lt; frames[event.post_equilibrium_state_id].sequence_index):
+                    raise SchemaValidationError("target event state linkage is not chronological")
+                pre = frames[event.pre_state_id]
+                post_topology = frames[event.post_topology_state_id]
+                post_equilibrium = frames[event.post_equilibrium_state_id]
+                expected_pre = "pre_rupture" if event.event_source == "material_rupture" else "pre_intervention"
+                if pre.phase != expected_pre or post_topology.phase != "post_topology_change" or post_equilibrium.phase != "post_event_equilibrium":
+                    raise SchemaValidationError("target event phases are inconsistent")
+                if event.triggering_control_id not in control_ids or any(
+                    state.control_id != event.triggering_control_id
+                    or state.load_step_id != event.load_step_id
+                    or state.load_coordinate != event.load_coordinate
+                    or state.path_progress != event.path_progress
+                    for state in (pre, post_topology, post_equilibrium)
+                ):
+                    raise SchemaValidationError("target event control/load relation is inconsistent")
+            endpoints = CensoringRecord.from_record(payload["censoring"])  # type: ignore[arg-type]
+            terminal = future_states[-1] if future_states else anchor
+            material = tuple(row for row in events if row.event_source == "material_rupture")
+            damage = endpoints.damage_initiation
+            if material and (
+                damage.status != "observed"
+                or damage.evidence_id != material[0].event_id
+                or damage.load_coordinate != material[0].load_coordinate
+                or damage.path_progress != material[0].path_progress
+            ):
+&gt;               raise SchemaValidationError("target censor/event evidence relation is inconsistent")
+E               pgworld.data.schema.SchemaValidationError: target censor/event evidence relation is inconsistent
+
+src\pgworld\data\schema.py:3501: SchemaValidationError</failure></testcase></testsuite></testsuites>
