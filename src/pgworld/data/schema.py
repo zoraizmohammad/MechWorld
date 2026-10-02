@@ -2114,6 +2114,109 @@ class ObservedEventRecord:
         )
 
 
+def _derived_material_criterion(
+    event: EventRecord | ObservedEventRecord,
+    pre_state: StateRecord,
+    edge_reference: EdgeReference,
+) -> float:
+    edge = pre_state.edge_by_id(event.edge_id)
+    if event.criterion_name == "bond_extension_ratio":
+        if edge.length_nm is None:
+            raise SchemaValidationError(
+                "material criterion requires pre-state edge length"
+            )
+        return edge.length_nm / edge_reference.reference_rest_length_nm
+    if event.criterion_name == "bond_tension":
+        if edge.tension_pN is None:
+            raise SchemaValidationError(
+                "material criterion requires pre-state edge tension"
+            )
+        return edge.tension_pN
+    if edge.energy_pN_nm is None:
+        raise SchemaValidationError(
+            "material criterion requires pre-state edge energy"
+        )
+    return edge.energy_pN_nm
+
+
+def _validate_projected_event_delta(
+    event: EventRecord | ObservedEventRecord,
+    pre_state: StateRecord,
+    post_topology_state: StateRecord,
+    edge_references: Sequence[EdgeReference],
+    angle_references: Sequence[AngleReference],
+    *,
+    projection_kind: str,
+) -> None:
+    edges_by_id = {row.edge_id: row for row in edge_references}
+    if event.edge_id not in edges_by_id:
+        raise SchemaValidationError(
+            f"{projection_kind} event references an unknown edge"
+        )
+    pre_edge = pre_state.edge_by_id(event.edge_id)
+    post_edge = post_topology_state.edge_by_id(event.edge_id)
+    if not pre_edge.alive or post_edge.alive:
+        raise SchemaValidationError(
+            f"{projection_kind} event does not match the exact edge delta"
+        )
+    expected_angles = tuple(
+        angle.angle_id
+        for angle in angle_references
+        if event.edge_id in angle.dependent_edge_ids
+        and pre_state.angle_by_id(angle.angle_id).alive
+    )
+    if event.removed_angle_ids != expected_angles or any(
+        post_topology_state.angle_by_id(angle_id).alive
+        for angle_id in expected_angles
+    ):
+        raise SchemaValidationError(
+            f"{projection_kind} event does not match the exact angle delta"
+        )
+    for before, after in zip(
+        pre_state.edges, post_topology_state.edges, strict=True
+    ):
+        if before.edge_id != event.edge_id and before.alive != after.alive:
+            raise SchemaValidationError(
+                f"{projection_kind} event changed an unrelated edge delta"
+            )
+        if (
+            before.edge_id != event.edge_id
+            and before.alive
+            and after.alive
+            and before.image_offset_n_ij != after.image_offset_n_ij
+        ):
+            raise SchemaValidationError(
+                f"{projection_kind} event rebranched a surviving edge image"
+            )
+    for before, after in zip(
+        pre_state.angles, post_topology_state.angles, strict=True
+    ):
+        if before.angle_id not in expected_angles and before.alive != after.alive:
+            raise SchemaValidationError(
+                f"{projection_kind} event changed an unrelated angle delta"
+            )
+    if tuple(row.position_nm for row in pre_state.nodes) != tuple(
+        row.position_nm for row in post_topology_state.nodes
+    ):
+        raise SchemaValidationError(
+            f"{projection_kind} post-topology state changed pre-relaxation positions"
+        )
+    if event.event_source == "material_rupture":
+        derived = _derived_material_criterion(
+            event, pre_state, edges_by_id[event.edge_id]
+        )
+        assert event.criterion_value is not None
+        if not math.isclose(
+            event.criterion_value,
+            derived,
+            rel_tol=0.0,
+            abs_tol=_MECHANICAL_ABS_TOLERANCE,
+        ):
+            raise SchemaValidationError(
+                f"{projection_kind} material criterion differs from the linked pre-state edge"
+            )
+
+
 @dataclass(frozen=True)
 class DiagnosticTrial:
     """Rejected numerical trial stored outside accepted state/event sequences."""
@@ -3225,7 +3328,16 @@ class TrajectoryRecord:
             "static_graph": self.static_graph.observed_record(),
             "reference_state": self.reference_state.observed_record(),
             "controls": [row.as_record() for row in self.controls],
-            "prior_event_count": sum(1 for row in self.events if row.post_equilibrium_state_id in {state.frame_id for state in self.states if state.sequence_index <= anchor.sequence_index}),
+            "prior_event_count": sum(
+                1
+                for row in self.events
+                if row.post_topology_state_id
+                in {
+                    state.frame_id
+                    for state in self.states
+                    if state.sequence_index <= anchor.sequence_index
+                }
+            ),
             "states": [row.as_record() for row in future_states],
             "events": [row.as_record() for row in events],
             "damage_initiation_event": (
@@ -3455,16 +3567,33 @@ def _validate_projection_shape(
                 for state in (pre, post_topology, post_equilibrium)
             ):
                 raise SchemaValidationError("observed event control/load relation is inconsistent")
-            for before, after in zip(pre.edges, post_topology.edges, strict=True):
+            event_control = controls_by_id[event.triggering_control_id]
+            declared_edges = set(event_control.prescribed_removal_edge_ids) | {
+                row.edge_id for row in event_control.local_weakening
+            }
+            if event.event_source == "prescribed_intervention":
                 if (
-                    before.edge_id != event.edge_id
-                    and before.alive
-                    and after.alive
-                    and before.image_offset_n_ij != after.image_offset_n_ij
+                    event_control.control_family != "prescribed_intervention"
+                    or event.edge_id not in declared_edges
                 ):
                     raise SchemaValidationError(
-                        "observed event rebranched a surviving edge periodic image"
+                        "observed prescribed event lacks a declared edge action"
                     )
+            elif (
+                event_control.control_family == "prescribed_intervention"
+                or event.edge_id in declared_edges
+            ):
+                raise SchemaValidationError(
+                    "observed material event is declared as a prescribed action"
+                )
+            _validate_projected_event_delta(
+                event,
+                pre,
+                post_topology,
+                edges,
+                angles,
+                projection_kind="observed",
+            )
             if event.cascade_parent_event_id is not None:
                 if event.cascade_parent_event_id not in prior_history:
                     raise SchemaValidationError("observed cascade parent is not earlier history")
@@ -3550,6 +3679,7 @@ def _validate_projection_shape(
             raise SchemaValidationError("target future state sequence is not contiguous after anchor")
         controls = tuple(ControlRecord.from_record(row) for row in _record_sequence(payload["controls"], "target controls"))
         control_ids = {row.control_id for row in controls}
+        controls_by_id = {row.control_id: row for row in controls}
         if anchor.control_id not in control_ids or any(row.control_id not in control_ids for row in future_states):
             raise SchemaValidationError("target states reference unknown controls")
         target_node_ids = tuple(row.node_id for row in target_nodes)
@@ -3603,16 +3733,33 @@ def _validate_projection_shape(
                 for state in (pre, post_topology, post_equilibrium)
             ):
                 raise SchemaValidationError("target event control/load relation is inconsistent")
-            for before, after in zip(pre.edges, post_topology.edges, strict=True):
+            event_control = controls_by_id[event.triggering_control_id]
+            declared_edges = set(event_control.prescribed_removal_edge_ids) | {
+                row.edge_id for row in event_control.local_weakening
+            }
+            if event.event_source == "prescribed_intervention":
                 if (
-                    before.edge_id != event.edge_id
-                    and before.alive
-                    and after.alive
-                    and before.image_offset_n_ij != after.image_offset_n_ij
+                    event_control.control_family != "prescribed_intervention"
+                    or event.edge_id not in declared_edges
                 ):
                     raise SchemaValidationError(
-                        "target event rebranched a surviving edge periodic image"
+                        "target prescribed event lacks a declared edge action"
                     )
+            elif (
+                event_control.control_family == "prescribed_intervention"
+                or event.edge_id in declared_edges
+            ):
+                raise SchemaValidationError(
+                    "target material event is declared as a prescribed action"
+                )
+            _validate_projected_event_delta(
+                event,
+                pre,
+                post_topology,
+                target_edges,
+                target_angles,
+                projection_kind="target",
+            )
             if pre.sequence_index < previous_event_post_equilibrium_index:
                 raise SchemaValidationError(
                     "target event sequence order reverses linked state chronology"
@@ -3622,6 +3769,19 @@ def _validate_projection_shape(
         terminal = future_states[-1] if future_states else anchor
         material = tuple(row for row in events if row.event_source == "material_rupture")
         damage = endpoints.damage_initiation
+        for event in events:
+            if (
+                event.damage_law_id != endpoints.law_id
+                or event.damage_law_hash != endpoints.law_fingerprint
+                or event.threshold_realization_id
+                != endpoints.threshold_realization_id
+                or event.physics_profile_id != damage.physics_profile_id
+                or event.physics_profile_hash != damage.physics_profile_hash
+                or event.reference_state_id != damage.reference_state_id
+            ):
+                raise SchemaValidationError(
+                    "target event law/realization/profile/reference identity differs from endpoints"
+                )
         damage_context_raw = payload["damage_initiation_event"]
         damage_context = (
             None
@@ -3638,6 +3798,18 @@ def _validate_projection_shape(
                 raise SchemaValidationError(
                     "target damage context must be a material rupture"
                 )
+            if damage_context.edge_id not in target_edge_ids:
+                raise SchemaValidationError(
+                    "target damage context references an unknown edge"
+                )
+            if damage_context.triggering_control_id not in control_ids:
+                raise SchemaValidationError(
+                    "target damage context references an unknown control"
+                )
+            if not set(damage_context.removed_angle_ids) <= set(target_angle_ids):
+                raise SchemaValidationError(
+                    "target damage context references an unknown angle"
+                )
             if (
                 damage.status != "observed"
                 or damage.evidence_id != damage_context.event_id
@@ -3649,9 +3821,21 @@ def _validate_projection_shape(
                 raise SchemaValidationError(
                     "target censor/event evidence relation is inconsistent"
                 )
-            if material and damage_context.sequence_index > material[0].sequence_index:
+            if damage_context.sequence_index < prior_count:
+                if (
+                    material
+                    and damage_context.sequence_index >= material[0].sequence_index
+                ):
+                    raise SchemaValidationError(
+                        "historical damage context overlaps future material events"
+                    )
+            elif (
+                not material
+                or damage_context
+                != ObservedEventRecord.from_event(material[0])
+            ):
                 raise SchemaValidationError(
-                    "target damage context is later than the first future material event"
+                    "target damage context must equal the first future material event"
                 )
         for endpoint in endpoints.observations:
             if endpoint.status == "right_censored" and (endpoint.load_coordinate != terminal.load_coordinate or endpoint.path_progress != terminal.path_progress):

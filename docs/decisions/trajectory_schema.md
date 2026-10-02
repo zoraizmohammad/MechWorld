@@ -12,7 +12,8 @@ The interface uses frozen typed records with exact field sets, finite values,
 explicit schema versions, and SHA-256 content hashes. Replay never coerces an
 integer into an opaque string ID, so `"001"` and `"1"` remain distinct. Static
 node, physical-edge, angle, control, state, frame, event, lineage, and
-component IDs remain stable across rupture.
+material IDs remain stable across rupture. Component labels remain stable
+while topology is unchanged and may be recomputed after a topology change.
 
 The record separates immutable graph/reference data, controls, accepted
 scientific state phases, accepted topology events, failure endpoints, and
