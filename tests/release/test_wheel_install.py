@@ -49,7 +49,9 @@ PACKAGE_MODULES = {
     "pgworld/physics/lammps_oracle.py",
     "pgworld/simulation/__init__.py",
     "pgworld/simulation/controls.py",
+    "pgworld/simulation/fracture.py",
     "pgworld/simulation/run_manager.py",
+    "pgworld/simulation/topology.py",
 }
 
 
@@ -208,6 +210,14 @@ from pgworld.physics.energy_force_virial import PhysicsOracle
 from pgworld.physics.lammps_oracle import run_lammps_bond_fixture
 from pgworld.physics.damage import DamageLaw, materialize_thresholds
 from pgworld.simulation.controls import CONTROL_SCHEMA_VERSION, build_deformation_schedule
+from pgworld.simulation.fracture import FRACTURE_SCHEMA_VERSION, CascadeBudget
+from pgworld.simulation.topology import (
+    TOPOLOGY_SCHEMA_VERSION,
+    BondTopology,
+    Cell2D,
+    NodeTopology,
+    TopologyRegistry,
+)
 import run_lammps_elastic_tensor as elastic
 
 expected_hashes = {
@@ -305,12 +315,30 @@ assert list(damage_thresholds.thresholds) == [
 ]
 assert damage_thresholds.physical_time_valid is False
 
+installed_registry = TopologyRegistry(
+    Cell2D(((4.0, 0.0), (0.0, 3.0)), (0.0, 0.0), (True, True)),
+    (NodeTopology("installed-node-a", 1), NodeTopology("installed-node-b", 2)),
+    {"installed-node-a": (0.5, 1.0), "installed-node-b": (1.53, 1.0)},
+    (BondTopology(
+        "installed-bond-a", "installed-node-a", "installed-node-b", 1,
+        "glycan", (0, 0), (1.03, 0.0),
+    ),),
+    (),
+)
+assert installed_registry.initial_state.alive_bond_ids == ("installed-bond-a",)
+assert installed_registry.bond_displacement_nm("installed-bond-a").tolist() == [1.03, 0.0]
+assert CascadeBudget(max_events=1, max_relaxations=2).max_events == 1
+
 controls_module = importlib.import_module("pgworld.simulation.controls")
 damage_module = importlib.import_module("pgworld.physics.damage")
+fracture_module = importlib.import_module("pgworld.simulation.fracture")
+topology_module = importlib.import_module("pgworld.simulation.topology")
 modules = {
     "pgworld": str(Path(pgworld.__file__).resolve()),
     "pgworld.physics.damage": str(Path(damage_module.__file__).resolve()),
     "pgworld.simulation.controls": str(Path(controls_module.__file__).resolve()),
+    "pgworld.simulation.fracture": str(Path(fracture_module.__file__).resolve()),
+    "pgworld.simulation.topology": str(Path(topology_module.__file__).resolve()),
 }
 for name in %r:
     modules[name] = str(Path(importlib.import_module(name).__file__).resolve())
@@ -336,6 +364,13 @@ print(json.dumps({
         "law_kind": damage_law.law_kind,
         "predictor_visibility": damage_law.predictor_visibility,
         "threshold_realization_id": damage_thresholds.realization_id,
+        "physical_time_claim": False,
+    },
+    "p02_03": {
+        "fracture_schema_version": FRACTURE_SCHEMA_VERSION,
+        "topology_schema_version": TOPOLOGY_SCHEMA_VERSION,
+        "registry_id": installed_registry.registry_id,
+        "explicit_image_offset": list(installed_registry.bond("installed-bond-a").image_offset_n_ij),
         "physical_time_claim": False,
     },
 }, sort_keys=True))
