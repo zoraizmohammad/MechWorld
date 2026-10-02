@@ -254,8 +254,8 @@ and failed environmental `no-wheel-full.xml`
 
 The same twenty-three correction hashes are stored in `artifact-hashes.sha256`. A
 post-freeze check reads each immutable blob through `git cat-file`, compares
-its SHA-256 to the manifest, exits 0, and prints `verified 8 committed artifact
-artifact hashes`:
+its SHA-256 to the manifest, exits 0, and prints `verified 23 committed artifact
+hashes`:
 
 ```text
 For each manifest row, read `git cat-file blob HEAD:<path>`, compute SHA-256,
