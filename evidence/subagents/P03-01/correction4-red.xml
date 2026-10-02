@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="0.222" timestamp="2026-10-02T00:34:44.818349" hostname="MZoraiz_P15"><testcase classname="tests.unit.test_schema" name="test_observed_state_load_and_progress_must_match_referenced_control" time="0.017"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_observed_state_load_and_progress_must_match_referenced_control() -&gt; None:
+        record = _trajectory().observed_projection("frame:post-equilibrium").as_record()
+        record["payload"]["states"][0]["load_coordinate"] = 0.05  # type: ignore[index]
+        record["payload"]["states"][0]["path_progress"] = 0.05  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="state.*control|load coordinate"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2373: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_target_anchor_load_and_progress_must_match_referenced_control" time="0.012"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_target_anchor_load_and_progress_must_match_referenced_control() -&gt; None:
+        record = _trajectory().target_projection("frame:accepted").as_record()
+        record["payload"]["anchor_state"]["load_coordinate"] = 0.05  # type: ignore[index]
+        record["payload"]["anchor_state"]["path_progress"] = 0.05  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="state.*control|load coordinate"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2384: Failed</failure></testcase></testsuite></testsuites>

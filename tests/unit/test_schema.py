@@ -2363,6 +2363,28 @@ def test_target_material_criterion_must_match_linked_pre_state_mechanics() -> No
         AccessProjection.from_record(record)
 
 
+def test_observed_state_load_and_progress_must_match_referenced_control() -> None:
+    record = _trajectory().observed_projection("frame:post-equilibrium").as_record()
+    record["payload"]["states"][0]["load_coordinate"] = 0.05  # type: ignore[index]
+    record["payload"]["states"][0]["path_progress"] = 0.05  # type: ignore[index]
+    record["projection_hash"] = AccessProjection.compute_hash(
+        record["access_kind"], record["anchor_frame_id"], record["payload"]
+    )
+    with pytest.raises(SchemaValidationError, match="state.*control|load coordinate"):
+        AccessProjection.from_record(record)
+
+
+def test_target_anchor_load_and_progress_must_match_referenced_control() -> None:
+    record = _trajectory().target_projection("frame:accepted").as_record()
+    record["payload"]["anchor_state"]["load_coordinate"] = 0.05  # type: ignore[index]
+    record["payload"]["anchor_state"]["path_progress"] = 0.05  # type: ignore[index]
+    record["projection_hash"] = AccessProjection.compute_hash(
+        record["access_kind"], record["anchor_frame_id"], record["payload"]
+    )
+    with pytest.raises(SchemaValidationError, match="state.*control|load coordinate"):
+        AccessProjection.from_record(record)
+
+
 def test_public_constructor_and_nested_replay_cannot_bypass_hash_or_order_binding() -> None:
     trajectory = _trajectory()
     with pytest.raises(SchemaValidationError, match="record_hash"):
