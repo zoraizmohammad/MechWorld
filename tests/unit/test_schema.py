@@ -2217,6 +2217,28 @@ def test_intervention_cannot_advance_load_without_mechanical_target_or_keep_stal
                 "censoring": censoring,
             }
         )
+    same_load_intervention = replace(
+        intervention,
+        load_coordinate=0.1,
+        path_progress=0.1,
+        progress_increment=0.0,
+    )
+    wrong_cell = replace(
+        stale,
+        load_coordinate=0.1,
+        path_progress=0.1,
+        cell=_reference_cell(),
+    )
+    with pytest.raises(SchemaValidationError, match="absolute deformation gradient"):
+        TrajectoryRecord.create(
+            **{
+                **trajectory.constructor_fields(),
+                "controls": (parent, same_load_intervention),
+                "states": (wrong_cell,),
+                "events": (),
+                "censoring": _right_censored(),
+            }
+        )
 
 
 def test_event_sequence_order_cannot_reverse_linked_state_chronology() -> None:

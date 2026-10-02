@@ -1442,6 +1442,12 @@ class ReferenceStateRecord:
         total_tension_pN_per_nm: tuple[tuple[float, float], tuple[float, float]],
         minimization: ConvergenceRecord,
     ) -> "ReferenceStateRecord":
+        normalized_positions = _position_mapping(
+            node_positions_nm, "node_positions_nm"
+        )
+        normalized_tension = _matrix2(
+            total_tension_pN_per_nm, "reference total_tension_pN_per_nm"
+        )
         body = {
             "schema_version": TRAJECTORY_SCHEMA_VERSION,
             "reference_state_id": reference_state_id,
@@ -1450,8 +1456,10 @@ class ReferenceStateRecord:
             "physics_profile_hash": physics_profile_hash,
             "static_graph_hash": static_graph_hash,
             "cell": cell.as_record(),
-            "node_positions_nm": {key: list(node_positions_nm[key]) for key in sorted(node_positions_nm)},
-            "total_tension_pN_per_nm": [list(row) for row in total_tension_pN_per_nm],
+            "node_positions_nm": {
+                key: list(normalized_positions[key]) for key in normalized_positions
+            },
+            "total_tension_pN_per_nm": [list(row) for row in normalized_tension],
             "minimization": minimization.as_record(),
         }
         return cls(
@@ -1460,8 +1468,8 @@ class ReferenceStateRecord:
             physics_profile_hash=physics_profile_hash,
             static_graph_hash=static_graph_hash,
             cell=cell,
-            node_positions_nm=node_positions_nm,
-            total_tension_pN_per_nm=total_tension_pN_per_nm,
+            node_positions_nm=normalized_positions,
+            total_tension_pN_per_nm=normalized_tension,
             minimization=minimization,
             reference_state_hash=_fingerprint(body),
         )
@@ -2039,6 +2047,7 @@ class ObservedEventRecord:
         object.__setattr__(self, "removed_angle_ids", removed)
         object.__setattr__(self, "cascade_parent_event_id", _optional_id(self.cascade_parent_event_id, "cascade_parent_event_id"))
         if self.event_source == "material_rupture":
+            object.__setattr__(self, "event_id", _sha256(self.event_id, "material event_id"))
             name = _text(self.criterion_name, "criterion_name")
             value = _finite(self.criterion_value, "criterion_value")
             unit = _text(self.criterion_unit, "criterion_unit")
@@ -2622,6 +2631,14 @@ class TrajectoryRecord:
             else:
                 if path_family is None or control.load_coordinate_unit != path_unit:
                     raise SchemaValidationError("prescribed intervention must inherit an earlier parent path family/unit")
+                if (
+                    not _same_float(control.load_coordinate, previous_load_coordinate)
+                    or not _same_float(control.path_progress, previous_progress)
+                    or not _same_float(control.progress_increment, 0.0)
+                ):
+                    raise SchemaValidationError(
+                        "prescribed intervention cannot advance load without a mechanical target"
+                    )
             expected_progress_increment = abs(control.load_coordinate - previous_load_coordinate)
             if not math.isclose(control.progress_increment, expected_progress_increment, rel_tol=0.0, abs_tol=1.0e-12):
                 raise SchemaValidationError("control progress_increment must equal the absolute load-coordinate change")
@@ -2675,6 +2692,16 @@ class TrajectoryRecord:
     def _validate_states(self) -> None:
         graph = self.static_graph
         controls = {row.control_id: row for row in self.controls}
+        inherited_deformation: dict[
+            str, tuple[tuple[float, float], tuple[float, float]] | None
+        ] = {}
+        active_deformation: tuple[tuple[float, float], tuple[float, float]] | None = None
+        for row in self.controls:
+            if row.control_kind == "deformation_gradient":
+                active_deformation = row.absolute_deformation_gradient
+            elif row.control_kind == "membrane_tension_target":
+                active_deformation = None
+            inherited_deformation[row.control_id] = active_deformation
         if [row.sequence_index for row in self.states] != list(range(len(self.states))):
             raise SchemaValidationError("state sequence_index must be contiguous from zero")
         frame_ids = [row.frame_id for row in self.states]
@@ -2692,14 +2719,16 @@ class TrajectoryRecord:
                 raise SchemaValidationError("state load coordinate differs from its control")
             if not _same_float(control.path_progress, state.path_progress) or control.progress_unit != state.progress_unit:
                 raise SchemaValidationError("state path progress differs from its control")
-            if control.control_kind == "deformation_gradient":
-                assert control.absolute_deformation_gradient is not None
+            deformation_target = inherited_deformation[state.control_id]
+            if deformation_target is not None:
                 expected_cell = _matrix_multiply(
-                    control.absolute_deformation_gradient,
+                    deformation_target,
                     graph.reference_cell.cell_matrix_nm,
                 )
                 if not _matrix_close(state.cell.cell_matrix_nm, expected_cell):
-                    raise SchemaValidationError("state cell H is inconsistent with the absolute deformation gradient and reference H")
+                    raise SchemaValidationError(
+                        "state cell H is inconsistent with the active absolute deformation gradient target and reference H"
+                    )
             if tuple(row.node_id for row in state.nodes) != graph.node_ids:
                 raise SchemaValidationError("state node universe/order differs from static graph")
             if tuple(row.edge_id for row in state.edges) != graph.edge_ids:
@@ -2749,6 +2778,14 @@ class TrajectoryRecord:
             else:
                 if state.path_progress < prior.path_progress:
                     raise SchemaValidationError("path_progress must be nondecreasing")
+                if (
+                    tuple(row.alive for row in state.edges)
+                    == tuple(row.alive for row in prior.edges)
+                    and dict(state.component_ids) != dict(prior.component_ids)
+                ):
+                    raise SchemaValidationError(
+                        "stable component labels cannot rename without a topology change"
+                    )
                 for before, after in zip(prior.edges, state.edges, strict=True):
                     if not before.alive and after.alive:
                         raise SchemaValidationError(f"edge {after.edge_id!r} resurrected; irreversible topology forbids healing")
@@ -2782,6 +2819,7 @@ class TrajectoryRecord:
         prior_event_ids: set[str] = set()
         prior_events: dict[str, EventRecord] = {}
         previous_event_progress = -math.inf
+        previous_event_post_equilibrium_index = -1
         graph = self.static_graph
         for event in self.events:
             if event.edge_id not in graph.edge_ids:
@@ -2862,6 +2900,11 @@ class TrajectoryRecord:
                 raise SchemaValidationError("event subevent_index must identify post_topology_change")
             if not (pre.sequence_index < post_topology.sequence_index < post_equilibrium.sequence_index):
                 raise SchemaValidationError("event pre/post state sequence is not chronological")
+            if pre.sequence_index < previous_event_post_equilibrium_index:
+                raise SchemaValidationError(
+                    "event sequence order reverses linked state chronology"
+                )
+            previous_event_post_equilibrium_index = post_equilibrium.sequence_index
             if not pre.edge_by_id(event.edge_id).alive:
                 raise SchemaValidationError("event pre-state edge is already inactive")
             if event.event_source == "material_rupture":
@@ -2904,6 +2947,15 @@ class TrajectoryRecord:
             for before, after in zip(pre.edges, post_topology.edges, strict=True):
                 if before.edge_id != event.edge_id and before.alive != after.alive:
                     raise SchemaValidationError("one event changed an unrelated edge")
+                if (
+                    before.edge_id != event.edge_id
+                    and before.alive
+                    and after.alive
+                    and before.image_offset_n_ij != after.image_offset_n_ij
+                ):
+                    raise SchemaValidationError(
+                        "event cannot rebranch a surviving edge periodic image"
+                    )
             for before, after in zip(pre.angles, post_topology.angles, strict=True):
                 if before.angle_id not in expected_angles and before.alive != after.alive:
                     raise SchemaValidationError("one event changed an unrelated angle")
@@ -2929,6 +2981,10 @@ class TrajectoryRecord:
             raise SchemaValidationError("physical_time capability disagrees with payload presence")
         if capabilities.physical_time:
             raise SchemaValidationError("trajectory schema v1 cannot advertise physical-time capability")
+        if capabilities.local_stress:
+            raise SchemaValidationError(
+                "trajectory schema v1 cannot advertise local_stress without a typed payload"
+            )
         if bool(self.events) and not capabilities.event_history:
             raise SchemaValidationError("event_history capability is false despite stored events")
         if bool(self.static_graph.angles) != capabilities.angle_mechanics:
@@ -2936,7 +2992,7 @@ class TrajectoryRecord:
         if bool(self.privileged.rejected_trials) != capabilities.rejected_trials:
             raise SchemaValidationError("rejected_trials capability disagrees with privileged diagnostics")
         threshold_ids = set(self.privileged.threshold_values.values)
-        if threshold_ids and threshold_ids != set(self.static_graph.edge_ids):
+        if threshold_ids != set(self.static_graph.edge_ids):
             raise SchemaValidationError("threshold_values must cover the exact stable edge universe")
 
     def _validate_status(self) -> None:
@@ -2950,6 +3006,10 @@ class TrajectoryRecord:
             raise SchemaValidationError("quality_status/termination_reason combination is inconsistent")
         if self.quality_status == "accepted" and not self.states[-1].convergence.converged:
             raise SchemaValidationError("accepted completed trajectory must end at a converged state")
+        if self.termination_reason == "invalid_reference" and self.events:
+            raise SchemaValidationError(
+                "invalid_reference cannot retain accepted topology events"
+            )
         endpoints = self.censoring
         if (
             endpoints.law_id != self.provenance.rupture_law_id
@@ -3153,6 +3213,10 @@ class TrajectoryRecord:
             and row.post_topology_state_id in future_frames
             and row.post_equilibrium_state_id in future_frames
         )
+        damage_initiation_event = next(
+            (row for row in self.events if row.event_source == "material_rupture"),
+            None,
+        )
         payload = {
             "projection_contract": "supervised_targets_only",
             "trajectory_record_hash": self.record_hash,
@@ -3164,6 +3228,11 @@ class TrajectoryRecord:
             "prior_event_count": sum(1 for row in self.events if row.post_equilibrium_state_id in {state.frame_id for state in self.states if state.sequence_index <= anchor.sequence_index}),
             "states": [row.as_record() for row in future_states],
             "events": [row.as_record() for row in events],
+            "damage_initiation_event": (
+                None
+                if damage_initiation_event is None
+                else ObservedEventRecord.from_event(damage_initiation_event).as_record()
+            ),
             "quality_status": self.quality_status,
             "termination_reason": self.termination_reason,
             "censoring": self.censoring.as_record(),
@@ -3267,6 +3336,10 @@ def _validate_projection_shape(
         )
         for key, value in capabilities.items():
             _exact_bool(value, f"observed capabilities.{key}")
+        if capabilities["physical_time"] or capabilities["local_stress"]:
+            raise SchemaValidationError(
+                "observed schema v1 cannot advertise physical_time or local_stress"
+            )
         observed_graph = _mapping(payload["static_graph"], "observed static graph")
         _exact_keys(
             observed_graph,
@@ -3339,12 +3412,21 @@ def _validate_projection_shape(
                 raise SchemaValidationError("observed state replay contains edge healing")
             if any(not left.alive and right.alive for left, right in zip(before.angles, after.angles, strict=True)):
                 raise SchemaValidationError("observed state replay contains angle healing")
+            if (
+                tuple(row.alive for row in before.edges)
+                == tuple(row.alive for row in after.edges)
+                and dict(before.component_ids) != dict(after.component_ids)
+            ):
+                raise SchemaValidationError(
+                    "observed stable component labels renamed without a topology change"
+                )
         history = tuple(ObservedEventRecord.from_record(row) for row in _record_sequence(payload["event_history"], "event_history"))
         if [row.sequence_index for row in history] != list(range(len(history))):
             raise SchemaValidationError("observed event history sequence must be contiguous")
         included_frames = {row.frame_id for row in states}
         frames = {row.frame_id: row for row in states}
         prior_history: dict[str, ObservedEventRecord] = {}
+        previous_event_post_equilibrium_index = -1
         for event in history:
             if event.post_equilibrium_state_id not in included_frames:
                 raise SchemaValidationError("observed event history contains a future event")
@@ -3355,6 +3437,11 @@ def _validate_projection_shape(
             post_equilibrium = frames[event.post_equilibrium_state_id]
             if not (pre.sequence_index < post_topology.sequence_index < post_equilibrium.sequence_index):
                 raise SchemaValidationError("observed event state linkage is not chronological")
+            if pre.sequence_index < previous_event_post_equilibrium_index:
+                raise SchemaValidationError(
+                    "observed event sequence order reverses linked state chronology"
+                )
+            previous_event_post_equilibrium_index = post_equilibrium.sequence_index
             if event.triggering_control_id not in control_ids:
                 raise SchemaValidationError("observed event references unknown control")
             expected_pre = "pre_rupture" if event.event_source == "material_rupture" else "pre_intervention"
@@ -3368,6 +3455,16 @@ def _validate_projection_shape(
                 for state in (pre, post_topology, post_equilibrium)
             ):
                 raise SchemaValidationError("observed event control/load relation is inconsistent")
+            for before, after in zip(pre.edges, post_topology.edges, strict=True):
+                if (
+                    before.edge_id != event.edge_id
+                    and before.alive
+                    and after.alive
+                    and before.image_offset_n_ij != after.image_offset_n_ij
+                ):
+                    raise SchemaValidationError(
+                        "observed event rebranched a surviving edge periodic image"
+                    )
             if event.cascade_parent_event_id is not None:
                 if event.cascade_parent_event_id not in prior_history:
                     raise SchemaValidationError("observed cascade parent is not earlier history")
@@ -3404,9 +3501,10 @@ def _validate_projection_shape(
                 "reference_state",
                 "controls",
                 "prior_event_count",
-                "states",
-                "events",
-                "quality_status",
+                    "states",
+                    "events",
+                    "damage_initiation_event",
+                    "quality_status",
                 "termination_reason",
                 "censoring",
             },
@@ -3464,11 +3562,28 @@ def _validate_projection_shape(
             expected_increment = tuple(tuple(state.total_tension_pN_per_nm[i][j] - target_reference_tension[i][j] for j in range(2)) for i in range(2))
             if not _matrix_close(state.incremental_tension_pN_per_nm, expected_increment):
                 raise SchemaValidationError("target incremental tension differs from fixed reference")
+        for before, after in zip(
+            (anchor, *future_states), (anchor, *future_states)[1:]
+        ):
+            if any(
+                not left.alive and right.alive
+                for left, right in zip(before.edges, after.edges, strict=True)
+            ):
+                raise SchemaValidationError("target state replay contains edge healing")
+            if (
+                tuple(row.alive for row in before.edges)
+                == tuple(row.alive for row in after.edges)
+                and dict(before.component_ids) != dict(after.component_ids)
+            ):
+                raise SchemaValidationError(
+                    "target stable component labels renamed without a topology change"
+                )
         events = tuple(EventRecord.from_record(row) for row in _record_sequence(payload["events"], "target events"))
         prior_count = _nonnegative_int(payload["prior_event_count"], "prior_event_count")
         if [row.sequence_index for row in events] != list(range(prior_count, prior_count + len(events))):
             raise SchemaValidationError("target event sequence is not contiguous after prior history")
         frames = {row.frame_id: row for row in (anchor, *future_states)}
+        previous_event_post_equilibrium_index = anchor.sequence_index
         for event in events:
             if not {event.pre_state_id, event.post_topology_state_id, event.post_equilibrium_state_id} <= set(frames):
                 raise SchemaValidationError("target event pre_state/post_state links are outside anchor/future states")
@@ -3488,17 +3603,56 @@ def _validate_projection_shape(
                 for state in (pre, post_topology, post_equilibrium)
             ):
                 raise SchemaValidationError("target event control/load relation is inconsistent")
+            for before, after in zip(pre.edges, post_topology.edges, strict=True):
+                if (
+                    before.edge_id != event.edge_id
+                    and before.alive
+                    and after.alive
+                    and before.image_offset_n_ij != after.image_offset_n_ij
+                ):
+                    raise SchemaValidationError(
+                        "target event rebranched a surviving edge periodic image"
+                    )
+            if pre.sequence_index < previous_event_post_equilibrium_index:
+                raise SchemaValidationError(
+                    "target event sequence order reverses linked state chronology"
+                )
+            previous_event_post_equilibrium_index = post_equilibrium.sequence_index
         endpoints = CensoringRecord.from_record(payload["censoring"])  # type: ignore[arg-type]
         terminal = future_states[-1] if future_states else anchor
         material = tuple(row for row in events if row.event_source == "material_rupture")
         damage = endpoints.damage_initiation
-        if material and (
-            damage.status != "observed"
-            or damage.evidence_id != material[0].event_id
-            or damage.load_coordinate != material[0].load_coordinate
-            or damage.path_progress != material[0].path_progress
-        ):
-            raise SchemaValidationError("target censor/event evidence relation is inconsistent")
+        damage_context_raw = payload["damage_initiation_event"]
+        damage_context = (
+            None
+            if damage_context_raw is None
+            else ObservedEventRecord.from_record(damage_context_raw)  # type: ignore[arg-type]
+        )
+        if damage_context is None:
+            if damage.status == "observed" or material:
+                raise SchemaValidationError(
+                    "target damage endpoint lacks its material-event context"
+                )
+        else:
+            if damage_context.event_source != "material_rupture":
+                raise SchemaValidationError(
+                    "target damage context must be a material rupture"
+                )
+            if (
+                damage.status != "observed"
+                or damage.evidence_id != damage_context.event_id
+                or damage.load_coordinate != damage_context.load_coordinate
+                or damage.path_progress != damage_context.path_progress
+                or damage.load_coordinate_unit != damage_context.load_coordinate_unit
+                or damage.progress_unit != damage_context.progress_unit
+            ):
+                raise SchemaValidationError(
+                    "target censor/event evidence relation is inconsistent"
+                )
+            if material and damage_context.sequence_index > material[0].sequence_index:
+                raise SchemaValidationError(
+                    "target damage context is later than the first future material event"
+                )
         for endpoint in endpoints.observations:
             if endpoint.status == "right_censored" and (endpoint.load_coordinate != terminal.load_coordinate or endpoint.path_progress != terminal.path_progress):
                 raise SchemaValidationError("target censor coordinate differs from terminal tested state")

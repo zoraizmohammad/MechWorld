@@ -44,6 +44,10 @@ reference. Every state must satisfy
 incremental_tension = total_tension - fixed_reference_total_tension
 ```
 
+Factory hashing uses the same normalized real-valued representation as replay,
+so integer and floating spellings of the same accepted real value do not create
+different hashes or a false hash mismatch.
+
 `Cell2D` stores origin and restricted-triclinic column-vector matrix
 `H = [[Lx, xy], [0, Ly]]`, with `x = axial`, `y = hoop`. A physical edge uses
 
@@ -57,7 +61,9 @@ signed `n_ij` to an absolute tolerance of `1e-12 nm`. A dead edge has no
 current image, length, tension, or energy; the immutable reference image
 retains provenance. Component labels may use arbitrary opaque names, but their
 equivalence partition must exactly match connected components of alive
-physical edges.
+physical edges. Labels remain stable while the alive-edge topology is
+unchanged. During an accepted deletion, surviving edges retain their periodic
+image branch across the same-position pre/post-topology boundary.
 
 Controls retain P02-01 kind/mode, orthonormal axial/hoop basis, fixed
 reference, absolute and incremental deformation gradients or tension targets,
@@ -65,8 +71,11 @@ cumulative path progress and increment, per-node constrained DOFs, weakening,
 and prescribed removal. One trajectory has one continuous family/unit;
 interventions inherit that established path unit. Each progress increment is
 the absolute change in load coordinate and cumulative progress is its sum from
-zero. Replay also verifies deformation composition, additive tension targets,
-and `H_state = F_absolute @ H_reference`. Pressure controls preserve
+zero. A prescribed intervention has no independent mechanical target, so it
+cannot advance the load coordinate or path progress; it inherits the active
+mechanical target. Replay verifies deformation composition, additive tension
+targets, and `H_state = F_absolute @ H_reference`, including intervention
+states carried at the active deformation target. Pressure controls preserve
 `N_axial=pR/2`, `N_hoop=pR`, cylinder radius, and the closed-thin-cylinder
 assumption. The principal tension tensor is rotated by the declared basis as
 `B @ diag(pR/2,pR) @ B.T`; it is a membrane-tension target, not normal
@@ -105,9 +114,13 @@ is retained as an accepted scientific record.
 Schema v1 is strictly quasi-static. Control/state/event/endpoint units are
 `dimensionless` for the present deformation path or `pN/nm^2` for a pressure
 coordinate. Physical time, seconds, or a physical-time capability are rejected.
+The `local_stress` capability also remains false because v1 has no typed local
+stress payload; total and incremental 2D membrane tension remain explicit.
 
 Material thresholds are positive, stable-edge keyed, unit-consistent, and
-sampled once outside this schema. Predictor visibility is explicit. Hidden
+sampled once outside this schema. Every physical edge has one immutable
+threshold even when no rupture occurs in the tested range. Predictor
+visibility is explicit. Hidden
 thresholds and every seed/realization proxy remain privileged. A visible study
 exposes only the declared criterion, unit, and values, never its seed or
 future event information. Material event criteria are exactly one of
@@ -116,7 +129,8 @@ future event information. Material event criteria are exactly one of
 linked pre-state edge observation, compares it at `1e-12` absolute tolerance,
 and requires it to cross the immutable per-edge threshold.
 
-Event sequence, progress, control/load linkage, phases, alive-to-dead
+Event sequence follows linked state chronology, in addition to progress,
+control/load linkage, phases, alive-to-dead
 transition, dependent-angle removal, and cascade ancestry are validated.
 Prescribed events require a declared weakening/removal of that edge; a
 material rupture cannot be declared prescribed. Cascades may continue after
@@ -132,7 +146,8 @@ realization. Damage evidence is a SHA-256 material-event ID. Right censoring
 binds the terminal tested coordinate/progress; `not_evaluated` invents no
 criterion or observation. Successful evaluation ends with
 `completed_schedule`; budget/error terms require consistent non-accepted
-quality status.
+quality status. An `invalid_reference` trajectory cannot retain an accepted
+topology event, because the event's mechanical baseline would be undefined.
 
 ## Access projections
 
@@ -141,7 +156,11 @@ strictly typed, and relationally replay-validated. Observed history requires
 contiguous state/event sequences, valid controls, static universes, geometry,
 reference tension, phases, event links, and irreversible topology. Target
 replay validates its anchor, contiguous future sequence, controls, event
-pre/post links, and endpoint/event/terminal relations. Recursive observed
+pre/post links, and endpoint/event/terminal relations. The target record keeps
+a typed context record for the first material rupture, allowing a projection
+anchored after that event to preserve and validate the historical
+damage-initiation endpoint while `validate_against(parent)` proves its source.
+Recursive observed
 validation rejects seed/RNG, realization, future/oracle, rejected-trial,
 normalizer/scaler, and private access-policy aliases.
 
