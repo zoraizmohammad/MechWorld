@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="7" skipped="0" tests="7" time="0.640" timestamp="2026-10-02T00:28:39.942116" hostname="MZoraiz_P15"><testcase classname="tests.unit.test_schema" name="test_target_damage_context_rejects_unknown_edge_after_rehash" time="0.032"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_target_damage_context_rejects_unknown_edge_after_rehash() -&gt; None:
+        record = _two_event_trajectory().target_projection(
+            "frame:post-equilibrium"
+        ).as_record()
+        record["payload"]["damage_initiation_event"]["edge_id"] = "edge:foreign"  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="damage context.*edge|unknown edge"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2283: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_future_damage_context_must_equal_first_future_material_event" time="0.017"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_future_damage_context_must_equal_first_future_material_event() -&gt; None:
+        record = _trajectory().target_projection("frame:accepted").as_record()
+        forged_id = _hash("6")
+        record["payload"]["damage_initiation_event"]["event_id"] = forged_id  # type: ignore[index]
+        record["payload"]["censoring"]["damage_initiation"]["evidence_id"] = forged_id  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="first future material event"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2295: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_target_future_event_must_match_exact_topology_and_angle_delta" time="0.020"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_target_future_event_must_match_exact_topology_and_angle_delta() -&gt; None:
+        record = _trajectory().target_projection("frame:accepted").as_record()
+        derived_edge_two_ratio = 3.636 / 1.03
+        for event in (
+            record["payload"]["events"][0],  # type: ignore[index]
+            record["payload"]["damage_initiation_event"],  # type: ignore[index]
+        ):
+            event["edge_id"] = "edge:002"
+            event["removed_angle_ids"] = []
+            event["criterion_value"] = derived_edge_two_ratio
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="edge delta|angle delta"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2312: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_target_future_event_identity_must_match_endpoint_provenance" time="0.015"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_target_future_event_identity_must_match_endpoint_provenance() -&gt; None:
+        record = _trajectory().target_projection("frame:accepted").as_record()
+        event = record["payload"]["events"][0]  # type: ignore[index]
+        event["damage_law_id"] = "law:foreign"
+        event["damage_law_hash"] = _hash("4")
+        event["threshold_realization_id"] = _hash("5")
+        event["physics_profile_id"] = "profile:foreign"
+        event["physics_profile_hash"] = _hash("6")
+        event["reference_state_id"] = "reference:foreign"
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="law|profile|reference|realization"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2328: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_observed_event_history_must_match_exact_topology_and_angle_delta" time="0.022"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_observed_event_history_must_match_exact_topology_and_angle_delta() -&gt; None:
+        record = _trajectory().observed_projection("frame:post-equilibrium").as_record()
+        event = record["payload"]["event_history"][0]  # type: ignore[index]
+        event["edge_id"] = "edge:002"
+        event["removed_angle_ids"] = []
+        event["criterion_value"] = 3.636 / 1.03
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="edge delta|angle delta"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2341: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_observed_material_criterion_must_match_linked_pre_state_mechanics" time="0.019"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_observed_material_criterion_must_match_linked_pre_state_mechanics() -&gt; None:
+        record = _trajectory().observed_projection("frame:post-equilibrium").as_record()
+        record["payload"]["event_history"][0]["criterion_value"] = 999.0  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="criterion.*pre-state"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2351: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_target_material_criterion_must_match_linked_pre_state_mechanics" time="0.019"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_target_material_criterion_must_match_linked_pre_state_mechanics() -&gt; None:
+        record = _trajectory().target_projection("frame:accepted").as_record()
+        record["payload"]["events"][0]["criterion_value"] = 999.0  # type: ignore[index]
+        record["payload"]["damage_initiation_event"]["criterion_value"] = 999.0  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="criterion.*pre-state"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:2362: Failed</failure></testcase></testsuite></testsuites>

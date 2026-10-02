@@ -2272,6 +2272,97 @@ def test_target_projection_after_first_event_preserves_historical_damage_endpoin
     projection.validate_against(trajectory)
 
 
+def test_target_damage_context_rejects_unknown_edge_after_rehash() -> None:
+    record = _two_event_trajectory().target_projection(
+        "frame:post-equilibrium"
+    ).as_record()
+    record["payload"]["damage_initiation_event"]["edge_id"] = "edge:foreign"  # type: ignore[index]
+    record["projection_hash"] = AccessProjection.compute_hash(
+        record["access_kind"], record["anchor_frame_id"], record["payload"]
+    )
+    with pytest.raises(SchemaValidationError, match="damage context.*edge|unknown edge"):
+        AccessProjection.from_record(record)
+
+
+def test_future_damage_context_must_equal_first_future_material_event() -> None:
+    record = _trajectory().target_projection("frame:accepted").as_record()
+    forged_id = _hash("6")
+    record["payload"]["damage_initiation_event"]["event_id"] = forged_id  # type: ignore[index]
+    record["payload"]["censoring"]["damage_initiation"]["evidence_id"] = forged_id  # type: ignore[index]
+    record["projection_hash"] = AccessProjection.compute_hash(
+        record["access_kind"], record["anchor_frame_id"], record["payload"]
+    )
+    with pytest.raises(SchemaValidationError, match="first future material event"):
+        AccessProjection.from_record(record)
+
+
+def test_target_future_event_must_match_exact_topology_and_angle_delta() -> None:
+    record = _trajectory().target_projection("frame:accepted").as_record()
+    derived_edge_two_ratio = 3.636 / 1.03
+    for event in (
+        record["payload"]["events"][0],  # type: ignore[index]
+        record["payload"]["damage_initiation_event"],  # type: ignore[index]
+    ):
+        event["edge_id"] = "edge:002"
+        event["removed_angle_ids"] = []
+        event["criterion_value"] = derived_edge_two_ratio
+    record["projection_hash"] = AccessProjection.compute_hash(
+        record["access_kind"], record["anchor_frame_id"], record["payload"]
+    )
+    with pytest.raises(SchemaValidationError, match="edge delta|angle delta"):
+        AccessProjection.from_record(record)
+
+
+def test_target_future_event_identity_must_match_endpoint_provenance() -> None:
+    record = _trajectory().target_projection("frame:accepted").as_record()
+    event = record["payload"]["events"][0]  # type: ignore[index]
+    event["damage_law_id"] = "law:foreign"
+    event["damage_law_hash"] = _hash("4")
+    event["threshold_realization_id"] = _hash("5")
+    event["physics_profile_id"] = "profile:foreign"
+    event["physics_profile_hash"] = _hash("6")
+    event["reference_state_id"] = "reference:foreign"
+    record["projection_hash"] = AccessProjection.compute_hash(
+        record["access_kind"], record["anchor_frame_id"], record["payload"]
+    )
+    with pytest.raises(SchemaValidationError, match="law|profile|reference|realization"):
+        AccessProjection.from_record(record)
+
+
+def test_observed_event_history_must_match_exact_topology_and_angle_delta() -> None:
+    record = _trajectory().observed_projection("frame:post-equilibrium").as_record()
+    event = record["payload"]["event_history"][0]  # type: ignore[index]
+    event["edge_id"] = "edge:002"
+    event["removed_angle_ids"] = []
+    event["criterion_value"] = 3.636 / 1.03
+    record["projection_hash"] = AccessProjection.compute_hash(
+        record["access_kind"], record["anchor_frame_id"], record["payload"]
+    )
+    with pytest.raises(SchemaValidationError, match="edge delta|angle delta"):
+        AccessProjection.from_record(record)
+
+
+def test_observed_material_criterion_must_match_linked_pre_state_mechanics() -> None:
+    record = _trajectory().observed_projection("frame:post-equilibrium").as_record()
+    record["payload"]["event_history"][0]["criterion_value"] = 999.0  # type: ignore[index]
+    record["projection_hash"] = AccessProjection.compute_hash(
+        record["access_kind"], record["anchor_frame_id"], record["payload"]
+    )
+    with pytest.raises(SchemaValidationError, match="criterion.*pre-state"):
+        AccessProjection.from_record(record)
+
+
+def test_target_material_criterion_must_match_linked_pre_state_mechanics() -> None:
+    record = _trajectory().target_projection("frame:accepted").as_record()
+    record["payload"]["events"][0]["criterion_value"] = 999.0  # type: ignore[index]
+    record["payload"]["damage_initiation_event"]["criterion_value"] = 999.0  # type: ignore[index]
+    record["projection_hash"] = AccessProjection.compute_hash(
+        record["access_kind"], record["anchor_frame_id"], record["payload"]
+    )
+    with pytest.raises(SchemaValidationError, match="criterion.*pre-state"):
+        AccessProjection.from_record(record)
+
+
 def test_public_constructor_and_nested_replay_cannot_bypass_hash_or_order_binding() -> None:
     trajectory = _trajectory()
     with pytest.raises(SchemaValidationError, match="record_hash"):
