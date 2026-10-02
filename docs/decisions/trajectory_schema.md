@@ -161,6 +161,9 @@ pre/post links, and endpoint/event/terminal relations. The target record keeps
 a typed context record for the first material rupture, allowing a projection
 anchored after that event to preserve and validate the historical
 damage-initiation endpoint while `validate_against(parent)` proves its source.
+Full, observed, and target replay use the same control-path validator for
+ordering, increments, composition, intervention inheritance, referenced
+nodes/edges, state load/progress fields, and active deformation-cell binding.
 Recursive observed
 validation rejects seed/RNG, realization, future/oracle, rejected-trial,
 normalizer/scaler, and private access-policy aliases.

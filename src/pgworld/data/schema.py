@@ -2618,6 +2618,205 @@ def _same_float(left: float, right: float) -> bool:
     return left == right
 
 
+def _validate_control_sequence(
+    controls: Sequence[ControlRecord],
+    graph: StaticGraph,
+    *,
+    expected_reference_state_id: str | None,
+    boundary: BoundaryConditionRecord | None,
+) -> Mapping[str, tuple[tuple[float, float], tuple[float, float]] | None]:
+    if not controls:
+        raise SchemaValidationError("control sequence cannot be empty")
+    control_ids = tuple(row.control_id for row in controls)
+    load_ids = tuple(row.load_step_id for row in controls)
+    if len(set(control_ids)) != len(control_ids):
+        raise SchemaValidationError("duplicate control_id")
+    if len(set(load_ids)) != len(load_ids):
+        raise SchemaValidationError("duplicate load_step_id")
+    if [row.step_index for row in controls] != list(range(len(controls))):
+        raise SchemaValidationError("control step_index must be contiguous from zero")
+    if any(
+        right.path_progress < left.path_progress
+        for left, right in zip(controls, controls[1:])
+    ):
+        raise SchemaValidationError(
+            "controls must be ordered by nondecreasing path_progress"
+        )
+    reference_state_id = (
+        controls[0].reference_state_id
+        if expected_reference_state_id is None
+        else expected_reference_state_id
+    )
+    previous_progress = 0.0
+    previous_load_coordinate = 0.0
+    path_family: str | None = None
+    path_unit: str | None = None
+    previous_absolute_f: tuple[tuple[float, float], tuple[float, float]] | None = None
+    previous_absolute_tension: tuple[
+        tuple[float, float], tuple[float, float]
+    ] | None = None
+    active_deformation: tuple[tuple[float, float], tuple[float, float]] | None = None
+    deformation_by_control: dict[
+        str, tuple[tuple[float, float], tuple[float, float]] | None
+    ] = {}
+    for control in controls:
+        if control.reference_state_id != reference_state_id:
+            raise SchemaValidationError("control mixes a different reference state")
+        if control.control_family != "prescribed_intervention":
+            if path_family is None:
+                path_family = control.control_family
+                path_unit = control.load_coordinate_unit
+            elif (
+                control.control_family != path_family
+                or control.load_coordinate_unit != path_unit
+            ):
+                raise SchemaValidationError(
+                    "one trajectory cannot mix continuous control families or units"
+                )
+        else:
+            if path_family is None or control.load_coordinate_unit != path_unit:
+                raise SchemaValidationError(
+                    "prescribed intervention must inherit an earlier parent path family/unit"
+                )
+            if (
+                not _same_float(control.load_coordinate, previous_load_coordinate)
+                or not _same_float(control.path_progress, previous_progress)
+                or not _same_float(control.progress_increment, 0.0)
+            ):
+                raise SchemaValidationError(
+                    "prescribed intervention cannot advance load without a mechanical target"
+                )
+        expected_progress_increment = abs(
+            control.load_coordinate - previous_load_coordinate
+        )
+        if not math.isclose(
+            control.progress_increment,
+            expected_progress_increment,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        ):
+            raise SchemaValidationError(
+                "control progress_increment must equal the absolute load-coordinate change"
+            )
+        expected_path_progress = previous_progress + expected_progress_increment
+        if not math.isclose(
+            control.path_progress,
+            expected_path_progress,
+            rel_tol=0.0,
+            abs_tol=1.0e-12,
+        ):
+            raise SchemaValidationError(
+                "path_progress must accumulate absolute load-coordinate increments from zero"
+            )
+        previous_load_coordinate = control.load_coordinate
+        previous_progress = control.path_progress
+        if control.control_kind == "deformation_gradient":
+            assert control.absolute_deformation_gradient is not None
+            assert control.incremental_deformation_gradient is not None
+            expected_absolute = (
+                control.incremental_deformation_gradient
+                if previous_absolute_f is None
+                else _matrix_multiply(
+                    control.incremental_deformation_gradient, previous_absolute_f
+                )
+            )
+            if not _matrix_close(
+                control.absolute_deformation_gradient, expected_absolute
+            ):
+                raise SchemaValidationError(
+                    "incremental deformation gradient does not compose to the absolute target"
+                )
+            previous_absolute_f = control.absolute_deformation_gradient
+            active_deformation = control.absolute_deformation_gradient
+        elif control.control_kind == "membrane_tension_target":
+            assert control.absolute_tension_target_pN_per_nm is not None
+            assert control.incremental_tension_target_pN_per_nm is not None
+            expected_absolute_tension = (
+                control.incremental_tension_target_pN_per_nm
+                if previous_absolute_tension is None
+                else _matrix_add(
+                    previous_absolute_tension,
+                    control.incremental_tension_target_pN_per_nm,
+                )
+            )
+            if not _matrix_close(
+                control.absolute_tension_target_pN_per_nm,
+                expected_absolute_tension,
+            ):
+                raise SchemaValidationError(
+                    "incremental tension target does not add to the absolute target"
+                )
+            previous_absolute_tension = control.absolute_tension_target_pN_per_nm
+            active_deformation = None
+        deformation_by_control[control.control_id] = active_deformation
+        unknown_nodes = (
+            set(control.boundary_displacements_nm)
+            | set(control.prescribed_forces_pN)
+            | set(control.constrained_dofs)
+        ) - set(graph.node_ids)
+        if unknown_nodes:
+            raise SchemaValidationError(
+                f"control references unknown nodes: {sorted(unknown_nodes)}"
+            )
+        if boundary is not None and dict(control.constrained_dofs) != dict(
+            boundary.constrained_dofs
+        ):
+            raise SchemaValidationError(
+                "control constrained DOFs differ from typed boundary semantics"
+            )
+        unknown_edges = (
+            {change.edge_id for change in control.local_weakening}
+            | set(control.prescribed_removal_edge_ids)
+        ) - set(graph.edge_ids)
+        if unknown_edges:
+            raise SchemaValidationError(
+                f"control references unknown edges: {sorted(unknown_edges)}"
+            )
+        for change in control.local_weakening:
+            reference = graph.edge_by_id(change.edge_id)
+            if not set(change.parameter_names) <= set(
+                reference.reference_parameters.values
+            ):
+                raise SchemaValidationError(
+                    "local weakening names unknown reference parameters"
+                )
+    return MappingProxyType(deformation_by_control)
+
+
+def _validate_state_control_binding(
+    state: StateRecord,
+    control: ControlRecord,
+    active_deformation: tuple[tuple[float, float], tuple[float, float]] | None,
+    reference_cell: Cell2D,
+    *,
+    context: str,
+) -> None:
+    if control.load_step_id != state.load_step_id:
+        raise SchemaValidationError(f"{context} state load_step_id differs from its control")
+    if (
+        not _same_float(control.load_coordinate, state.load_coordinate)
+        or control.load_coordinate_unit != state.load_coordinate_unit
+    ):
+        raise SchemaValidationError(
+            f"{context} state load coordinate differs from its control"
+        )
+    if (
+        not _same_float(control.path_progress, state.path_progress)
+        or control.progress_unit != state.progress_unit
+    ):
+        raise SchemaValidationError(
+            f"{context} state path progress differs from its control"
+        )
+    if active_deformation is not None:
+        expected_cell = _matrix_multiply(
+            active_deformation, reference_cell.cell_matrix_nm
+        )
+        if not _matrix_close(state.cell.cell_matrix_nm, expected_cell):
+            raise SchemaValidationError(
+                f"{context} state cell H is inconsistent with the active absolute deformation gradient target and reference H"
+            )
+
+
 @dataclass(frozen=True)
 class TrajectoryRecord:
     """Content-hashed, replay-validated trajectory with separated record families."""
@@ -2706,105 +2905,22 @@ class TrajectoryRecord:
             or not set(boundary.anchor_solver_atom_ids) <= set(graph.node_ids)
         ):
             raise SchemaValidationError("typed boundary condition is inconsistent with graph/provenance identity")
-        control_ids = tuple(row.control_id for row in self.controls)
-        load_ids = tuple(row.load_step_id for row in self.controls)
-        if len(set(control_ids)) != len(control_ids):
-            raise SchemaValidationError("duplicate control_id")
-        if len(set(load_ids)) != len(load_ids):
-            raise SchemaValidationError("duplicate load_step_id")
-        if [row.step_index for row in self.controls] != list(range(len(self.controls))):
-            raise SchemaValidationError("control step_index must be contiguous from zero")
-        if any(right.path_progress < left.path_progress for left, right in zip(self.controls, self.controls[1:])):
-            raise SchemaValidationError("controls must be ordered by nondecreasing path_progress")
-        previous_progress = 0.0
-        previous_load_coordinate = 0.0
-        path_family: str | None = None
-        path_unit: str | None = None
-        previous_absolute_f: tuple[tuple[float, float], tuple[float, float]] | None = None
-        previous_absolute_tension: tuple[tuple[float, float], tuple[float, float]] | None = None
-        for control in self.controls:
-            if control.reference_state_id != graph.reference_state_id:
-                raise SchemaValidationError("control mixes a different reference state")
-            if control.control_family != "prescribed_intervention":
-                if path_family is None:
-                    path_family = control.control_family
-                    path_unit = control.load_coordinate_unit
-                elif control.control_family != path_family or control.load_coordinate_unit != path_unit:
-                    raise SchemaValidationError("one trajectory cannot mix continuous control families or units")
-            else:
-                if path_family is None or control.load_coordinate_unit != path_unit:
-                    raise SchemaValidationError("prescribed intervention must inherit an earlier parent path family/unit")
-                if (
-                    not _same_float(control.load_coordinate, previous_load_coordinate)
-                    or not _same_float(control.path_progress, previous_progress)
-                    or not _same_float(control.progress_increment, 0.0)
-                ):
-                    raise SchemaValidationError(
-                        "prescribed intervention cannot advance load without a mechanical target"
-                    )
-            expected_progress_increment = abs(control.load_coordinate - previous_load_coordinate)
-            if not math.isclose(control.progress_increment, expected_progress_increment, rel_tol=0.0, abs_tol=1.0e-12):
-                raise SchemaValidationError("control progress_increment must equal the absolute load-coordinate change")
-            expected_path_progress = previous_progress + expected_progress_increment
-            if not math.isclose(control.path_progress, expected_path_progress, rel_tol=0.0, abs_tol=1.0e-12):
-                raise SchemaValidationError("path_progress must accumulate absolute load-coordinate increments from zero")
-            previous_load_coordinate = control.load_coordinate
-            previous_progress = control.path_progress
-            if control.control_kind == "deformation_gradient":
-                assert control.absolute_deformation_gradient is not None
-                assert control.incremental_deformation_gradient is not None
-                expected_absolute = (
-                    control.incremental_deformation_gradient
-                    if previous_absolute_f is None
-                    else _matrix_multiply(control.incremental_deformation_gradient, previous_absolute_f)
-                )
-                if not _matrix_close(control.absolute_deformation_gradient, expected_absolute):
-                    raise SchemaValidationError("incremental deformation gradient does not compose to the absolute target")
-                previous_absolute_f = control.absolute_deformation_gradient
-            elif control.control_kind == "membrane_tension_target":
-                assert control.absolute_tension_target_pN_per_nm is not None
-                assert control.incremental_tension_target_pN_per_nm is not None
-                expected_absolute_tension = (
-                    control.incremental_tension_target_pN_per_nm
-                    if previous_absolute_tension is None
-                    else _matrix_add(previous_absolute_tension, control.incremental_tension_target_pN_per_nm)
-                )
-                if not _matrix_close(control.absolute_tension_target_pN_per_nm, expected_absolute_tension):
-                    raise SchemaValidationError("incremental tension target does not add to the absolute target")
-                previous_absolute_tension = control.absolute_tension_target_pN_per_nm
-            unknown_nodes = (
-                set(control.boundary_displacements_nm)
-                | set(control.prescribed_forces_pN)
-                | set(control.constrained_dofs)
-            ) - set(graph.node_ids)
-            if unknown_nodes:
-                raise SchemaValidationError(f"control references unknown nodes: {sorted(unknown_nodes)}")
-            if dict(control.constrained_dofs) != dict(boundary.constrained_dofs):
-                raise SchemaValidationError("control constrained DOFs differ from typed boundary semantics")
-            unknown_edges = (
-                {change.edge_id for change in control.local_weakening}
-                | set(control.prescribed_removal_edge_ids)
-            ) - set(graph.edge_ids)
-            if unknown_edges:
-                raise SchemaValidationError(f"control references unknown edges: {sorted(unknown_edges)}")
-            for change in control.local_weakening:
-                reference = graph.edge_by_id(change.edge_id)
-                if not set(change.parameter_names) <= set(reference.reference_parameters.values):
-                    raise SchemaValidationError("local weakening names unknown reference parameters")
+        _validate_control_sequence(
+            self.controls,
+            graph,
+            expected_reference_state_id=graph.reference_state_id,
+            boundary=boundary,
+        )
 
     def _validate_states(self) -> None:
         graph = self.static_graph
         controls = {row.control_id: row for row in self.controls}
-        inherited_deformation: dict[
-            str, tuple[tuple[float, float], tuple[float, float]] | None
-        ] = {}
-        active_deformation: tuple[tuple[float, float], tuple[float, float]] | None = None
-        for row in self.controls:
-            if row.control_kind == "deformation_gradient":
-                active_deformation = row.absolute_deformation_gradient
-            elif row.control_kind == "membrane_tension_target":
-                active_deformation = None
-            inherited_deformation[row.control_id] = active_deformation
+        inherited_deformation = _validate_control_sequence(
+            self.controls,
+            graph,
+            expected_reference_state_id=graph.reference_state_id,
+            boundary=self.boundary_condition,
+        )
         if [row.sequence_index for row in self.states] != list(range(len(self.states))):
             raise SchemaValidationError("state sequence_index must be contiguous from zero")
         frame_ids = [row.frame_id for row in self.states]
@@ -2816,22 +2932,13 @@ class TrajectoryRecord:
                 control = controls[state.control_id]
             except KeyError as error:
                 raise SchemaValidationError(f"state references unknown control_id {state.control_id!r}") from error
-            if control.load_step_id != state.load_step_id:
-                raise SchemaValidationError("state load_step_id differs from its control")
-            if not _same_float(control.load_coordinate, state.load_coordinate) or control.load_coordinate_unit != state.load_coordinate_unit:
-                raise SchemaValidationError("state load coordinate differs from its control")
-            if not _same_float(control.path_progress, state.path_progress) or control.progress_unit != state.progress_unit:
-                raise SchemaValidationError("state path progress differs from its control")
-            deformation_target = inherited_deformation[state.control_id]
-            if deformation_target is not None:
-                expected_cell = _matrix_multiply(
-                    deformation_target,
-                    graph.reference_cell.cell_matrix_nm,
-                )
-                if not _matrix_close(state.cell.cell_matrix_nm, expected_cell):
-                    raise SchemaValidationError(
-                        "state cell H is inconsistent with the active absolute deformation gradient target and reference H"
-                    )
+            _validate_state_control_binding(
+                state,
+                control,
+                inherited_deformation[state.control_id],
+                graph.reference_cell,
+                context="trajectory",
+            )
             if tuple(row.node_id for row in state.nodes) != graph.node_ids:
                 raise SchemaValidationError("state node universe/order differs from static graph")
             if tuple(row.edge_id for row in state.edges) != graph.edge_ids:
@@ -3464,7 +3571,7 @@ def _validate_projection_shape(
         nodes = tuple(NodeReference.from_record(row) for row in _record_sequence(observed_graph["nodes"], "observed nodes"))
         edges = tuple(EdgeReference.from_record(row) for row in _record_sequence(observed_graph["edges"], "observed edges"))
         angles = tuple(AngleReference.from_record(row) for row in _record_sequence(observed_graph["angles"], "observed angles"))
-        StaticGraph.create(
+        observed_static_graph = StaticGraph.create(
             graph_id="access-validation-graph",
             reference_state_id="access-validation-reference",
             reference_cell=cell,
@@ -3486,10 +3593,16 @@ def _validate_projection_shape(
         reference_min = ConvergenceRecord.from_record(reference["minimization"])  # type: ignore[arg-type]
         if not reference_min.converged:
             raise SchemaValidationError("observed reference is not minimized")
-        BoundaryConditionRecord.from_record(payload["boundary_condition"])  # type: ignore[arg-type]
+        observed_boundary = BoundaryConditionRecord.from_record(payload["boundary_condition"])  # type: ignore[arg-type]
         controls = tuple(
             ControlRecord.from_record(row)
             for row in _record_sequence(payload["controls"], "observed controls")
+        )
+        observed_deformation = _validate_control_sequence(
+            controls,
+            observed_static_graph,
+            expected_reference_state_id=None,
+            boundary=observed_boundary,
         )
         states = tuple(
             StateRecord.from_record(row)
@@ -3511,6 +3624,13 @@ def _validate_projection_shape(
         for state in states:
             if state.control_id not in controls_by_id:
                 raise SchemaValidationError("observed state references unknown control")
+            _validate_state_control_binding(
+                state,
+                controls_by_id[state.control_id],
+                observed_deformation[state.control_id],
+                cell,
+                context="observed projection",
+            )
             if tuple(row.node_id for row in state.nodes) != node_ids or tuple(row.edge_id for row in state.edges) != edge_ids or tuple(row.angle_id for row in state.angles) != angle_ids:
                 raise SchemaValidationError("observed state universe differs from static graph")
             _validate_state_geometry_and_components(state, nodes, edges)
@@ -3650,7 +3770,7 @@ def _validate_projection_shape(
         target_nodes = tuple(NodeReference.from_record(row) for row in _record_sequence(target_graph["nodes"], "target nodes"))
         target_edges = tuple(EdgeReference.from_record(row) for row in _record_sequence(target_graph["edges"], "target edges"))
         target_angles = tuple(AngleReference.from_record(row) for row in _record_sequence(target_graph["angles"], "target angles"))
-        StaticGraph.create(
+        target_static_graph = StaticGraph.create(
             graph_id="target-access-validation-graph",
             reference_state_id="target-access-validation-reference",
             reference_cell=target_cell,
@@ -3678,6 +3798,12 @@ def _validate_projection_shape(
         if [row.sequence_index for row in future_states] != list(range(anchor.sequence_index + 1, anchor.sequence_index + 1 + len(future_states))):
             raise SchemaValidationError("target future state sequence is not contiguous after anchor")
         controls = tuple(ControlRecord.from_record(row) for row in _record_sequence(payload["controls"], "target controls"))
+        target_deformation = _validate_control_sequence(
+            controls,
+            target_static_graph,
+            expected_reference_state_id=None,
+            boundary=None,
+        )
         control_ids = {row.control_id for row in controls}
         controls_by_id = {row.control_id: row for row in controls}
         if anchor.control_id not in control_ids or any(row.control_id not in control_ids for row in future_states):
@@ -3686,6 +3812,13 @@ def _validate_projection_shape(
         target_edge_ids = tuple(row.edge_id for row in target_edges)
         target_angle_ids = tuple(row.angle_id for row in target_angles)
         for state in (anchor, *future_states):
+            _validate_state_control_binding(
+                state,
+                controls_by_id[state.control_id],
+                target_deformation[state.control_id],
+                target_cell,
+                context="target projection",
+            )
             if tuple(row.node_id for row in state.nodes) != target_node_ids or tuple(row.edge_id for row in state.edges) != target_edge_ids or tuple(row.angle_id for row in state.angles) != target_angle_ids:
                 raise SchemaValidationError("target state universe differs from static graph")
             _validate_state_geometry_and_components(state, target_nodes, target_edges)
@@ -3769,6 +3902,13 @@ def _validate_projection_shape(
         terminal = future_states[-1] if future_states else anchor
         material = tuple(row for row in events if row.event_source == "material_rupture")
         damage = endpoints.damage_initiation
+        if any(
+            control.reference_state_id != damage.reference_state_id
+            for control in controls
+        ):
+            raise SchemaValidationError(
+                "target controls mix a different endpoint reference state"
+            )
         for event in events:
             if (
                 event.damage_law_id != endpoints.law_id
