@@ -300,3 +300,20 @@ focused/package tests, 487 full-suite tests, and one isolated installed-wheel
 test. Editing ownership for P02-04 and P03-01 is cleared. No agent owns G2/G3,
 solver export, HDF5 storage, datasets, or root ledgers as a consequence of
 these acceptances.
+
+## Fourteenth wave
+
+The assignment uses accepted and pushed main revision
+`3fdb17af5a1f7309255788f4df1cb38f0df4bd03`.
+
+| Assignment | Branch and worktree | Task and objective | Owned paths | Output restriction |
+|---|---|---|---|---|
+| Material-disorder provenance/physics | `research/p02-05-stochasticity`; `C:/Users/mzora/MechWorld-wt-p02-05` | P02-05: exact red-first sample-once quenched threshold/conditional-replicate records that distinguish geometry, material disorder, and event-process randomness without resampling on numerical retries | `src/pgworld/physics/stochasticity.py`, `tests/physics/test_stochastic_events.py`, `docs/decisions/stochasticity.md`, `docs/subagents/P02-05-stochasticity.md`, `evidence/subagents/P02-05/`, and only the exact new module member/import smoke in `tests/release/test_wheel_install.py` | No edits to root ledgers/README, shared contracts/schema, profiles, controls, `damage.py`, `fracture.py`, run manager, gates, datasets/models, or unrelated package assertions; no LAMMPS core run, event lottery/hazard, physical-time claim, production simulation, private data, public action, or push |
+
+The implementation must reuse P02-02 threshold materialization, preserve
+P01-04 namespace provenance, and keep the reserved event seed unconsumed while
+event-process randomness is disabled. Predictor-visible records recursively
+exclude hidden seeds, thresholds, realization IDs, and proxies. A separate
+read-only reviewer audits red/green evidence, replay/privacy semantics, exact
+paths, identity, and immutable commits before integration. Full and wheel tests
+run sequentially under the two-thread ceiling.

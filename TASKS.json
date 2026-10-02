@@ -1120,7 +1120,7 @@
       "id": "P02-05",
       "work_package": "WP2",
       "title": "Model material disorder and conditional stochastic events reproducibly",
-      "status": "TODO",
+      "status": "IN_PROGRESS",
       "owner_role": "physics",
       "execution_kind": "agent",
       "mandatory": true,
@@ -1130,7 +1130,11 @@
       ],
       "owned_paths": [
         "src/pgworld/physics/stochasticity.py",
-        "tests/physics/test_stochastic_events.py"
+        "tests/physics/test_stochastic_events.py",
+        "tests/release/test_wheel_install.py",
+        "docs/decisions/stochasticity.md",
+        "docs/subagents/P02-05-stochasticity.md",
+        "evidence/subagents/P02-05/"
       ],
       "expected_outputs": [
         "persistent threshold fields or justified hazard model",
@@ -1147,7 +1151,7 @@
       "resource_policy": "Smoke/pilot only within verified authorization; production compute and external actions require recorded approval.",
       "evidence": [],
       "blocked_by": [],
-      "notes": ""
+      "notes": "Assigned from clean accepted and pushed main revision 3fdb17af5a1f7309255788f4df1cb38f0df4bd03 to branch research/p02-05-stochasticity in isolated worktree C:/Users/mzora/MechWorld-wt-p02-05. Editing ownership is limited to the new stochasticity module, its focused tests, decision/report/evidence, and a narrow strict-wheel allowlist/import-smoke addition for that exact module. All other source, shared schema/contracts, root ledgers/README, profiles, controls, damage.py, fracture.py, run manager, gates, and data/model paths are read-only. Implement the accepted simulation-first choice as sample-once quenched material thresholds using P01-04 namespace provenance and P02-02 materialize_thresholds; dynamics remain deterministic conditional on the frozen hidden field. The P01-04 events seed stays reserved and unconsumed, and requests for event-process randomness fail closed unless a separately validated load-progress hazard is later authorized. Rejected/nonconverged/localization retries cannot resample or consume a new rupture opportunity. Conditional-replicate records distinguish geometry, material disorder, and event-process randomness with exact units/profile/reference/law identity while predictor-visible views recursively exclude hidden seeds, thresholds, realization IDs, and proxies. Core work requires no LAMMPS. Preserve exact red evidence, run focused/compatibility/full/wheel checks sequentially under two threads, obtain independent review, commit solely as Mohammad Zoraiz, and do not push. This task does not accept G2 or G3, add physical-time/rate claims, create datasets, or generate a production campaign."
     },
     {
       "id": "P02-06",

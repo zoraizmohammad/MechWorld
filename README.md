@@ -20,7 +20,7 @@ blocked.
 | Inherited mechanics repair | G1 accepted | P01-01 through P01-11 are integrated or explicitly retained as provisional/blocked; the installable wheel and `pgworld doctor` passed fresh-environment real-LAMMPS checks |
 | Physics/units contract | Immutable provisional profiles verified; biological review pending | Four route-specific hashes separate historical execution from the required new virial-only policy and reject tampered persisted snapshots. Coarse-graining, angle mapping, nonlinear-fit recovery, and the final reviewed profile remain unapproved |
 | Related work and claims | Current targeted audit complete | 29 cited primary records are validated; direct prior learned changing-graph fracture work rejects broad first-of-kind claims; refresh and independent review remain mandatory before manuscript claims |
-| Rupture, dataset, models, evaluation, explorer | P02-01 through P02-04 and P03-01 done; P02-05 is next | Deterministic bounded localization/phase accounting and strict in-memory trajectory/access replay are integrated; stochastic-material provenance, restart/sensitivity, solver export/storage, datasets, models, evaluation, and the explorer remain incomplete; G2 and later gates remain unaccepted |
+| Rupture, dataset, models, evaluation, explorer | P02-01 through P02-04 and P03-01 done; P02-05 active | Deterministic bounded localization/phase accounting and strict in-memory trajectory/access replay are integrated; sample-once material-disorder provenance is assigned in an isolated worktree, while restart/sensitivity, solver export/storage, datasets, models, evaluation, and the explorer remain incomplete; G2 and later gates remain unaccepted |
 | Experimental validation | P08-01 blocked on access | AFM plus matched morphology is the proposed target, but actual lab protocol, custodian, permissions, acquisition, raw files, calibration, and review remain unconfirmed |
 | Release | Foundation and mechanics gates accepted | G0 and numerical/software mechanics gate G1 are accepted; G2-G11 remain unaccepted and no public hosting, data/model release, or paper submission is authorized |
 
@@ -64,10 +64,12 @@ evidence remains under `evidence/subagents/P02-04/` and
   these in-memory/replay modules without installing private/generated data.
   P03-02/P03-04 still own real solver export and HDF5 storage, so no canonical
   dataset or G3 claim exists yet.
-- P02-05 is the next dependency-eligible implementation task: bind
+- P02-05 is active from pushed main `3fdb17a` in the isolated
+  `research/p02-05-stochasticity` worktree. It must bind
   sample-once material disorder and conditional replicates to the existing
   damage/localization contracts without adding an unvalidated event lottery or
-  physical-time claim. P02-06 then owns restart/load-step sensitivity and G2.
+  physical-time claim. The event seed stays reserved and unconsumed; core work
+  requires no LAMMPS. P02-06 then owns restart/load-step sensitivity and G2.
 - Optional physical-time task P02-07 is deferred by scope. It must be reactivated before any rate, relaxation-time, fatigue-time, or time-to-failure claim.
 - Compatibility follow-up complete: the seven inherited nested-f-string quote failures were repaired without changing plotting semantics, and the tracked-source compilation regression now covers all 80 Python files.
 
@@ -75,7 +77,7 @@ evidence remains under `evidence/subagents/P02-04/` and
 
 G0 environment/source acceptance and G1 numerical mechanics validation are
 complete. P02-04 and P03-01 are integrated, but neither G2 nor G3 is accepted.
-The remaining critical sequence is P02-05 material-disorder provenance,
+The remaining critical sequence starts with active P02-05 material-disorder provenance,
 P02-06 restart/sensitivity and G2, P03-02 through P03-06 and G3, G4 frozen
 nonleaking study cohorts, G5 baselines, G6 trained joint world model, and G7
 frozen evaluation. Experimental G8 proceeds in parallel when real lab inputs
