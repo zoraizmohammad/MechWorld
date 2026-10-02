@@ -49,6 +49,7 @@ PACKAGE_MODULES = {
     "pgworld/physics/damage.py",
     "pgworld/physics/energy_force_virial.py",
     "pgworld/physics/lammps_oracle.py",
+    "pgworld/physics/stochasticity.py",
     "pgworld/simulation/__init__.py",
     "pgworld/simulation/controls.py",
     "pgworld/simulation/fracture.py",
@@ -215,6 +216,11 @@ from pgworld.data import (
 from pgworld.physics.energy_force_virial import PhysicsOracle
 from pgworld.physics.lammps_oracle import run_lammps_bond_fixture
 from pgworld.physics.damage import DamageLaw, materialize_thresholds
+from pgworld.physics.stochasticity import (
+    EVENT_PROCESS_DISABLED,
+    RNGNamespaceRecord,
+    build_quenched_replicate,
+)
 from pgworld.simulation.controls import CONTROL_SCHEMA_VERSION, build_deformation_schedule
 from pgworld.simulation.fracture import FRACTURE_SCHEMA_VERSION, CascadeBudget
 from pgworld.simulation.topology import (
@@ -321,6 +327,41 @@ assert list(damage_thresholds.thresholds) == [
 ]
 assert damage_thresholds.physical_time_valid is False
 
+stochastic_law = DamageLaw(
+    law_id="installed-quenched-energy-v1",
+    law_kind="quenched_heterogeneous_threshold",
+    criterion="bond_energy",
+    criterion_unit="pN nm",
+    base_threshold=10.0,
+    distribution={"kind": "uniform_relative", "relative_half_width": 0.2},
+    predictor_visibility="hidden_from_predictor",
+    physics_profile_id=profile.profile_id,
+    physics_profile_hash=profile.canonical_hash,
+    reference_state_id="installed-fixed-reference",
+)
+installed_rng = RNGNamespaceRecord.from_p01_04_mapping({
+    "geometry": 11,
+    "material_disorder": 22,
+    "events": 33,
+    "model_training": 44,
+})
+installed_replicate = build_quenched_replicate(
+    cohort_id="installed-material-cohort",
+    replicate_index=0,
+    parent_network_id="installed-parent-network",
+    graph_identity_hash="sha256:" + "1" * 64,
+    geometry_realization_id="sha256:" + "2" * 64,
+    conditioned_observable_state_id="sha256:" + "3" * 64,
+    physical_bond_ids=["installed-bond-b", "installed-bond-a"],
+    rng_namespace=installed_rng,
+    law=stochastic_law,
+)
+installed_predictor_view = installed_replicate.predictor_view().as_record()
+assert installed_replicate.event_process_kind == EVENT_PROCESS_DISABLED
+assert installed_replicate.events_seed_consumed is False
+assert "threshold_values" not in installed_predictor_view
+assert "rng_namespace" not in installed_predictor_view
+
 installed_registry = TopologyRegistry(
     Cell2D(((4.0, 0.0), (0.0, 3.0)), (0.0, 0.0), (True, True)),
     (NodeTopology("installed-node-a", 1), NodeTopology("installed-node-b", 2)),
@@ -347,6 +388,7 @@ controls_module = importlib.import_module("pgworld.simulation.controls")
 data_module = importlib.import_module("pgworld.data")
 schema_module = importlib.import_module("pgworld.data.schema")
 damage_module = importlib.import_module("pgworld.physics.damage")
+stochasticity_module = importlib.import_module("pgworld.physics.stochasticity")
 fracture_module = importlib.import_module("pgworld.simulation.fracture")
 topology_module = importlib.import_module("pgworld.simulation.topology")
 modules = {
@@ -354,6 +396,7 @@ modules = {
     "pgworld.data": str(Path(data_module.__file__).resolve()),
     "pgworld.data.schema": str(Path(schema_module.__file__).resolve()),
     "pgworld.physics.damage": str(Path(damage_module.__file__).resolve()),
+    "pgworld.physics.stochasticity": str(Path(stochasticity_module.__file__).resolve()),
     "pgworld.simulation.controls": str(Path(controls_module.__file__).resolve()),
     "pgworld.simulation.fracture": str(Path(fracture_module.__file__).resolve()),
     "pgworld.simulation.topology": str(Path(topology_module.__file__).resolve()),
@@ -389,6 +432,14 @@ print(json.dumps({
         "topology_schema_version": TOPOLOGY_SCHEMA_VERSION,
         "registry_id": installed_registry.registry_id,
         "explicit_image_offset": list(installed_registry.bond("installed-bond-a").image_offset_n_ij),
+        "physical_time_claim": False,
+    },
+    "p02_05": {
+        "replicate_id": installed_replicate.replicate_id,
+        "material_sampling_backend": installed_replicate.material_sampling_backend,
+        "event_process_kind": installed_replicate.event_process_kind,
+        "events_seed_consumed": installed_replicate.events_seed_consumed,
+        "hidden_predictor_projection": "threshold_values" not in installed_predictor_view,
         "physical_time_claim": False,
     },
     "p03_01": {
