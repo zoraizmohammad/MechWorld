@@ -12,7 +12,7 @@
 - **Gate state:** G0 and G1 are accepted; G2-G11 remain not accepted. P00-01
   through P00-06, P01-01 through P01-04, P01-05A, P01-06 through P01-11,
   P02-01 through P02-05, P03-01, and P10-01 are done. P02-06 is the next
-  dependency-eligible task and remains required for G2; 
+  dependency-eligible task and remains required for G2;
   P03-02 through P03-06 remain required for G3. P01-05 remains blocked on final
   biological review, P08-01 on actual lab access, and production/public release
   remain unauthorized.
