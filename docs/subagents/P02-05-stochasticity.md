@@ -89,6 +89,17 @@ $env:PGWORLD_WHEEL_EVIDENCE='C:/Users/mzora/MechWorld-wt-p02-05/evidence/subagen
 C:/Users/mzora/MechWorld/.venv/Scripts/python.exe -B -m pytest tests/release/test_wheel_install.py -q --junitxml=evidence/subagents/P02-05/wheel-install.xml
 ```
 
+Final static and range checks after evidence normalization:
+
+```powershell
+C:/Users/mzora/MechWorld/.venv/Scripts/python.exe -B -m py_compile src/pgworld/physics/stochasticity.py tests/physics/test_stochastic_events.py tests/release/test_wheel_install.py
+git diff --check 3fdb17af5a1f7309255788f4df1cb38f0df4bd03..HEAD
+```
+
+Both commands exited 0. The range path allowlist and sole-author/committer log
+were also checked at immutable pre-report-correction tip `742d6fbfbead20dd0498ac9fff0e5cbe5c792b78`;
+the final report-only correction changes no source, tests, or evidence bytes.
+
 The wheel was `mechworld_pg-0.1.0.dev0-py3-none-any.whl`, SHA-256
 `1b29a82e4a8a97af899657ffaf8495c8adb8373e4c091aab7996fb7b721ddeb3`.
 The installed module resolved inside the fresh environment, the strict member
