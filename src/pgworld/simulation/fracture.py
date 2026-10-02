@@ -1,8 +1,9 @@
 """Transactional quasi-static rupture/relaxation execution.
 
 This module executes the P02-02 logical event contract against an injected
-mechanics backend.  It records raw named phase mechanics but intentionally
-does not localize events or derive deletion/work/relaxation energy balances.
+mechanics backend. P02-04 adds bounded first-crossing localization and strict
+five-phase energy accounting for the certified harmonic fixture; general
+nonlinear localization and physical-time claims remain out of scope.
 """
 
 from __future__ import annotations
@@ -43,10 +44,17 @@ from pgworld.simulation.topology import (
 
 
 FRACTURE_SCHEMA_VERSION = "pgworld.fracture_execution.v1"
+LOCALIZATION_SCHEMA_VERSION = "pgworld.fracture_localization.v1"
 _HASH_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
-_PHASES = {"pre_delete_relaxed", "post_delete_unrelaxed", "post_event_relaxed"}
+_PHASES = {
+    "after_control_before_relax",
+    "pre_delete_relaxed",
+    "post_delete_unrelaxed",
+    "post_event_relaxed",
+}
 _RELAXED_PHASES = {"pre_delete_relaxed", "post_event_relaxed"}
 _LOAD_UNITS = {"dimensionless", "pN/nm^2"}
+_RETRYABLE_LOCALIZATION_TERMINATIONS = {"diagnosed_transient_solver_interruption"}
 
 
 class FractureExecutionError(RuntimeError):
@@ -393,7 +401,7 @@ class BackendObservation:
         object.__setattr__(self, "boundary_conditions", _deep_freeze(boundary))
         if self.phase in _RELAXED_PHASES and not self.convergence.accepted:
             pass
-        if self.phase == "post_delete_unrelaxed" and self.convergence.accepted:
+        if self.phase in {"after_control_before_relax", "post_delete_unrelaxed"} and self.convergence.accepted:
             raise FractureExecutionError("unrelaxed observation cannot claim accepted convergence")
         if self.physical_time is not None or self.physical_time_valid is not False:
             raise FractureExecutionError("quasi-static observation cannot carry physical time")
@@ -639,6 +647,542 @@ class CascadeDiagnostic:
     def from_record(cls, value: Mapping[str, object]) -> "CascadeDiagnostic":
         value = _mapping(value, "diagnostic"); _keys(value, {"diagnostic_id", "schema_version", "kind", "detail", "counts_as_physical_failure", "counts_as_mechanical_instability"}, "diagnostic")
         return cls(**dict(value))  # type: ignore[arg-type]
+
+
+@dataclass(frozen=True)
+class LocalizationBudget:
+    """Independent deterministic budgets for one first-crossing search."""
+
+    max_refinements: int
+    max_solver_trials: int
+    max_retries_per_trial: int
+    load_tolerance: float
+    path_tolerance: float
+
+    def __post_init__(self) -> None:
+        _integer(self.max_refinements, "max_refinements")
+        _integer(self.max_solver_trials, "max_solver_trials", minimum=1)
+        _integer(self.max_retries_per_trial, "max_retries_per_trial")
+        if self.max_retries_per_trial > 1:
+            raise FractureExecutionError("max_retries_per_trial must be at most one diagnosed transient retry")
+        load = _finite(self.load_tolerance, "load_tolerance")
+        path = _finite(self.path_tolerance, "path_tolerance")
+        if load <= 0.0 or path <= 0.0:
+            raise FractureExecutionError("localization tolerances must be positive")
+        object.__setattr__(self, "load_tolerance", load)
+        object.__setattr__(self, "path_tolerance", path)
+
+    def as_record(self) -> dict[str, object]:
+        return {
+            "max_refinements": self.max_refinements,
+            "max_solver_trials": self.max_solver_trials,
+            "max_retries_per_trial": self.max_retries_per_trial,
+            "load_tolerance": self.load_tolerance,
+            "path_tolerance": self.path_tolerance,
+        }
+
+    @classmethod
+    def from_record(cls, value: Mapping[str, object]) -> "LocalizationBudget":
+        value = _mapping(value, "localization budget")
+        _keys(value, {"max_refinements", "max_solver_trials", "max_retries_per_trial", "load_tolerance", "path_tolerance"}, "localization budget")
+        return cls(**dict(value))  # type: ignore[arg-type]
+
+
+@dataclass(frozen=True)
+class TrialDomainCertificate:
+    """Hash-bound declaration of the domain enforced for localization trials.
+
+    P02-04 executes only the bounded harmonic-fixture certificate.  An
+    endpoint-only nonlinear margin record is intentionally non-executable:
+    it cannot prove that minimizer iterates remain away from a nonlinear pole.
+    """
+
+    certificate_id: str
+    domain_kind: str
+    physics_profile_id: str
+    physics_profile_hash: str
+    reference_state_id: str
+    registry_id: str
+    physical_bond_ids: tuple[str, ...]
+    potential_family: str
+    path_response_contract: str
+    backend_response_contract_id: str
+    per_evaluation_domain_guard: bool
+    stated_minimum_margin_nm: float | None
+    schema_version: str = LOCALIZATION_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if self.schema_version != LOCALIZATION_SCHEMA_VERSION:
+            raise FractureExecutionError("invalid trial-domain certificate schema")
+        if self.domain_kind not in {
+            "bounded_harmonic_fixture_no_singular_bonds",
+            "nonlinear_endpoint_margin_only_unvalidated",
+        }:
+            raise FractureExecutionError("unsupported trial-domain certificate kind")
+        _string(self.physics_profile_id, "physics_profile_id")
+        if _HASH_RE.fullmatch(self.physics_profile_hash) is None:
+            raise FractureExecutionError("physics_profile_hash must be sha256")
+        _string(self.reference_state_id, "reference_state_id")
+        if _HASH_RE.fullmatch(self.registry_id) is None:
+            raise FractureExecutionError("registry_id must be sha256")
+        ids = tuple(_string(item, "physical_bond_id") for item in _sequence(self.physical_bond_ids, "physical_bond_ids"))
+        if ids != tuple(sorted(ids)) or len(ids) != len(set(ids)) or not ids:
+            raise FractureExecutionError("certificate bond IDs must be canonical unique IDs")
+        object.__setattr__(self, "physical_bond_ids", ids)
+        if self.potential_family not in {"harmonic_quadratic_fixture", "nonlinear_peptide_unvalidated"}:
+            raise FractureExecutionError("unsupported trial potential family")
+        if self.path_response_contract not in {
+            "monotone_extension_ratio_on_one_certified_path_segment",
+            "endpoint_only_no_path_monotonicity_proof",
+        }:
+            raise FractureExecutionError("unsupported path-response certificate")
+        if _HASH_RE.fullmatch(self.backend_response_contract_id) is None:
+            raise FractureExecutionError("backend_response_contract_id must be sha256")
+        if type(self.per_evaluation_domain_guard) is not bool:
+            raise FractureExecutionError("per_evaluation_domain_guard must be boolean")
+        if self.domain_kind == "bounded_harmonic_fixture_no_singular_bonds":
+            if (
+                not self.per_evaluation_domain_guard
+                or self.stated_minimum_margin_nm is not None
+                or self.potential_family != "harmonic_quadratic_fixture"
+                or self.path_response_contract != "monotone_extension_ratio_on_one_certified_path_segment"
+            ):
+                raise FractureExecutionError("harmonic certificate has no nonlinear pole margin")
+            expected_backend_contract = _hash({
+                "contract": "p0204_bounded_harmonic_monotone_path_v1",
+                "registry_id": self.registry_id,
+            })
+        else:
+            margin = _finite(self.stated_minimum_margin_nm, "stated_minimum_margin_nm")
+            if margin <= 0.0 or self.per_evaluation_domain_guard:
+                raise FractureExecutionError("endpoint-only nonlinear margin cannot claim an iteration guard")
+            if (
+                self.potential_family != "nonlinear_peptide_unvalidated"
+                or self.path_response_contract != "endpoint_only_no_path_monotonicity_proof"
+            ):
+                raise FractureExecutionError("nonlinear endpoint certificate cannot claim harmonic monotonicity")
+            expected_backend_contract = _hash({
+                "contract": "p0204_nonlinear_endpoint_only_unvalidated_v1",
+                "registry_id": self.registry_id,
+            })
+            object.__setattr__(self, "stated_minimum_margin_nm", margin)
+        if self.backend_response_contract_id != expected_backend_contract:
+            raise FractureExecutionError("backend response contract ID differs from the certified registry/kind")
+        if self.certificate_id != _hash(self._body()):
+            raise FractureExecutionError("certificate_id does not match trial-domain record")
+
+    def _body(self) -> dict[str, object]:
+        return {
+            "schema_version": self.schema_version,
+            "domain_kind": self.domain_kind,
+            "physics_profile_id": self.physics_profile_id,
+            "physics_profile_hash": self.physics_profile_hash,
+            "reference_state_id": self.reference_state_id,
+            "registry_id": self.registry_id,
+            "physical_bond_ids": list(self.physical_bond_ids),
+            "potential_family": self.potential_family,
+            "path_response_contract": self.path_response_contract,
+            "backend_response_contract_id": self.backend_response_contract_id,
+            "per_evaluation_domain_guard": self.per_evaluation_domain_guard,
+            "stated_minimum_margin_nm": self.stated_minimum_margin_nm,
+        }
+
+    def as_record(self) -> dict[str, object]:
+        return {"certificate_id": self.certificate_id, **self._body()}
+
+    @classmethod
+    def bounded_harmonic_fixture(
+        cls, *, physics_profile_id: str, physics_profile_hash: str,
+        reference_state_id: str, registry_id: str,
+        physical_bond_ids: Sequence[str],
+    ) -> "TrialDomainCertificate":
+        ids = tuple(_string(item, "physical_bond_id") for item in _sequence(physical_bond_ids, "physical_bond_ids"))
+        body = {
+            "schema_version": LOCALIZATION_SCHEMA_VERSION,
+            "domain_kind": "bounded_harmonic_fixture_no_singular_bonds",
+            "physics_profile_id": physics_profile_id,
+            "physics_profile_hash": physics_profile_hash,
+            "reference_state_id": reference_state_id,
+            "registry_id": registry_id,
+            "physical_bond_ids": list(sorted(ids)),
+            "potential_family": "harmonic_quadratic_fixture",
+            "path_response_contract": "monotone_extension_ratio_on_one_certified_path_segment",
+            "backend_response_contract_id": _hash({
+                "contract": "p0204_bounded_harmonic_monotone_path_v1",
+                "registry_id": registry_id,
+            }),
+            "per_evaluation_domain_guard": True,
+            "stated_minimum_margin_nm": None,
+        }
+        return cls(certificate_id=_hash(body), **body)  # type: ignore[arg-type]
+
+    @classmethod
+    def unvalidated_nonlinear_endpoint_margin(
+        cls, *, physics_profile_id: str, physics_profile_hash: str,
+        reference_state_id: str, registry_id: str,
+        physical_bond_ids: Sequence[str],
+        stated_minimum_margin_nm: float,
+    ) -> "TrialDomainCertificate":
+        ids = tuple(_string(item, "physical_bond_id") for item in _sequence(physical_bond_ids, "physical_bond_ids"))
+        body = {
+            "schema_version": LOCALIZATION_SCHEMA_VERSION,
+            "domain_kind": "nonlinear_endpoint_margin_only_unvalidated",
+            "physics_profile_id": physics_profile_id,
+            "physics_profile_hash": physics_profile_hash,
+            "reference_state_id": reference_state_id,
+            "registry_id": registry_id,
+            "physical_bond_ids": list(sorted(ids)),
+            "potential_family": "nonlinear_peptide_unvalidated",
+            "path_response_contract": "endpoint_only_no_path_monotonicity_proof",
+            "backend_response_contract_id": _hash({
+                "contract": "p0204_nonlinear_endpoint_only_unvalidated_v1",
+                "registry_id": registry_id,
+            }),
+            "per_evaluation_domain_guard": False,
+            "stated_minimum_margin_nm": stated_minimum_margin_nm,
+        }
+        return cls(certificate_id=_hash(body), **body)  # type: ignore[arg-type]
+
+    @classmethod
+    def from_record(cls, value: Mapping[str, object]) -> "TrialDomainCertificate":
+        value = _mapping(value, "trial-domain certificate")
+        _keys(value, {"certificate_id", "schema_version", "domain_kind", "physics_profile_id", "physics_profile_hash", "reference_state_id", "registry_id", "physical_bond_ids", "potential_family", "path_response_contract", "backend_response_contract_id", "per_evaluation_domain_guard", "stated_minimum_margin_nm"}, "trial-domain certificate")
+        body = dict(value)
+        body["physical_bond_ids"] = tuple(_sequence(body["physical_bond_ids"], "physical_bond_ids"))
+        return cls(**body)  # type: ignore[arg-type]
+
+
+class LocalizationStatus(str, Enum):
+    LOCALIZED = "localized"
+    INVALID_LOWER_BRACKET = "invalid_lower_bracket"
+    UPPER_DOES_NOT_CROSS = "upper_does_not_cross"
+    DOMAIN_REJECTED = "domain_rejected"
+    LIVE_LOWER_MISMATCH = "live_lower_mismatch"
+    REFINEMENT_BUDGET_EXHAUSTED = "refinement_budget_exhausted"
+    SOLVER_BUDGET_EXHAUSTED = "solver_budget_exhausted"
+    RETRY_BUDGET_EXHAUSTED = "retry_budget_exhausted"
+    NONCONVERGENCE_REJECTED = "nonconvergence_rejected"
+    TRIAL_REJECTED = "trial_rejected"
+    RESTORE_FAILED = "restore_failed"
+    FINAL_TRANSACTION_ROLLED_BACK = "final_transaction_rolled_back"
+    FINAL_TRANSACTION_ROLLBACK_FAILED = "final_transaction_rollback_failed"
+
+
+@dataclass(frozen=True)
+class LocalizationDiagnostic:
+    diagnostic_id: str
+    kind: str
+    detail: str
+    counts_as_physical_failure: bool = False
+    counts_as_mechanical_instability: bool = False
+    schema_version: str = LOCALIZATION_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if self.schema_version != LOCALIZATION_SCHEMA_VERSION:
+            raise FractureExecutionError("invalid localization diagnostic schema")
+        _string(self.kind, "localization diagnostic kind")
+        _string(self.detail, "localization diagnostic detail")
+        if self.counts_as_physical_failure is not False or self.counts_as_mechanical_instability is not False:
+            raise FractureExecutionError("localization diagnostics cannot claim physical failure or instability")
+        if self.diagnostic_id != _hash(self._body()):
+            raise FractureExecutionError("localization diagnostic ID does not match record")
+
+    def _body(self) -> dict[str, object]:
+        return {"schema_version": self.schema_version, "kind": self.kind, "detail": self.detail, "counts_as_physical_failure": False, "counts_as_mechanical_instability": False}
+
+    def as_record(self) -> dict[str, object]:
+        return {"diagnostic_id": self.diagnostic_id, **self._body()}
+
+    @classmethod
+    def create(cls, kind: str, detail: str) -> "LocalizationDiagnostic":
+        body = {"schema_version": LOCALIZATION_SCHEMA_VERSION, "kind": kind, "detail": detail, "counts_as_physical_failure": False, "counts_as_mechanical_instability": False}
+        return cls(_hash(body), kind, detail)
+
+    @classmethod
+    def from_record(cls, value: Mapping[str, object]) -> "LocalizationDiagnostic":
+        value = _mapping(value, "localization diagnostic")
+        _keys(value, {"diagnostic_id", "schema_version", "kind", "detail", "counts_as_physical_failure", "counts_as_mechanical_instability"}, "localization diagnostic")
+        return cls(**dict(value))  # type: ignore[arg-type]
+
+
+def _same_control_path(left: QuasiStaticControlStep, right: QuasiStaticControlStep) -> bool:
+    return (
+        left.control_kind == right.control_kind == "deformation_gradient"
+        and left.loading_mode == right.loading_mode
+        and left.axes.as_record() == right.axes.as_record()
+        and left.reference_state_id == right.reference_state_id
+        and left.load_coordinate_unit == right.load_coordinate_unit
+        and left.progress_unit == right.progress_unit
+    )
+
+
+def _path_coordinate(control: QuasiStaticControlStep, initial_lower: QuasiStaticControlStep) -> float:
+    return initial_lower.path_progress + abs(control.lambda_load - initial_lower.lambda_load)
+
+
+def _validate_segment_control(
+    control: QuasiStaticControlStep,
+    initial_lower: QuasiStaticControlStep,
+    initial_upper: QuasiStaticControlStep,
+) -> None:
+    if not _same_control_path(initial_lower, control):
+        raise FractureExecutionError("localization controls do not share one control path")
+    denominator = initial_upper.lambda_load - initial_lower.lambda_load
+    if abs(denominator) <= 1e-15:
+        raise FractureExecutionError("localization segment has no load-coordinate extent")
+    alpha = (control.lambda_load - initial_lower.lambda_load) / denominator
+    if alpha < -1e-12 or alpha > 1.0 + 1e-12:
+        raise FractureExecutionError("localization control lies outside the initial load segment")
+    if not math.isclose(
+        control.path_progress, _path_coordinate(control, initial_lower),
+        rel_tol=0.0, abs_tol=1e-12,
+    ):
+        raise FractureExecutionError("localization control path progress is not cumulative absolute lambda increment")
+    assert initial_lower.absolute_deformation_gradient is not None
+    assert initial_upper.absolute_deformation_gradient is not None
+    assert control.absolute_deformation_gradient is not None
+    assert control.incremental_deformation_gradient is not None
+    expected_absolute = (
+        (1.0 - alpha) * initial_lower.absolute_deformation_gradient
+        + alpha * initial_upper.absolute_deformation_gradient
+    )
+    expected_incremental = expected_absolute @ np.linalg.inv(
+        initial_lower.absolute_deformation_gradient
+    )
+    if not np.allclose(control.absolute_deformation_gradient, expected_absolute, rtol=0.0, atol=1e-12):
+        raise FractureExecutionError("localization control F is not the segment interpolation")
+    if not np.allclose(control.incremental_deformation_gradient, expected_incremental, rtol=0.0, atol=1e-12):
+        raise FractureExecutionError("localization control incremental F does not map the accepted lower state")
+    if not math.isclose(
+        control.progress_increment,
+        control.path_progress - initial_lower.path_progress,
+        rel_tol=0.0,
+        abs_tol=1e-12,
+    ):
+        raise FractureExecutionError("localization control progress increment is not relative to the accepted lower state")
+
+
+@dataclass(frozen=True, eq=False)
+class EventLocalizationRecord:
+    localization_id: str
+    status: LocalizationStatus
+    budget: LocalizationBudget
+    domain_certificate: TrialDomainCertificate
+    initial_lower_control: QuasiStaticControlStep
+    initial_upper_control: QuasiStaticControlStep
+    lower_bracket_control: QuasiStaticControlStep
+    upper_bracket_control: QuasiStaticControlStep
+    localized_control: QuasiStaticControlStep | None
+    solver_trials: int
+    refinements: int
+    retries: int
+    previous_accepted_observation_id: str
+    topology_state_id: str
+    damage_state_id: str
+    diagnostic: LocalizationDiagnostic | None
+    schema_version: str = LOCALIZATION_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if self.schema_version != LOCALIZATION_SCHEMA_VERSION or not isinstance(self.status, LocalizationStatus):
+            raise FractureExecutionError("invalid localization record schema/status")
+        if not isinstance(self.budget, LocalizationBudget) or not isinstance(self.domain_certificate, TrialDomainCertificate):
+            raise FractureExecutionError("localization record requires validated budget/certificate")
+        controls = (self.initial_lower_control, self.initial_upper_control, self.lower_bracket_control, self.upper_bracket_control)
+        if any(not isinstance(item, QuasiStaticControlStep) for item in controls):
+            raise FractureExecutionError("localization bracket requires validated controls")
+        if self.initial_upper_control.step_index != self.initial_lower_control.step_index + 1:
+            raise FractureExecutionError("initial upper control must be the next scheduled step after the accepted lower")
+        for item in (self.lower_bracket_control, self.upper_bracket_control):
+            expected_step = (
+                self.initial_lower_control.step_index
+                if item.as_record() == self.initial_lower_control.as_record()
+                else self.initial_upper_control.step_index
+            )
+            if item.step_index != expected_step:
+                raise FractureExecutionError("synthetic bracket control has inconsistent step lineage")
+        initial_progress = self.initial_lower_control.path_progress
+        terminal_progress = self.initial_upper_control.path_progress
+        if terminal_progress <= initial_progress:
+            raise FractureExecutionError("localization path progress must increase")
+        for item in controls[1:]:
+            _validate_segment_control(item, self.initial_lower_control, self.initial_upper_control)
+            if item.path_progress < initial_progress - 1e-12 or item.path_progress > terminal_progress + 1e-12:
+                raise FractureExecutionError("localization bracket lies outside initial segment")
+        if self.lower_bracket_control.path_progress >= self.upper_bracket_control.path_progress:
+            raise FractureExecutionError("localization lower bracket must precede crossing upper bracket")
+        for value, field in ((self.solver_trials, "solver_trials"), (self.refinements, "refinements"), (self.retries, "retries")):
+            _integer(value, field)
+        if self.solver_trials > self.budget.max_solver_trials or self.refinements > self.budget.max_refinements:
+            raise FractureExecutionError("localization counters exceed their explicit budgets")
+        if self.retries > self.solver_trials:
+            raise FractureExecutionError("localization retries cannot exceed solver trials")
+        if self.retries > self.budget.max_retries_per_trial:
+            raise FractureExecutionError("localization retries exceed the diagnosed-transient retry budget")
+        if self.refinements > max(0, self.solver_trials - 1):
+            raise FractureExecutionError("accepted refinements cannot exceed solver trials after the upper trial")
+        if self.status in {
+            LocalizationStatus.DOMAIN_REJECTED,
+            LocalizationStatus.LIVE_LOWER_MISMATCH,
+            LocalizationStatus.INVALID_LOWER_BRACKET,
+        } and (self.solver_trials != 0 or self.refinements != 0 or self.retries != 0):
+            raise FractureExecutionError("pre-trial localization status cannot report trial counters")
+        if self.status in {
+            LocalizationStatus.LOCALIZED,
+            LocalizationStatus.UPPER_DOES_NOT_CROSS,
+            LocalizationStatus.REFINEMENT_BUDGET_EXHAUSTED,
+            LocalizationStatus.FINAL_TRANSACTION_ROLLED_BACK,
+            LocalizationStatus.FINAL_TRANSACTION_ROLLBACK_FAILED,
+        } and self.solver_trials < 1:
+            raise FractureExecutionError("localization status requires at least one accepted solver trial")
+        if self.status is LocalizationStatus.REFINEMENT_BUDGET_EXHAUSTED and self.refinements != self.budget.max_refinements:
+            raise FractureExecutionError("refinement-budget status must stop at the exact refinement budget")
+        if self.status is LocalizationStatus.SOLVER_BUDGET_EXHAUSTED and self.solver_trials != self.budget.max_solver_trials:
+            raise FractureExecutionError("solver-budget status must stop at the exact solver budget")
+        if self.status is LocalizationStatus.SOLVER_BUDGET_EXHAUSTED and self.solver_trials not in {
+            self.refinements + self.retries,
+            1 + self.refinements + self.retries,
+        }:
+            raise FractureExecutionError("solver-budget counters are not reachable from upper/refinement/retry attempts")
+        if self.status is LocalizationStatus.UPPER_DOES_NOT_CROSS and self.refinements != 0:
+            raise FractureExecutionError("upper-no-cross status cannot contain refinements")
+        if self.status is LocalizationStatus.UPPER_DOES_NOT_CROSS and self.solver_trials != 1 + self.retries:
+            raise FractureExecutionError("upper-no-cross counters do not match upper/retry attempts")
+        if self.status is LocalizationStatus.REFINEMENT_BUDGET_EXHAUSTED and self.solver_trials != 1 + self.refinements + self.retries:
+            raise FractureExecutionError("refinement-budget counters do not match upper/refinement/retry attempts")
+        if self.status is LocalizationStatus.RETRY_BUDGET_EXHAUSTED and self.retries != self.budget.max_retries_per_trial:
+            raise FractureExecutionError("retry-budget status must stop at the exact retry budget")
+        if self.status is LocalizationStatus.NONCONVERGENCE_REJECTED and self.solver_trials < 1:
+            raise FractureExecutionError("nonretryable nonconvergence requires a solver trial")
+        if self.status is LocalizationStatus.LOCALIZED and self.solver_trials != 1 + self.refinements + self.retries:
+            raise FractureExecutionError("localized counters do not match upper/refinement/retry attempts")
+        for identity, field in ((self.previous_accepted_observation_id, "previous_accepted_observation_id"), (self.topology_state_id, "topology_state_id"), (self.damage_state_id, "damage_state_id")):
+            if _HASH_RE.fullmatch(identity) is None:
+                raise FractureExecutionError(f"{field} must be sha256")
+        if self.status is LocalizationStatus.LOCALIZED:
+            if self.localized_control is None or self.localized_control.as_record() != self.upper_bracket_control.as_record() or self.diagnostic is not None:
+                raise FractureExecutionError("localized result must publish exactly the crossing upper bound")
+            _validate_segment_control(self.localized_control, self.initial_lower_control, self.initial_upper_control)
+            if (
+                abs(self.upper_bracket_control.lambda_load - self.lower_bracket_control.lambda_load) > self.budget.load_tolerance + 1e-15
+                or self.upper_bracket_control.path_progress - self.lower_bracket_control.path_progress > self.budget.path_tolerance + 1e-15
+            ):
+                raise FractureExecutionError("localized result does not satisfy the recorded bracket tolerances")
+        elif self.status in {
+            LocalizationStatus.FINAL_TRANSACTION_ROLLED_BACK,
+            LocalizationStatus.FINAL_TRANSACTION_ROLLBACK_FAILED,
+        }:
+            if (
+                abs(self.upper_bracket_control.lambda_load - self.lower_bracket_control.lambda_load) > self.budget.load_tolerance + 1e-15
+                or self.upper_bracket_control.path_progress - self.lower_bracket_control.path_progress > self.budget.path_tolerance + 1e-15
+                or self.solver_trials != 1 + self.refinements + self.retries
+            ):
+                raise FractureExecutionError("final-transaction status lacks a fully localized bracket/counter trace")
+            if self.localized_control is not None or not isinstance(self.diagnostic, LocalizationDiagnostic):
+                raise FractureExecutionError("failed final transaction cannot publish a localized control")
+        elif self.localized_control is not None or not isinstance(self.diagnostic, LocalizationDiagnostic):
+            raise FractureExecutionError("nonlocalized result requires only a typed diagnostic")
+        expected_diagnostic = {
+            LocalizationStatus.INVALID_LOWER_BRACKET: "invalid_lower_bracket",
+            LocalizationStatus.UPPER_DOES_NOT_CROSS: "upper_does_not_cross",
+            LocalizationStatus.DOMAIN_REJECTED: "nonlinear_iteration_domain_unvalidated",
+            LocalizationStatus.LIVE_LOWER_MISMATCH: "live_lower_mismatch",
+            LocalizationStatus.REFINEMENT_BUDGET_EXHAUSTED: "refinement_budget_exhausted",
+            LocalizationStatus.SOLVER_BUDGET_EXHAUSTED: "solver_budget_exhausted",
+            LocalizationStatus.RETRY_BUDGET_EXHAUSTED: "trial_nonconvergence",
+            LocalizationStatus.NONCONVERGENCE_REJECTED: "nonretryable_nonconvergence",
+            LocalizationStatus.TRIAL_REJECTED: "trial_rejected",
+            LocalizationStatus.RESTORE_FAILED: "restore_failed",
+            LocalizationStatus.FINAL_TRANSACTION_ROLLED_BACK: "final_transaction_rolled_back",
+            LocalizationStatus.FINAL_TRANSACTION_ROLLBACK_FAILED: "final_transaction_rollback_failed",
+        }
+        if self.diagnostic is not None and self.diagnostic.kind != expected_diagnostic.get(self.status):
+            raise FractureExecutionError("localization status and diagnostic kind differ")
+        expected_budget_detail = {
+            LocalizationStatus.REFINEMENT_BUDGET_EXHAUSTED: f"max_refinements={self.budget.max_refinements}",
+            LocalizationStatus.SOLVER_BUDGET_EXHAUSTED: f"max_solver_trials={self.budget.max_solver_trials}",
+            LocalizationStatus.RETRY_BUDGET_EXHAUSTED: f"max_retries_per_trial={self.budget.max_retries_per_trial}",
+        }
+        if (
+            self.diagnostic is not None
+            and self.status in expected_budget_detail
+            and self.diagnostic.detail != expected_budget_detail[self.status]
+        ):
+            raise FractureExecutionError("localization diagnostic detail differs from the recorded budget")
+        if (
+            self.status is not LocalizationStatus.DOMAIN_REJECTED
+            and (
+                self.domain_certificate.domain_kind != "bounded_harmonic_fixture_no_singular_bonds"
+                or self.domain_certificate.potential_family != "harmonic_quadratic_fixture"
+                or self.domain_certificate.path_response_contract
+                != "monotone_extension_ratio_on_one_certified_path_segment"
+                or not self.domain_certificate.per_evaluation_domain_guard
+                or self.domain_certificate.stated_minimum_margin_nm is not None
+            )
+        ):
+            raise FractureExecutionError("executed localization status requires the executable harmonic certificate")
+        if self.localization_id != _hash(self._body()):
+            raise FractureExecutionError("localization_id does not match record")
+
+    def _body(self) -> dict[str, object]:
+        return {
+            "schema_version": self.schema_version,
+            "status": self.status.value,
+            "budget": self.budget.as_record(),
+            "domain_certificate": self.domain_certificate.as_record(),
+            "initial_lower_control": self.initial_lower_control.as_record(),
+            "initial_upper_control": self.initial_upper_control.as_record(),
+            "lower_bracket_control": self.lower_bracket_control.as_record(),
+            "upper_bracket_control": self.upper_bracket_control.as_record(),
+            "localized_control": None if self.localized_control is None else self.localized_control.as_record(),
+            "solver_trials": self.solver_trials,
+            "refinements": self.refinements,
+            "retries": self.retries,
+            "previous_accepted_observation_id": self.previous_accepted_observation_id,
+            "topology_state_id": self.topology_state_id,
+            "damage_state_id": self.damage_state_id,
+            "diagnostic": None if self.diagnostic is None else self.diagnostic.as_record(),
+        }
+
+    def as_record(self) -> dict[str, object]:
+        return {"localization_id": self.localization_id, **self._body()}
+
+    @classmethod
+    def create(cls, **kwargs: object) -> "EventLocalizationRecord":
+        temporary = dict(kwargs)
+        temporary.setdefault("schema_version", LOCALIZATION_SCHEMA_VERSION)
+        body = {
+            "schema_version": temporary["schema_version"],
+            "status": temporary["status"].value,
+            "budget": temporary["budget"].as_record(),
+            "domain_certificate": temporary["domain_certificate"].as_record(),
+            "initial_lower_control": temporary["initial_lower_control"].as_record(),
+            "initial_upper_control": temporary["initial_upper_control"].as_record(),
+            "lower_bracket_control": temporary["lower_bracket_control"].as_record(),
+            "upper_bracket_control": temporary["upper_bracket_control"].as_record(),
+            "localized_control": None if temporary["localized_control"] is None else temporary["localized_control"].as_record(),
+            "solver_trials": temporary["solver_trials"], "refinements": temporary["refinements"], "retries": temporary["retries"],
+            "previous_accepted_observation_id": temporary["previous_accepted_observation_id"], "topology_state_id": temporary["topology_state_id"], "damage_state_id": temporary["damage_state_id"],
+            "diagnostic": None if temporary["diagnostic"] is None else temporary["diagnostic"].as_record(),
+        }
+        return cls(localization_id=_hash(body), **kwargs)  # type: ignore[arg-type]
+
+    @classmethod
+    def from_record(cls, value: Mapping[str, object]) -> "EventLocalizationRecord":
+        value = _mapping(value, "event localization")
+        _keys(value, {"localization_id", "schema_version", "status", "budget", "domain_certificate", "initial_lower_control", "initial_upper_control", "lower_bracket_control", "upper_bracket_control", "localized_control", "solver_trials", "refinements", "retries", "previous_accepted_observation_id", "topology_state_id", "damage_state_id", "diagnostic"}, "event localization")
+        return cls(
+            localization_id=value["localization_id"], status=LocalizationStatus(value["status"]),
+            budget=LocalizationBudget.from_record(value["budget"]), domain_certificate=TrialDomainCertificate.from_record(value["domain_certificate"]),
+            initial_lower_control=_control_from_record(value["initial_lower_control"]), initial_upper_control=_control_from_record(value["initial_upper_control"]),
+            lower_bracket_control=_control_from_record(value["lower_bracket_control"]), upper_bracket_control=_control_from_record(value["upper_bracket_control"]),
+            localized_control=None if value["localized_control"] is None else _control_from_record(value["localized_control"]),
+            solver_trials=value["solver_trials"], refinements=value["refinements"], retries=value["retries"],
+            previous_accepted_observation_id=value["previous_accepted_observation_id"], topology_state_id=value["topology_state_id"], damage_state_id=value["damage_state_id"],
+            diagnostic=None if value["diagnostic"] is None else LocalizationDiagnostic.from_record(value["diagnostic"]), schema_version=value["schema_version"],
+        )  # type: ignore[arg-type]
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, EventLocalizationRecord) and self.as_record() == other.as_record()
 
 
 @dataclass(frozen=True)
@@ -1098,8 +1642,469 @@ class CascadeResult:
         )  # type: ignore[arg-type]
 
 
+_ENERGY_PHASE_NAMES = (
+    "U_previous_accepted",
+    "U_after_control_before_relax",
+    "U_pre_event_relaxed",
+    "U_post_delete_unrelaxed",
+    "U_post_event_relaxed",
+)
+
+
+@dataclass(frozen=True, eq=False)
+class FractureEnergyAccounting:
+    """Phase-correct potential-energy accounting for one material event.
+
+    The signed deletion term is not fracture toughness or dissipation.  The
+    conservative loading input is narrowly the instantaneous fixed-topology
+    potential change produced by the supported prescribed-deformation step.
+    Its partition into equilibrium stored-energy change and pre-event
+    relaxation loss is retained explicitly.
+    """
+
+    accounting_id: str
+    previous_accepted: BackendObservation
+    after_control_before_relax: BackendObservation
+    transition: CascadeTransitionEnvelope
+    control_application_kind: str
+    calculation_kind: str
+    energy_unit: str
+    phase_energies_pN_nm: Mapping[str, float]
+    fixed_topology_conservative_loading_work_pN_nm: float
+    equilibrium_stored_energy_change_pN_nm: float
+    pre_event_relaxation_loss_pN_nm: float
+    same_coordinate_deletion_energy_change_pN_nm: float
+    held_control_boundary_work_pN_nm: float
+    post_delete_relaxation_loss_pN_nm: float
+    numerical_tolerance_pN_nm: float
+    schema_version: str = LOCALIZATION_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if self.schema_version != LOCALIZATION_SCHEMA_VERSION:
+            raise FractureExecutionError("invalid fracture-accounting schema")
+        if not isinstance(self.previous_accepted, BackendObservation) or not isinstance(self.after_control_before_relax, BackendObservation) or not isinstance(self.transition, CascadeTransitionEnvelope):
+            raise FractureExecutionError("accounting requires exact raw phase observations and transition")
+        if self.control_application_kind not in {"new_diagonal_deformation", "no_new_control_same_accepted_state"}:
+            raise FractureExecutionError("unsupported accounting control-application kind")
+        if self.calculation_kind != "conservative_fixed_topology_instantaneous_control_delta_pe":
+            raise FractureExecutionError("unsupported loading-work calculation kind")
+        if self.energy_unit != "pN nm":
+            raise FractureExecutionError("fracture accounting energy unit must be pN nm")
+        tolerance = _finite(self.numerical_tolerance_pN_nm, "numerical_tolerance_pN_nm")
+        if tolerance <= 0.0:
+            raise FractureExecutionError("accounting numerical tolerance must be positive")
+        object.__setattr__(self, "numerical_tolerance_pN_nm", tolerance)
+        if not self.previous_accepted.convergence.accepted or self.previous_accepted.phase != "pre_delete_relaxed":
+            raise FractureExecutionError("U_previous_accepted must come from an accepted equilibrium")
+        if self.control_application_kind == "new_diagonal_deformation":
+            if self.after_control_before_relax.phase != "after_control_before_relax" or self.after_control_before_relax.convergence.accepted:
+                raise FractureExecutionError("U_after_control_before_relax must be a raw unrelaxed control phase")
+        elif self.after_control_before_relax != self.transition.pre_delete_raw:
+            raise FractureExecutionError("same-control cascade must alias its already accepted pre-event state")
+        pre = self.transition.pre_delete_raw
+        if (
+            self.previous_accepted.topology != pre.topology
+            or self.previous_accepted.damage_state_id != pre.damage_state_id
+            or self.after_control_before_relax.topology != pre.topology
+            or self.after_control_before_relax.damage_state_id != pre.damage_state_id
+        ):
+            raise FractureExecutionError("loading phases changed topology or damage before the event")
+        if self.after_control_before_relax.control.as_record() != pre.control.as_record():
+            raise FractureExecutionError("after-control and pre-event phases use different controls")
+        if not _same_control_path(self.previous_accepted.control, pre.control):
+            raise FractureExecutionError("accounting phases do not share one control path")
+        if (
+            pre.control.control_kind != "deformation_gradient"
+            or not np.allclose(pre.control.axes.basis, np.eye(2), rtol=0.0, atol=1e-12)
+            or pre.control.absolute_deformation_gradient is None
+            or pre.control.incremental_deformation_gradient is None
+            or abs(float(pre.control.absolute_deformation_gradient[0, 1])) > 1e-12
+            or abs(float(pre.control.absolute_deformation_gradient[1, 0])) > 1e-12
+        ):
+            raise FractureExecutionError("energy accounting supports only identity-axis diagonal fixed deformation")
+        if self.control_application_kind == "new_diagonal_deformation":
+            _validate_segment_control(pre.control, self.previous_accepted.control, pre.control)
+        elif self.previous_accepted.control.as_record() != pre.control.as_record():
+            raise FractureExecutionError("same-control accounting cannot change the accepted control")
+        phase_observations = (
+            self.previous_accepted,
+            self.after_control_before_relax,
+            pre,
+            self.transition.post_delete_unrelaxed,
+            self.transition.post_event_relaxed,
+        )
+        provenance = (
+            pre.physics_profile_id,
+            pre.physics_profile_hash,
+            pre.reference_state_id,
+            pre.law_id,
+            pre.registry_id,
+        )
+        if any(
+            (item.physics_profile_id, item.physics_profile_hash, item.reference_state_id, item.law_id, item.registry_id) != provenance
+            for item in phase_observations
+        ):
+            raise FractureExecutionError("accounting phases mix profile/reference/law/registry provenance")
+        if any(
+            not np.allclose(
+                item.reference_total_tension_pN_per_nm,
+                pre.reference_total_tension_pN_per_nm,
+                rtol=0.0,
+                atol=1e-12,
+            )
+            for item in phase_observations
+        ):
+            raise FractureExecutionError("accounting phases mix fixed reference-tension tensors")
+        if any(
+            _plain(item.boundary_conditions) != _plain(pre.boundary_conditions)
+            for item in phase_observations
+        ):
+            raise FractureExecutionError("accounting phases mix boundary-condition provenance")
+        metadata = _mapping(
+            self.transition.privileged_reference_metadata,
+            "transition privileged metadata",
+        )
+        try:
+            replayed_law = DamageLaw.from_record(metadata["damage_law"])  # type: ignore[arg-type]
+            replayed_registry = TopologyRegistry.from_record(metadata["topology_registry"])  # type: ignore[arg-type]
+            self.transition._validate_observation_against_registry(
+                self.previous_accepted, replayed_registry, replayed_law
+            )
+            self.transition._validate_observation_against_registry(
+                self.after_control_before_relax, replayed_registry, replayed_law
+            )
+        except Exception as error:
+            raise FractureExecutionError("accounting raw loading phases fail registry/law replay") from error
+        if self.transition.material_event.event_source != "material_rupture":
+            raise FractureExecutionError("accounting requires an accepted material rupture")
+        if not np.array_equal(self.after_control_before_relax.cell.matrix_nm, pre.cell.matrix_nm):
+            raise FractureExecutionError("after-control and pre-event cells differ")
+        if not np.array_equal(pre.cell.matrix_nm, self.transition.post_event_relaxed.cell.matrix_nm):
+            raise FractureExecutionError("event relaxation did not hold deformation control fixed")
+        source = _mapping(self.phase_energies_pN_nm, "phase_energies_pN_nm")
+        if tuple(source) != _ENERGY_PHASE_NAMES:
+            raise FractureExecutionError("energy phases must use the exact canonical five-phase order")
+        energies = MappingProxyType({name: _finite(source[name], name) for name in _ENERGY_PHASE_NAMES})
+        object.__setattr__(self, "phase_energies_pN_nm", energies)
+        expected_values = {
+            "fixed_topology_conservative_loading_work_pN_nm": energies["U_after_control_before_relax"] - energies["U_previous_accepted"],
+            "equilibrium_stored_energy_change_pN_nm": energies["U_pre_event_relaxed"] - energies["U_previous_accepted"],
+            "pre_event_relaxation_loss_pN_nm": energies["U_after_control_before_relax"] - energies["U_pre_event_relaxed"],
+            "same_coordinate_deletion_energy_change_pN_nm": energies["U_post_delete_unrelaxed"] - energies["U_pre_event_relaxed"],
+            "held_control_boundary_work_pN_nm": 0.0,
+            "post_delete_relaxation_loss_pN_nm": energies["U_post_delete_unrelaxed"] - energies["U_post_event_relaxed"],
+        }
+        for field, expected in expected_values.items():
+            actual = _finite(getattr(self, field), field)
+            if not math.isclose(actual, expected, rel_tol=0.0, abs_tol=tolerance):
+                raise FractureExecutionError(f"{field} differs from raw phase equation")
+            object.__setattr__(self, field, actual)
+        if self.pre_event_relaxation_loss_pN_nm < -tolerance or self.post_delete_relaxation_loss_pN_nm < -tolerance:
+            raise FractureExecutionError("fixed-topology relaxation increased potential energy beyond tolerance")
+        if not math.isclose(
+            self.fixed_topology_conservative_loading_work_pN_nm,
+            self.equilibrium_stored_energy_change_pN_nm
+            + self.pre_event_relaxation_loss_pN_nm,
+            rel_tol=0.0,
+            abs_tol=tolerance,
+        ):
+            raise FractureExecutionError("loading input does not equal stored-energy change plus relaxation loss")
+        if self.accounting_id != _hash(self._body()):
+            raise FractureExecutionError("accounting_id does not match record")
+
+    def _body(self) -> dict[str, object]:
+        return {
+            "schema_version": self.schema_version,
+            "previous_accepted": self.previous_accepted.as_record(),
+            "after_control_before_relax": self.after_control_before_relax.as_record(),
+            "transition": self.transition.as_record(),
+            "control_application_kind": self.control_application_kind,
+            "calculation_kind": self.calculation_kind,
+            "energy_unit": self.energy_unit,
+            "phase_energies_pN_nm": dict(self.phase_energies_pN_nm),
+            "fixed_topology_conservative_loading_work_pN_nm": self.fixed_topology_conservative_loading_work_pN_nm,
+            "equilibrium_stored_energy_change_pN_nm": self.equilibrium_stored_energy_change_pN_nm,
+            "pre_event_relaxation_loss_pN_nm": self.pre_event_relaxation_loss_pN_nm,
+            "same_coordinate_deletion_energy_change_pN_nm": self.same_coordinate_deletion_energy_change_pN_nm,
+            "held_control_boundary_work_pN_nm": self.held_control_boundary_work_pN_nm,
+            "post_delete_relaxation_loss_pN_nm": self.post_delete_relaxation_loss_pN_nm,
+            "numerical_tolerance_pN_nm": self.numerical_tolerance_pN_nm,
+        }
+
+    def as_record(self) -> dict[str, object]:
+        return {"accounting_id": self.accounting_id, **self._body()}
+
+    @classmethod
+    def create(
+        cls, *, previous_accepted: BackendObservation,
+        after_control_before_relax: BackendObservation,
+        transition: CascadeTransitionEnvelope,
+        control_application_kind: str = "new_diagonal_deformation",
+        numerical_tolerance_pN_nm: float = 1e-8,
+    ) -> "FractureEnergyAccounting":
+        observations = (
+            previous_accepted,
+            after_control_before_relax,
+            transition.pre_delete_raw,
+            transition.post_delete_unrelaxed,
+            transition.post_event_relaxed,
+        )
+        energies = {name: observation.raw_energies_pN_nm["pe"] for name, observation in zip(_ENERGY_PHASE_NAMES, observations)}
+        values = {
+            "fixed_topology_conservative_loading_work_pN_nm": energies["U_after_control_before_relax"] - energies["U_previous_accepted"],
+            "equilibrium_stored_energy_change_pN_nm": energies["U_pre_event_relaxed"] - energies["U_previous_accepted"],
+            "pre_event_relaxation_loss_pN_nm": energies["U_after_control_before_relax"] - energies["U_pre_event_relaxed"],
+            "same_coordinate_deletion_energy_change_pN_nm": energies["U_post_delete_unrelaxed"] - energies["U_pre_event_relaxed"],
+            "held_control_boundary_work_pN_nm": 0.0,
+            "post_delete_relaxation_loss_pN_nm": energies["U_post_delete_unrelaxed"] - energies["U_post_event_relaxed"],
+        }
+        kwargs = {
+            "previous_accepted": previous_accepted,
+            "after_control_before_relax": after_control_before_relax,
+            "transition": transition,
+            "control_application_kind": control_application_kind,
+            "calculation_kind": "conservative_fixed_topology_instantaneous_control_delta_pe",
+            "energy_unit": "pN nm",
+            "phase_energies_pN_nm": energies,
+            **values,
+            "numerical_tolerance_pN_nm": numerical_tolerance_pN_nm,
+            "schema_version": LOCALIZATION_SCHEMA_VERSION,
+        }
+        body = cls._body_from_kwargs(kwargs)
+        return cls(accounting_id=_hash(body), **kwargs)  # type: ignore[arg-type]
+
+    @staticmethod
+    def _body_from_kwargs(kwargs: Mapping[str, object]) -> dict[str, object]:
+        return {
+            "schema_version": kwargs["schema_version"],
+            "previous_accepted": kwargs["previous_accepted"].as_record(),
+            "after_control_before_relax": kwargs["after_control_before_relax"].as_record(),
+            "transition": kwargs["transition"].as_record(),
+            "control_application_kind": kwargs["control_application_kind"],
+            "calculation_kind": kwargs["calculation_kind"], "energy_unit": kwargs["energy_unit"],
+            "phase_energies_pN_nm": dict(kwargs["phase_energies_pN_nm"]),
+            "fixed_topology_conservative_loading_work_pN_nm": kwargs["fixed_topology_conservative_loading_work_pN_nm"],
+            "equilibrium_stored_energy_change_pN_nm": kwargs["equilibrium_stored_energy_change_pN_nm"],
+            "pre_event_relaxation_loss_pN_nm": kwargs["pre_event_relaxation_loss_pN_nm"],
+            "same_coordinate_deletion_energy_change_pN_nm": kwargs["same_coordinate_deletion_energy_change_pN_nm"],
+            "held_control_boundary_work_pN_nm": kwargs["held_control_boundary_work_pN_nm"],
+            "post_delete_relaxation_loss_pN_nm": kwargs["post_delete_relaxation_loss_pN_nm"],
+            "numerical_tolerance_pN_nm": kwargs["numerical_tolerance_pN_nm"],
+        }
+
+    @classmethod
+    def from_record(cls, value: Mapping[str, object]) -> "FractureEnergyAccounting":
+        value = _mapping(value, "fracture energy accounting")
+        _keys(value, {"accounting_id", "schema_version", "previous_accepted", "after_control_before_relax", "transition", "control_application_kind", "calculation_kind", "energy_unit", "phase_energies_pN_nm", "fixed_topology_conservative_loading_work_pN_nm", "equilibrium_stored_energy_change_pN_nm", "pre_event_relaxation_loss_pN_nm", "same_coordinate_deletion_energy_change_pN_nm", "held_control_boundary_work_pN_nm", "post_delete_relaxation_loss_pN_nm", "numerical_tolerance_pN_nm"}, "fracture energy accounting")
+        body = dict(value)
+        body["previous_accepted"] = BackendObservation.from_record(body["previous_accepted"])
+        body["after_control_before_relax"] = BackendObservation.from_record(body["after_control_before_relax"])
+        body["transition"] = CascadeTransitionEnvelope.from_record(body["transition"])
+        return cls(**body)  # type: ignore[arg-type]
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, FractureEnergyAccounting) and self.as_record() == other.as_record()
+
+
+@dataclass(frozen=True, eq=False)
+class LocalizedCascadeResult:
+    result_id: str
+    localization: EventLocalizationRecord
+    cascade_result: CascadeResult | None
+    energy_accounting: tuple[FractureEnergyAccounting, ...]
+    final_damage_state: DamageState
+    final_topology_state: TopologyState
+    final_snapshot: BackendObservation
+    privileged_reference_metadata: Mapping[str, object]
+    backend_closed: bool
+    schema_version: str = LOCALIZATION_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        if self.schema_version != LOCALIZATION_SCHEMA_VERSION or not isinstance(self.localization, EventLocalizationRecord):
+            raise FractureExecutionError("invalid localized cascade schema")
+        rows = tuple(_sequence(self.energy_accounting, "energy_accounting"))
+        if any(not isinstance(item, FractureEnergyAccounting) for item in rows):
+            raise FractureExecutionError("energy_accounting must contain validated records")
+        object.__setattr__(self, "energy_accounting", rows)
+        if not isinstance(self.final_damage_state, DamageState) or not isinstance(self.final_topology_state, TopologyState) or not isinstance(self.final_snapshot, BackendObservation):
+            raise FractureExecutionError("localized result final state is invalid")
+        metadata = _mapping(self.privileged_reference_metadata, "localized privileged metadata")
+        _keys(metadata, {"access", "damage_law", "threshold_field", "topology_registry"}, "localized privileged metadata")
+        try:
+            law = DamageLaw.from_record(metadata["damage_law"])  # type: ignore[arg-type]
+            field = ThresholdField.from_record(metadata["threshold_field"])  # type: ignore[arg-type]
+            registry = TopologyRegistry.from_record(metadata["topology_registry"])  # type: ignore[arg-type]
+        except Exception as error:
+            raise FractureExecutionError("localized privileged replay metadata is invalid") from error
+        if (
+            metadata["access"] != "diagnostic_reference_only_never_predictor_input"
+            or field.law_id != law.law_id
+            or field.law_fingerprint != law.fingerprint
+            or field.physics_profile_id != law.physics_profile_id
+            or field.physics_profile_hash != law.physics_profile_hash
+            or field.reference_state_id != law.reference_state_id
+            or field.criterion != law.criterion
+            or field.criterion_unit != law.criterion_unit
+            or field.predictor_visibility != law.predictor_visibility
+            or tuple(sorted(field.thresholds)) != tuple(sorted(bond.stable_bond_id for bond in registry.bonds))
+            or self.final_damage_state.law_id != law.law_id
+            or self.final_damage_state.law_fingerprint != law.fingerprint
+            or self.final_damage_state.threshold_realization_id != field.realization_id
+            or self.final_damage_state.physics_profile_id != law.physics_profile_id
+            or self.final_damage_state.physics_profile_hash != law.physics_profile_hash
+            or self.final_damage_state.reference_state_id != law.reference_state_id
+            or self.final_damage_state.physical_bond_ids != tuple(sorted(field.thresholds))
+            or self.final_topology_state.registry_id != registry.registry_id
+            or tuple(
+                bond_id for bond_id in self.final_damage_state.physical_bond_ids
+                if self.final_damage_state.alive_mask[bond_id]
+            ) != self.final_topology_state.alive_bond_ids
+            or self.localization.domain_certificate.physics_profile_id != law.physics_profile_id
+            or self.localization.domain_certificate.physics_profile_hash != law.physics_profile_hash
+            or self.localization.domain_certificate.reference_state_id != law.reference_state_id
+            or self.localization.domain_certificate.registry_id != registry.registry_id
+            or self.localization.domain_certificate.physical_bond_ids != tuple(sorted(field.thresholds))
+        ):
+            raise FractureExecutionError("localized law/field/registry provenance is inconsistent")
+        registry.validate_state(self.final_topology_state)
+        if (
+            self.final_snapshot.topology != self.final_topology_state
+            or self.final_snapshot.damage_state_id != self.final_damage_state.state_id
+            or self.final_snapshot.law_id != self.final_damage_state.law_id
+            or dict(self.final_snapshot.alive_mask) != dict(self.final_damage_state.alive_mask)
+            or dict(self.final_snapshot.rupture_mask) != dict(self.final_damage_state.rupture_mask)
+            or dict(self.final_snapshot.prescribed_removal_mask) != dict(self.final_damage_state.prescribed_removal_mask)
+        ):
+            raise FractureExecutionError("localized final snapshot differs from exact logical final state")
+        CascadeTransitionEnvelope._validate_observation_against_registry(self.final_snapshot, registry, law)
+        object.__setattr__(self, "privileged_reference_metadata", _deep_freeze(metadata))
+        if type(self.backend_closed) is not bool or not self.backend_closed:
+            raise FractureExecutionError("localized operation must close its owned backend")
+        if self.localization.status is LocalizationStatus.LOCALIZED:
+            if self.cascade_result is None or not rows:
+                raise FractureExecutionError("localized crossing requires cascade and accounting")
+            if (
+                self.cascade_result.status is not CascadeStatus.STABLE
+                or self.cascade_result.diagnostic is not None
+            ):
+                raise FractureExecutionError(
+                    "localized crossing requires a complete stable cascade"
+                )
+            first_event = self.cascade_result.transitions[0].material_event
+            localized = self.localization.localized_control
+            assert localized is not None
+            if (
+                first_event.control_id != localized.control_id
+                or first_event.load_coordinate != localized.lambda_load
+                or first_event.path_progress != localized.path_progress
+                or self.cascade_result.damage_state != self.final_damage_state
+                or self.cascade_result.topology_state != self.final_topology_state
+                or self.cascade_result.final_snapshot != self.final_snapshot
+                or len(rows) != len(self.cascade_result.transitions)
+                or self.cascade_result.control.as_record() != localized.as_record()
+                or rows[0].previous_accepted.observation_id != self.localization.previous_accepted_observation_id
+                or rows[0].previous_accepted.control.as_record() != self.localization.initial_lower_control.as_record()
+                or rows[0].previous_accepted.damage_state_id != self.localization.damage_state_id
+                or rows[0].previous_accepted.topology.topology_state_id != self.localization.topology_state_id
+            ):
+                raise FractureExecutionError("localized event/cascade/accounting bindings differ")
+            if any(row.transition != transition for row, transition in zip(rows, self.cascade_result.transitions)):
+                raise FractureExecutionError("accounting transition order differs from cascade")
+            for index in range(1, len(rows)):
+                if rows[index].previous_accepted != rows[index - 1].transition.post_event_relaxed.rephase("pre_delete_relaxed"):
+                    raise FractureExecutionError("accounting phases do not form one accepted event chain")
+        else:
+            if self.cascade_result is not None or rows:
+                raise FractureExecutionError("failed localization cannot publish cascade/event/accounting")
+            if self.final_snapshot.observation_id != self.localization.previous_accepted_observation_id:
+                raise FractureExecutionError("failed localization must return original lower accepted snapshot")
+            if (
+                self.final_snapshot.control.as_record() != self.localization.initial_lower_control.as_record()
+                or self.final_snapshot.damage_state_id != self.localization.damage_state_id
+                or self.final_snapshot.topology.topology_state_id != self.localization.topology_state_id
+                or not self.final_snapshot.convergence.accepted
+                or self.final_snapshot.phase != "pre_delete_relaxed"
+            ):
+                raise FractureExecutionError("failed localization did not return the accepted lower state")
+        if self.result_id != _hash(self._body()):
+            raise FractureExecutionError("localized result ID does not match record")
+
+    def _body(self) -> dict[str, object]:
+        return {
+            "schema_version": self.schema_version,
+            "localization": self.localization.as_record(),
+            "cascade_result": None if self.cascade_result is None else self.cascade_result.as_record(),
+            "energy_accounting": [item.as_record() for item in self.energy_accounting],
+            "final_damage_state": self.final_damage_state.as_record(),
+            "final_topology_state": self.final_topology_state.as_record(),
+            "final_snapshot": self.final_snapshot.as_record(),
+            "privileged_reference_metadata": _plain(self.privileged_reference_metadata),
+            "backend_closed": self.backend_closed,
+        }
+
+    def as_record(self) -> dict[str, object]:
+        return {"result_id": self.result_id, **self._body()}
+
+    def as_observable_record(self) -> dict[str, object]:
+        accepted = self.localization.status is LocalizationStatus.LOCALIZED
+        return {
+            "schema_version": self.schema_version,
+            "localization_status": self.localization.status.value,
+            "accepted_label": accepted,
+            "label_eligible": accepted,
+            "exclusion_kind": (
+                None if accepted else self.localization.diagnostic.kind  # type: ignore[union-attr]
+            ),
+            "requested_control": self.localization.initial_upper_control.as_record(),
+            "cascade": (
+                None if not accepted else self.cascade_result.as_observable_record()  # type: ignore[union-attr]
+            ),
+            "physical_time": None,
+            "physical_time_valid": False,
+        }
+
+    @classmethod
+    def create(cls, **kwargs: object) -> "LocalizedCascadeResult":
+        temporary = dict(kwargs)
+        temporary.setdefault("schema_version", LOCALIZATION_SCHEMA_VERSION)
+        rows = tuple(_sequence(temporary["energy_accounting"], "energy_accounting"))
+        temporary["energy_accounting"] = rows
+        body = {
+            "schema_version": temporary["schema_version"],
+            "localization": temporary["localization"].as_record(),
+            "cascade_result": None if temporary["cascade_result"] is None else temporary["cascade_result"].as_record(),
+            "energy_accounting": [item.as_record() for item in rows],
+            "final_damage_state": temporary["final_damage_state"].as_record(),
+            "final_topology_state": temporary["final_topology_state"].as_record(),
+            "final_snapshot": temporary["final_snapshot"].as_record(),
+            "privileged_reference_metadata": _plain(temporary["privileged_reference_metadata"]),
+            "backend_closed": temporary["backend_closed"],
+        }
+        temporary.pop("result_id", None)
+        return cls(result_id=_hash(body), **temporary)  # type: ignore[arg-type]
+
+    @classmethod
+    def from_record(cls, value: Mapping[str, object]) -> "LocalizedCascadeResult":
+        value = _mapping(value, "localized cascade result")
+        _keys(value, {"result_id", "schema_version", "localization", "cascade_result", "energy_accounting", "final_damage_state", "final_topology_state", "final_snapshot", "privileged_reference_metadata", "backend_closed"}, "localized cascade result")
+        return cls(
+            result_id=value["result_id"], localization=EventLocalizationRecord.from_record(value["localization"]),
+            cascade_result=None if value["cascade_result"] is None else CascadeResult.from_record(value["cascade_result"]),
+            energy_accounting=tuple(FractureEnergyAccounting.from_record(item) for item in _sequence(value["energy_accounting"], "energy_accounting")),
+            final_damage_state=DamageState.from_record(value["final_damage_state"]), final_topology_state=TopologyState.from_record(value["final_topology_state"]),
+            final_snapshot=BackendObservation.from_record(value["final_snapshot"]), privileged_reference_metadata=value["privileged_reference_metadata"],
+            backend_closed=value["backend_closed"], schema_version=value["schema_version"],
+        )  # type: ignore[arg-type]
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, LocalizedCascadeResult) and self.as_record() == other.as_record()
+
+
 class FractureBackend(Protocol):
+    @property
+    def localization_response_contract_id(self) -> str: ...
     def apply_control(self, control: QuasiStaticControlStep) -> None: ...
+    def observe_after_control_unrelaxed(self, *, control: QuasiStaticControlStep, topology_state: TopologyState, damage_state: DamageState) -> BackendObservation: ...
     def relax_and_observe(self, *, phase: str, control: QuasiStaticControlStep, topology_state: TopologyState, damage_state: DamageState) -> BackendObservation: ...
     def observe_unrelaxed(self, *, control: QuasiStaticControlStep, topology_state: TopologyState, damage_state: DamageState) -> BackendObservation: ...
     def delete_angle(self, angle: AngleTopology) -> None: ...
@@ -1108,6 +2113,7 @@ class FractureBackend(Protocol):
     def checkpoint(self) -> object: ...
     def restore(self, checkpoint: object) -> None: ...
     def observe_restored(self, *, control: QuasiStaticControlStep, topology_state: TopologyState, damage_state: DamageState) -> BackendObservation: ...
+    def audit_trial_runtime(self) -> None: ...
     def close(self) -> None: ...
 
 
@@ -1196,6 +2202,716 @@ class QuasiStaticFractureCascade:
                     return self._outcome(CascadeStatus.ROLLBACK_FAILED, tuple(transitions), current_damage, current_topology, current_pre, CascadeDiagnostic.create("rollback_failed", f"mutation={error}; restore={rollback_error}"), control)
                 return self._outcome(CascadeStatus.ROLLED_BACK, tuple(transitions), current_damage, current_topology, current_pre, CascadeDiagnostic.create("rolled_back", str(error)), control)
             transitions.append(envelope); current_damage = staged.state; current_topology = next_topology; current_pre = post.rephase("pre_delete_relaxed")
+
+    def run_localized_step(
+        self,
+        *,
+        lower_control: QuasiStaticControlStep,
+        upper_control: QuasiStaticControlStep,
+        previous_accepted: BackendObservation,
+        damage_state: DamageState,
+        topology_state: TopologyState,
+        localization_budget: LocalizationBudget,
+        domain_certificate: TrialDomainCertificate,
+    ) -> LocalizedCascadeResult:
+        """Localize and transact the first accepted rupture on one control segment.
+
+        Trial states are deliberately private.  Every nonfinal trial starts
+        from, and is followed by restoration of, the caller-supplied accepted
+        lower checkpoint.  Only the final crossing is handed to the existing
+        exact deletion/relaxation transaction.
+        """
+
+        payload: dict[str, object] | None = None
+        active_error: BaseException | None = None
+        try:
+            payload = self._execute_localized(
+                lower_control=lower_control,
+                upper_control=upper_control,
+                previous_accepted=previous_accepted,
+                damage_state=damage_state,
+                topology_state=topology_state,
+                budget=localization_budget,
+                certificate=domain_certificate,
+            )
+        except BaseException as error:
+            active_error = error
+        close_error: BaseException | None = None
+        try:
+            self.backend.close()
+        except BaseException as error:
+            close_error = error
+        if active_error is not None:
+            if close_error is not None:
+                raise FractureExecutionError(
+                    f"localized execution failed ({active_error}); backend close also failed ({close_error})"
+                ) from active_error
+            raise active_error
+        assert payload is not None
+        if close_error is not None:
+            raise FractureExecutionError(f"localized backend close failed: {close_error}") from close_error
+        cascade_outcome = payload.pop("cascade_outcome", None)
+        if cascade_outcome is not None:
+            cascade_values = dict(cascade_outcome)  # type: ignore[arg-type]
+            cascade_values["backend_closed"] = True
+            payload["cascade_result"] = CascadeResult.create(**cascade_values)
+        payload["backend_closed"] = True
+        return LocalizedCascadeResult.create(**payload)
+
+    def _execute_localized(
+        self,
+        *,
+        lower_control: QuasiStaticControlStep,
+        upper_control: QuasiStaticControlStep,
+        previous_accepted: BackendObservation,
+        damage_state: DamageState,
+        topology_state: TopologyState,
+        budget: LocalizationBudget,
+        certificate: TrialDomainCertificate,
+    ) -> dict[str, object]:
+        self._validate_before_commands(lower_control, damage_state, topology_state)
+        self._validate_localization_inputs(
+            lower_control, upper_control, previous_accepted, damage_state,
+            topology_state, budget, certificate,
+        )
+        privileged = {
+            "access": "diagnostic_reference_only_never_predictor_input",
+            "damage_law": self.law.as_record(),
+            "threshold_field": self.field.as_record(),
+            "topology_registry": self.registry.as_record(),
+        }
+        degree = {node.stable_node_id: 0 for node in self.registry.nodes}
+        for bond in self.registry.bonds:
+            degree[bond.node_i] += 1
+            degree[bond.node_j] += 1
+        angle = self.registry.angles[0] if len(self.registry.angles) == 1 else None
+        ordered_source_legs: list[np.ndarray] = []
+        if angle is not None:
+            for node_i, node_j, bond_id in (
+                (angle.node_ids[0], angle.node_ids[1], angle.dependent_bond_ids[0]),
+                (angle.node_ids[1], angle.node_ids[2], angle.dependent_bond_ids[1]),
+            ):
+                bond = self.registry.bond(bond_id)
+                stored = np.asarray(bond.source_displacement_nm, dtype=float)
+                if (bond.node_i, bond.node_j) == (node_i, node_j):
+                    ordered_source_legs.append(stored)
+                elif (bond.node_i, bond.node_j) == (node_j, node_i):
+                    ordered_source_legs.append(-stored)
+                else:
+                    ordered_source_legs = []
+                    break
+        collinear_positive_axial = len(ordered_source_legs) == 2 and all(
+            vector[0] > 0.0 and abs(float(vector[1])) <= 1e-12
+            for vector in ordered_source_legs
+        )
+        cell_matrix = self.registry.cell.matrix_nm
+        orthogonal_cell = (
+            abs(float(cell_matrix[0, 1])) <= 1e-12
+            and abs(float(cell_matrix[1, 0])) <= 1e-12
+        )
+        assert lower_control.absolute_deformation_gradient is not None
+        assert upper_control.absolute_deformation_gradient is not None
+        axial_path = (
+            lower_control.loading_mode in {"axial", "cyclic"}
+            and math.isclose(
+                float(upper_control.absolute_deformation_gradient[1, 1]),
+                float(lower_control.absolute_deformation_gradient[1, 1]),
+                rel_tol=0.0,
+                abs_tol=1e-12,
+            )
+            and math.isclose(
+                float(upper_control.absolute_deformation_gradient[0, 0]
+                      - lower_control.absolute_deformation_gradient[0, 0]),
+                upper_control.lambda_load - lower_control.lambda_load,
+                rel_tol=0.0,
+                abs_tol=1e-12,
+            )
+        )
+        exact_bounded_fixture = (
+            len(self.registry.nodes) == 3
+            and len(self.registry.bonds) == 2
+            and len(self.registry.angles) == 1
+            and sorted(degree.values()) == [1, 1, 2]
+            and all(bond.chemical_type == "glycan" for bond in self.registry.bonds)
+            and collinear_positive_axial
+            and orthogonal_cell
+            and axial_path
+            and certificate.registry_id == self.registry.registry_id
+            and getattr(self.backend, "localization_response_contract_id", None)
+            == certificate.backend_response_contract_id
+        )
+        if (
+            certificate.domain_kind != "bounded_harmonic_fixture_no_singular_bonds"
+            or not exact_bounded_fixture
+        ):
+            return self._localized_failure_payload(
+                status=LocalizationStatus.DOMAIN_REJECTED,
+                diagnostic=LocalizationDiagnostic.create(
+                    "nonlinear_iteration_domain_unvalidated",
+                    "trial path lacks the exact harmonic/monotone backend certificate; endpoint-only nonlinear margins and peptide fixtures are non-executable",
+                ),
+                initial_lower=lower_control,
+                initial_upper=upper_control,
+                lower=lower_control,
+                upper=upper_control,
+                previous=previous_accepted,
+                damage=damage_state,
+                topology=topology_state,
+                budget=budget,
+                certificate=certificate,
+                solver_trials=0,
+                refinements=0,
+                retries=0,
+                privileged=privileged,
+            )
+
+        if damage_state.has_initial_threshold_violation:
+            return self._localized_failure_payload(
+                status=LocalizationStatus.INVALID_LOWER_BRACKET,
+                diagnostic=LocalizationDiagnostic.create(
+                    "invalid_lower_bracket",
+                    "initial threshold violation marks the fixed reference invalid",
+                ),
+                initial_lower=lower_control, initial_upper=upper_control,
+                lower=lower_control, upper=upper_control,
+                previous=previous_accepted, damage=damage_state,
+                topology=topology_state, budget=budget, certificate=certificate,
+                solver_trials=0, refinements=0, retries=0,
+                privileged=privileged,
+            )
+
+        lower_assessment = self._assess(previous_accepted, damage_state, lower_control)
+        if lower_assessment.candidates:
+            return self._localized_failure_payload(
+                status=LocalizationStatus.INVALID_LOWER_BRACKET,
+                diagnostic=LocalizationDiagnostic.create(
+                    "invalid_lower_bracket", "accepted lower control already crosses the rupture threshold"
+                ),
+                initial_lower=lower_control, initial_upper=upper_control,
+                lower=lower_control, upper=upper_control,
+                previous=previous_accepted, damage=damage_state,
+                topology=topology_state, budget=budget, certificate=certificate,
+                solver_trials=0, refinements=0, retries=0, privileged=privileged,
+            )
+
+        self.backend.audit_topology(topology_state)
+        self.backend.audit_trial_runtime()
+        live_lower = self.backend.observe_restored(
+            control=lower_control, topology_state=topology_state,
+            damage_state=damage_state,
+        )
+        self._validate_observation(
+            live_lower, lower_control, damage_state, topology_state,
+            expected_phase="pre_delete_relaxed",
+        )
+        if not live_lower.convergence.accepted or not self._same_mechanical_state(
+            live_lower, previous_accepted
+        ):
+            return self._localized_failure_payload(
+                status=LocalizationStatus.LIVE_LOWER_MISMATCH,
+                diagnostic=LocalizationDiagnostic.create(
+                    "live_lower_mismatch",
+                    "live backend mechanics differ from the supplied accepted lower snapshot",
+                ),
+                initial_lower=lower_control, initial_upper=upper_control,
+                lower=lower_control, upper=upper_control,
+                previous=previous_accepted, damage=damage_state,
+                topology=topology_state, budget=budget, certificate=certificate,
+                solver_trials=0, refinements=0, retries=0,
+                privileged=privileged,
+            )
+        lower_checkpoint = self.backend.checkpoint()
+        frozen_field = self.field.as_record()
+        frozen_damage = damage_state.as_record()
+        frozen_topology = topology_state.as_record()
+        bracket_lower = lower_control
+        bracket_upper = upper_control
+        upper_checkpoint: object | None = None
+        upper_after_control: BackendObservation | None = None
+        upper_relaxed: BackendObservation | None = None
+        solver_trials = 0
+        refinements = 0
+        retries = 0
+        trial_failure_detail = ""
+
+        def restore_lower() -> None:
+            self.backend.restore(lower_checkpoint)
+            self.backend.audit_topology(topology_state)
+            self.backend.audit_trial_runtime()
+            restored = self.backend.observe_restored(
+                control=lower_control, topology_state=topology_state,
+                damage_state=damage_state,
+            )
+            self._validate_observation(
+                restored, lower_control, damage_state, topology_state,
+                expected_phase="pre_delete_relaxed",
+            )
+            if not restored.convergence.accepted or not self._same_mechanical_state(restored, previous_accepted):
+                raise FractureExecutionError("localization restore differs from the original accepted lower checkpoint")
+            if (
+                self.field.as_record() != frozen_field
+                or damage_state.as_record() != frozen_damage
+                or topology_state.as_record() != frozen_topology
+            ):
+                raise FractureExecutionError("localization trial mutated frozen law/state/topology data")
+
+        def evaluate(control: QuasiStaticControlStep) -> tuple[BackendObservation, BackendObservation, DamageAssessment, object] | LocalizationStatus:
+            nonlocal solver_trials, retries, trial_failure_detail
+            failures = 0
+            while True:
+                if solver_trials >= budget.max_solver_trials:
+                    return LocalizationStatus.SOLVER_BUDGET_EXHAUSTED
+                try:
+                    self.backend.apply_control(control)
+                    after = self.backend.observe_after_control_unrelaxed(
+                        control=control, topology_state=topology_state,
+                        damage_state=damage_state,
+                    )
+                    self._validate_observation(
+                        after, control, damage_state, topology_state,
+                        expected_phase="after_control_before_relax",
+                    )
+                    solver_trials += 1
+                    relaxed = self.backend.relax_and_observe(
+                        phase="pre_delete_relaxed", control=control,
+                        topology_state=topology_state, damage_state=damage_state,
+                    )
+                    self._validate_observation(
+                        relaxed, control, damage_state, topology_state,
+                        expected_phase="pre_delete_relaxed",
+                    )
+                    if relaxed.convergence.accepted:
+                        assessment = self._assess(relaxed, damage_state, control)
+                        checkpoint = self.backend.checkpoint()
+                        restore_lower()
+                        return after, relaxed, assessment, checkpoint
+                    failures += 1
+                    restore_lower()
+                    if relaxed.convergence.termination_reason not in _RETRYABLE_LOCALIZATION_TERMINATIONS:
+                        trial_failure_detail = (
+                            "nonretryable accepted-policy rejection: "
+                            + relaxed.convergence.termination_reason
+                        )
+                        return LocalizationStatus.NONCONVERGENCE_REJECTED
+                except Exception as error:
+                    try:
+                        restore_lower()
+                    except Exception as restore_error:
+                        trial_failure_detail = f"trial={error}; lower restore={restore_error}"
+                        return LocalizationStatus.RESTORE_FAILED
+                    trial_failure_detail = str(error)
+                    return LocalizationStatus.TRIAL_REJECTED
+                if (
+                    failures > budget.max_retries_per_trial
+                    or retries >= budget.max_retries_per_trial
+                ):
+                    return LocalizationStatus.RETRY_BUDGET_EXHAUSTED
+                retries += 1
+
+        def diagnostic_for(status: LocalizationStatus) -> LocalizationDiagnostic:
+            if status is LocalizationStatus.SOLVER_BUDGET_EXHAUSTED:
+                return LocalizationDiagnostic.create("solver_budget_exhausted", f"max_solver_trials={budget.max_solver_trials}")
+            if status is LocalizationStatus.RETRY_BUDGET_EXHAUSTED:
+                return LocalizationDiagnostic.create("trial_nonconvergence", f"max_retries_per_trial={budget.max_retries_per_trial}")
+            if status is LocalizationStatus.NONCONVERGENCE_REJECTED:
+                return LocalizationDiagnostic.create("nonretryable_nonconvergence", trial_failure_detail)
+            if status is LocalizationStatus.RESTORE_FAILED:
+                return LocalizationDiagnostic.create("restore_failed", trial_failure_detail)
+            if status is LocalizationStatus.TRIAL_REJECTED:
+                return LocalizationDiagnostic.create("trial_rejected", trial_failure_detail)
+            raise FractureExecutionError("unexpected localization trial terminal status")
+
+        first = evaluate(upper_control)
+        if isinstance(first, LocalizationStatus):
+            return self._localized_failure_payload(
+                status=first, diagnostic=diagnostic_for(first), initial_lower=lower_control,
+                initial_upper=upper_control, lower=bracket_lower, upper=bracket_upper,
+                previous=previous_accepted, damage=damage_state, topology=topology_state,
+                budget=budget, certificate=certificate, solver_trials=solver_trials,
+                refinements=refinements, retries=retries, privileged=privileged,
+            )
+        upper_after_control, upper_relaxed, upper_assessment, upper_checkpoint = first
+        if not upper_assessment.candidates:
+            return self._localized_failure_payload(
+                status=LocalizationStatus.UPPER_DOES_NOT_CROSS,
+                diagnostic=LocalizationDiagnostic.create("upper_does_not_cross", "accepted upper control has no rupture candidate"),
+                initial_lower=lower_control, initial_upper=upper_control,
+                lower=lower_control, upper=upper_control, previous=previous_accepted,
+                damage=damage_state, topology=topology_state, budget=budget,
+                certificate=certificate, solver_trials=solver_trials,
+                refinements=refinements, retries=retries, privileged=privileged,
+            )
+
+        while not self._bracket_within_tolerance(bracket_lower, bracket_upper, budget):
+            if refinements >= budget.max_refinements:
+                return self._localized_failure_payload(
+                    status=LocalizationStatus.REFINEMENT_BUDGET_EXHAUSTED,
+                    diagnostic=LocalizationDiagnostic.create("refinement_budget_exhausted", f"max_refinements={budget.max_refinements}"),
+                    initial_lower=lower_control, initial_upper=upper_control,
+                    lower=bracket_lower, upper=bracket_upper, previous=previous_accepted,
+                    damage=damage_state, topology=topology_state, budget=budget,
+                    certificate=certificate, solver_trials=solver_trials,
+                    refinements=refinements, retries=retries, privileged=privileged,
+                )
+            if solver_trials >= budget.max_solver_trials:
+                return self._localized_failure_payload(
+                    status=LocalizationStatus.SOLVER_BUDGET_EXHAUSTED,
+                    diagnostic=LocalizationDiagnostic.create("solver_budget_exhausted", f"max_solver_trials={budget.max_solver_trials}"),
+                    initial_lower=lower_control, initial_upper=upper_control,
+                    lower=bracket_lower, upper=bracket_upper, previous=previous_accepted,
+                    damage=damage_state, topology=topology_state, budget=budget,
+                    certificate=certificate, solver_trials=solver_trials,
+                    refinements=refinements, retries=retries, privileged=privileged,
+                )
+            trial = self._interpolate_control(lower_control, bracket_lower, bracket_upper)
+            evaluated = evaluate(trial)
+            if isinstance(evaluated, LocalizationStatus):
+                return self._localized_failure_payload(
+                    status=evaluated, diagnostic=diagnostic_for(evaluated),
+                    initial_lower=lower_control, initial_upper=upper_control,
+                    lower=bracket_lower, upper=bracket_upper, previous=previous_accepted,
+                    damage=damage_state, topology=topology_state, budget=budget,
+                    certificate=certificate, solver_trials=solver_trials,
+                    refinements=refinements, retries=retries, privileged=privileged,
+                )
+            after, relaxed, assessment, checkpoint = evaluated
+            refinements += 1
+            if assessment.candidates:
+                bracket_upper = trial
+                upper_after_control = after
+                upper_relaxed = relaxed
+                upper_checkpoint = checkpoint
+            else:
+                bracket_lower = trial
+
+        assert upper_checkpoint is not None and upper_after_control is not None and upper_relaxed is not None
+        try:
+            self.backend.restore(upper_checkpoint)
+            self.backend.audit_topology(topology_state)
+            self.backend.audit_trial_runtime()
+            restored_upper = self.backend.observe_restored(
+                control=bracket_upper, topology_state=topology_state,
+                damage_state=damage_state,
+            )
+            self._validate_observation(
+                restored_upper, bracket_upper, damage_state, topology_state,
+                expected_phase="pre_delete_relaxed",
+            )
+            if not self._same_mechanical_state(restored_upper, upper_relaxed):
+                raise FractureExecutionError("localized crossing checkpoint changed before final transaction")
+        except Exception as error:
+            try:
+                restore_lower()
+            except Exception as restore_error:
+                return self._localized_failure_payload(
+                    status=LocalizationStatus.RESTORE_FAILED,
+                    diagnostic=LocalizationDiagnostic.create("restore_failed", f"crossing={error}; lower={restore_error}"),
+                    initial_lower=lower_control, initial_upper=upper_control,
+                    lower=bracket_lower, upper=bracket_upper, previous=previous_accepted,
+                    damage=damage_state, topology=topology_state, budget=budget,
+                    certificate=certificate, solver_trials=solver_trials,
+                    refinements=refinements, retries=retries, privileged=privileged,
+                )
+            return self._localized_failure_payload(
+                status=LocalizationStatus.RESTORE_FAILED,
+                diagnostic=LocalizationDiagnostic.create("restore_failed", str(error)),
+                initial_lower=lower_control, initial_upper=upper_control,
+                lower=bracket_lower, upper=bracket_upper, previous=previous_accepted,
+                damage=damage_state, topology=topology_state, budget=budget,
+                certificate=certificate, solver_trials=solver_trials,
+                refinements=refinements, retries=retries, privileged=privileged,
+            )
+
+        cascade_outcome = self._cascade_from_accepted_pre(
+            bracket_upper, damage_state, topology_state, restored_upper
+        )
+        transitions = tuple(cascade_outcome["transitions"])  # type: ignore[arg-type]
+        if cascade_outcome["status"] is not CascadeStatus.STABLE or not transitions:
+            cascade_status = cascade_outcome["status"]
+            try:
+                restore_lower()
+            except Exception as restore_error:
+                status = LocalizationStatus.FINAL_TRANSACTION_ROLLBACK_FAILED
+                detail = f"cascade={cascade_status.value}; lower restore={restore_error}"  # type: ignore[union-attr]
+                kind = "final_transaction_rollback_failed"
+            else:
+                status = LocalizationStatus.FINAL_TRANSACTION_ROLLED_BACK
+                detail = f"cascade ended with {cascade_status.value}; localized event was not published"  # type: ignore[union-attr]
+                kind = "final_transaction_rolled_back"
+            return self._localized_failure_payload(
+                status=status, diagnostic=LocalizationDiagnostic.create(kind, detail),
+                initial_lower=lower_control, initial_upper=upper_control,
+                lower=bracket_lower, upper=bracket_upper, previous=previous_accepted,
+                damage=damage_state, topology=topology_state, budget=budget,
+                certificate=certificate, solver_trials=solver_trials,
+                refinements=refinements, retries=retries, privileged=privileged,
+            )
+
+        localization = EventLocalizationRecord.create(
+            status=LocalizationStatus.LOCALIZED, budget=budget,
+            domain_certificate=certificate, initial_lower_control=lower_control,
+            initial_upper_control=upper_control, lower_bracket_control=bracket_lower,
+            upper_bracket_control=bracket_upper, localized_control=bracket_upper,
+            solver_trials=solver_trials, refinements=refinements, retries=retries,
+            previous_accepted_observation_id=previous_accepted.observation_id,
+            topology_state_id=topology_state.topology_state_id,
+            damage_state_id=damage_state.state_id, diagnostic=None,
+        )
+        accounting: list[FractureEnergyAccounting] = []
+        prior = previous_accepted
+        for index, transition in enumerate(transitions):
+            after = upper_after_control if index == 0 else transition.pre_delete_raw
+            accounting.append(
+                FractureEnergyAccounting.create(
+                    previous_accepted=prior,
+                    after_control_before_relax=after,
+                    transition=transition,
+                    control_application_kind=(
+                        "new_diagonal_deformation" if index == 0 else "no_new_control_same_accepted_state"
+                    ),
+                )
+            )
+            prior = transition.post_event_relaxed.rephase("pre_delete_relaxed")
+        return {
+            "localization": localization,
+            "cascade_outcome": cascade_outcome,
+            "cascade_result": None,
+            "energy_accounting": tuple(accounting),
+            "final_damage_state": cascade_outcome["damage_state"],
+            "final_topology_state": cascade_outcome["topology_state"],
+            "final_snapshot": cascade_outcome["final_snapshot"],
+            "privileged_reference_metadata": privileged,
+            "backend_closed": False,
+        }
+
+    def _cascade_from_accepted_pre(
+        self,
+        control: QuasiStaticControlStep,
+        damage_state: DamageState,
+        topology_state: TopologyState,
+        pre: BackendObservation,
+    ) -> dict[str, object]:
+        current_damage = damage_state
+        current_topology = topology_state
+        current_pre = pre
+        transitions: list[CascadeTransitionEnvelope] = []
+        relaxation_count = 1
+        while True:
+            assessment = self._assess(current_pre, current_damage, control)
+            if not assessment.candidates:
+                return self._outcome(
+                    CascadeStatus.STABLE, tuple(transitions), current_damage,
+                    current_topology, current_pre, None, control,
+                )
+            if len(transitions) >= self.budget.max_events:
+                return self._outcome(
+                    CascadeStatus.EVENT_BUDGET_EXHAUSTED, tuple(transitions),
+                    current_damage, current_topology, current_pre,
+                    CascadeDiagnostic.create("event_budget_exhausted", f"max_events={self.budget.max_events}"),
+                    control,
+                )
+            if relaxation_count >= self.budget.max_relaxations:
+                return self._outcome(
+                    CascadeStatus.RELAXATION_BUDGET_EXHAUSTED, tuple(transitions),
+                    current_damage, current_topology, current_pre,
+                    CascadeDiagnostic.create("relaxation_budget_exhausted", f"max_relaxations={self.budget.max_relaxations}"),
+                    control,
+                )
+            checkpoint = self.backend.checkpoint()
+            candidate = assessment.candidates[0]
+            try:
+                plan = self.registry.plan_bond_removal(current_topology, candidate.physical_bond_id)
+                staged = accept_next_material_rupture(current_damage, assessment)
+                next_topology = self.registry.apply_plan(current_topology, plan)
+                for angle_id in plan.removed_angle_ids:
+                    self.backend.delete_angle(self.registry.angle(angle_id))
+                self.backend.delete_bond(self.registry.bond(plan.removed_bond_id))
+                self.backend.audit_topology(next_topology)
+                unrelaxed = self.backend.observe_unrelaxed(
+                    control=control, topology_state=next_topology,
+                    damage_state=staged.state,
+                )
+                self._validate_observation(
+                    unrelaxed, control, staged.state, next_topology,
+                    expected_phase="post_delete_unrelaxed",
+                )
+                if not np.array_equal(current_pre.positions_nm, unrelaxed.positions_nm):
+                    raise FractureExecutionError("post-delete unrelaxed capture changed atom positions")
+                post = self.backend.relax_and_observe(
+                    phase="post_event_relaxed", control=control,
+                    topology_state=next_topology, damage_state=staged.state,
+                )
+                relaxation_count += 1
+                self._validate_observation(
+                    post, control, staged.state, next_topology,
+                    expected_phase="post_event_relaxed",
+                )
+                self.backend.audit_topology(next_topology)
+                if not post.convergence.accepted:
+                    raise FractureExecutionError("post-event relaxation did not satisfy convergence policy")
+                envelope = CascadeTransitionEnvelope.create(
+                    previous_damage_state=current_damage,
+                    damage_state=staged.state,
+                    material_event=staged.event,
+                    mutation_plan=plan,
+                    pre_delete_raw=current_pre,
+                    post_delete_unrelaxed=unrelaxed,
+                    post_event_relaxed=post,
+                    law=self.law, field=self.field, registry=self.registry,
+                )
+            except Exception as error:
+                rollback_error: BaseException | None = None
+                try:
+                    self.backend.restore(checkpoint)
+                    self.backend.audit_topology(current_topology)
+                    self.backend.audit_trial_runtime()
+                    restored = self.backend.observe_restored(
+                        control=control, topology_state=current_topology,
+                        damage_state=current_damage,
+                    )
+                    self._validate_observation(
+                        restored, control, current_damage, current_topology,
+                        expected_phase="pre_delete_relaxed",
+                    )
+                    if not self._same_mechanical_state(restored, current_pre):
+                        raise FractureExecutionError("restored mechanics differ from last accepted checkpoint")
+                except BaseException as restore_error:
+                    rollback_error = restore_error
+                if rollback_error is not None:
+                    return self._outcome(
+                        CascadeStatus.ROLLBACK_FAILED, tuple(transitions),
+                        current_damage, current_topology, current_pre,
+                        CascadeDiagnostic.create("rollback_failed", f"mutation={error}; restore={rollback_error}"),
+                        control,
+                    )
+                return self._outcome(
+                    CascadeStatus.ROLLED_BACK, tuple(transitions), current_damage,
+                    current_topology, current_pre,
+                    CascadeDiagnostic.create("rolled_back", str(error)), control,
+                )
+            transitions.append(envelope)
+            current_damage = staged.state
+            current_topology = next_topology
+            current_pre = post.rephase("pre_delete_relaxed")
+
+    def _validate_localization_inputs(
+        self,
+        lower: QuasiStaticControlStep,
+        upper: QuasiStaticControlStep,
+        previous: BackendObservation,
+        damage: DamageState,
+        topology: TopologyState,
+        budget: LocalizationBudget,
+        certificate: TrialDomainCertificate,
+    ) -> None:
+        if not isinstance(budget, LocalizationBudget) or not isinstance(certificate, TrialDomainCertificate):
+            raise FractureExecutionError("validated localization budget/certificate are required")
+        self._validate_before_commands(upper, damage, topology)
+        self._validate_observation(previous, lower, damage, topology, expected_phase="pre_delete_relaxed")
+        if not previous.convergence.accepted:
+            raise FractureExecutionError("localization lower state must be an accepted equilibrium")
+        if not _same_control_path(lower, upper):
+            raise FractureExecutionError("localization controls must lie on one P02-01 control path")
+        if upper.path_progress <= lower.path_progress:
+            raise FractureExecutionError("localization upper path progress must exceed lower progress")
+        _validate_segment_control(upper, lower, upper)
+        if (
+            certificate.physics_profile_id != self.law.physics_profile_id
+            or certificate.physics_profile_hash != self.law.physics_profile_hash
+            or certificate.reference_state_id != self.law.reference_state_id
+            or certificate.registry_id != self.registry.registry_id
+            or certificate.physical_bond_ids != tuple(sorted(damage.physical_bond_ids))
+        ):
+            raise FractureExecutionError("trial-domain certificate provenance/bond universe differs")
+
+    @staticmethod
+    def _bracket_within_tolerance(
+        lower: QuasiStaticControlStep,
+        upper: QuasiStaticControlStep,
+        budget: LocalizationBudget,
+    ) -> bool:
+        return (
+            abs(upper.lambda_load - lower.lambda_load) <= budget.load_tolerance
+            and upper.path_progress - lower.path_progress <= budget.path_tolerance
+        )
+
+    @staticmethod
+    def _interpolate_control(
+        initial_lower: QuasiStaticControlStep,
+        lower: QuasiStaticControlStep,
+        upper: QuasiStaticControlStep,
+    ) -> QuasiStaticControlStep:
+        lambda_trial = 0.5 * (lower.lambda_load + upper.lambda_load)
+        alpha_denominator = upper.lambda_load - lower.lambda_load
+        if abs(alpha_denominator) <= 1e-15:
+            raise FractureExecutionError("localization bracket has no load-coordinate extent")
+        alpha = (lambda_trial - lower.lambda_load) / alpha_denominator
+        assert lower.absolute_deformation_gradient is not None
+        assert upper.absolute_deformation_gradient is not None
+        absolute = (
+            (1.0 - alpha) * lower.absolute_deformation_gradient
+            + alpha * upper.absolute_deformation_gradient
+        )
+        assert initial_lower.absolute_deformation_gradient is not None
+        incremental = absolute @ np.linalg.inv(initial_lower.absolute_deformation_gradient)
+        progress = initial_lower.path_progress + abs(
+            lambda_trial - initial_lower.lambda_load
+        )
+        body = {
+            "initial_lower_control_id": initial_lower.control_id,
+            "lambda_load": lambda_trial,
+            "path_progress": progress,
+            "absolute_deformation_gradient": absolute.tolist(),
+        }
+        return QuasiStaticControlStep(
+            control_id="p0204-localized:" + _hash(body).split(":", 1)[1],
+            step_index=upper.step_index,
+            control_kind="deformation_gradient",
+            loading_mode=upper.loading_mode,
+            axes=upper.axes,
+            reference_state_id=upper.reference_state_id,
+            lambda_load=lambda_trial,
+            load_coordinate_unit=upper.load_coordinate_unit,
+            progress_unit=upper.progress_unit,
+            path_progress=progress,
+            progress_increment=abs(lambda_trial - initial_lower.lambda_load),
+            absolute_deformation_gradient=absolute,
+            incremental_deformation_gradient=incremental,
+            absolute_tension_target_pN_per_nm=None,
+            incremental_tension_target_pN_per_nm=None,
+        )
+
+    @staticmethod
+    def _localized_failure_payload(
+        *, status: LocalizationStatus, diagnostic: LocalizationDiagnostic,
+        initial_lower: QuasiStaticControlStep, initial_upper: QuasiStaticControlStep,
+        lower: QuasiStaticControlStep, upper: QuasiStaticControlStep,
+        previous: BackendObservation, damage: DamageState, topology: TopologyState,
+        budget: LocalizationBudget, certificate: TrialDomainCertificate,
+        solver_trials: int, refinements: int, retries: int,
+        privileged: Mapping[str, object],
+    ) -> dict[str, object]:
+        localization = EventLocalizationRecord.create(
+            status=status, budget=budget, domain_certificate=certificate,
+            initial_lower_control=initial_lower, initial_upper_control=initial_upper,
+            lower_bracket_control=lower, upper_bracket_control=upper,
+            localized_control=None, solver_trials=solver_trials,
+            refinements=refinements, retries=retries,
+            previous_accepted_observation_id=previous.observation_id,
+            topology_state_id=topology.topology_state_id,
+            damage_state_id=damage.state_id, diagnostic=diagnostic,
+        )
+        return {
+            "localization": localization,
+            "cascade_result": None,
+            "cascade_outcome": None,
+            "energy_accounting": (),
+            "final_damage_state": damage,
+            "final_topology_state": topology,
+            "final_snapshot": previous,
+            "privileged_reference_metadata": privileged,
+            "backend_closed": False,
+        }
 
     def _validate_before_commands(self, control: QuasiStaticControlStep, damage: DamageState, topology: TopologyState) -> None:
         if not isinstance(control, QuasiStaticControlStep) or not isinstance(damage, DamageState) or not isinstance(topology, TopologyState):
@@ -1312,6 +3028,11 @@ class LammpsFractureBackend:
         self.work_directory = Path(work_directory).resolve(); self.work_directory.mkdir(parents=True, exist_ok=True)
         self.reference_total_tension_pN_per_nm = _array(reference_total_tension_pN_per_nm, (2, 2), "reference tension")
         self.closed = False; self._group_counter = 0; self._live_groups: set[str] = set(); self._command_trace: list[str] = []
+        self._anchor_constraint_installed = False
+        self.localization_response_contract_id = _hash({
+            "contract": "p0204_bounded_harmonic_monotone_path_v1",
+            "registry_id": registry.registry_id,
+        })
         self._checkpoint_counter = 0; self.force_tolerance_pN = 1e-8; self.maximum_iterations = 1000; self.maximum_evaluations = 10000
         degree = {node.stable_node_id: 0 for node in registry.nodes}
         for bond in registry.bonds:
@@ -1398,6 +3119,7 @@ class LammpsFractureBackend:
         atom_ids = " ".join(str(item) for item in self._anchored_solver_ids)
         self._command(f"group p0203_anchor id {atom_ids}")
         self._command("fix p0203_anchor_lock p0203_anchor setforce 0.0 0.0 0.0")
+        self._anchor_constraint_installed = True
 
     def _boundary_condition_record(self) -> dict[str, object]:
         return {
@@ -1448,6 +3170,17 @@ class LammpsFractureBackend:
     def apply_control(self, control: QuasiStaticControlStep) -> None:
         matrix = control.incremental_deformation_gradient; assert matrix is not None
         self._command(f"change_box all x scale {float(matrix[0,0]):.17g} y scale {float(matrix[1,1]):.17g} remap units box")
+
+    def observe_after_control_unrelaxed(self, *, control: QuasiStaticControlStep, topology_state: TopologyState, damage_state: DamageState) -> BackendObservation:
+        self._command("run 0 post no")
+        residual = abs(float(self._solver.get_thermo("fmax")))
+        return self._observe(
+            "after_control_before_relax", control, topology_state, damage_state,
+            ConvergenceDiagnostics.rejected(
+                "phase_not_relaxed", max(residual, self.force_tolerance_pN * 2.0),
+                0, self.maximum_iterations, self.force_tolerance_pN,
+            ),
+        )
 
     def relax_and_observe(self, *, phase: str, control: QuasiStaticControlStep, topology_state: TopologyState, damage_state: DamageState) -> BackendObservation:
         convergence = self._minimize()
@@ -1571,6 +3304,7 @@ class LammpsFractureBackend:
         path = Path(checkpoint)
         if not path.is_file(): raise FractureExecutionError("checkpoint does not exist")
         old = self._solver; old.close(); self._solver = self._solver_factory(); self.closed = False
+        self._anchor_constraint_installed = False
         self._command(f"read_restart {path}"); self._setup_observers(); self._install_endpoint_constraints(); self._command("run 0 post no")
 
     def observe_restored(self, *, control: QuasiStaticControlStep, topology_state: TopologyState, damage_state: DamageState) -> BackendObservation:
@@ -1579,6 +3313,15 @@ class LammpsFractureBackend:
         if residual > self.force_tolerance_pN:
             raise FractureExecutionError("restored checkpoint no longer satisfies convergence residual")
         return self._observe("pre_delete_relaxed", control, topology_state, damage_state, ConvergenceDiagnostics.successful(residual, 0, self.maximum_iterations, self.force_tolerance_pN))
+
+    def audit_trial_runtime(self) -> None:
+        if self.closed:
+            raise FractureExecutionError("closed backend cannot execute a localization trial")
+        if self._live_groups:
+            raise FractureExecutionError("temporary deletion groups remain live between localization trials")
+        if not self._anchor_constraint_installed:
+            raise FractureExecutionError("fixture endpoint constraint is not installed")
+        self._command("run 0 post no")
 
     def close(self) -> None:
         if self.closed: return
@@ -1590,11 +3333,16 @@ class LammpsFractureBackend:
         try: self._solver.close()
         except BaseException as error: errors.append(error)
         self.closed = True
+        self._anchor_constraint_installed = False
         if errors: raise FractureExecutionError("backend close/temporary-group cleanup failed") from errors[0]
 
 
 __all__ = [
-    "FRACTURE_SCHEMA_VERSION", "BackendObservation", "CascadeBudget", "CascadeDiagnostic",
-    "CascadeResult", "CascadeStatus", "CascadeTransitionEnvelope", "ConvergenceDiagnostics",
-    "FractureBackend", "FractureExecutionError", "LammpsFractureBackend", "QuasiStaticFractureCascade",
+    "FRACTURE_SCHEMA_VERSION", "LOCALIZATION_SCHEMA_VERSION", "BackendObservation",
+    "CascadeBudget", "CascadeDiagnostic", "CascadeResult", "CascadeStatus",
+    "CascadeTransitionEnvelope", "ConvergenceDiagnostics", "EventLocalizationRecord",
+    "FractureBackend", "FractureEnergyAccounting", "FractureExecutionError",
+    "LammpsFractureBackend", "LocalizationBudget", "LocalizationDiagnostic",
+    "LocalizationStatus", "LocalizedCascadeResult", "QuasiStaticFractureCascade",
+    "TrialDomainCertificate",
 ]
