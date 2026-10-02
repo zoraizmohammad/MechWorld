@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="438.372" timestamp="2026-10-01T23:08:55.186131" hostname="MZoraiz_P15"><testcase classname="tests.release.test_wheel_install" name="test_wheel_installs_profiles_legacy_core_console_and_solver" time="437.884"><failure message="subprocess.TimeoutExpired: Command '['C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-261\\test_wheel_installs_profiles_l0\\fresh-venv\\Scripts\\python.exe', '-B', '-m', 'pip', 'install', '-r', 'C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-261\\test_wheel_installs_profiles_l0\\source\\requirements.lock']' timed out after 300 seconds">tmp_path = WindowsPath('C:/Users/mzora/AppData/Local/Temp/pytest-of-mzora/pytest-261/test_wheel_installs_profiles_l0')
+
+    def test_wheel_installs_profiles_legacy_core_console_and_solver(tmp_path: Path) -&gt; None:
+        stage = tmp_path / "source"
+        stage.mkdir()
+        for filename in ("pyproject.toml", "README.md", "requirements.txt", "requirements.lock"):
+            shutil.copy2(ROOT / filename, stage / filename)
+        shutil.copytree(ROOT / "src", stage / "src")
+        wheelhouse = tmp_path / "wheelhouse"
+        build = _run(
+            [
+                sys.executable,
+                "-B",
+                "-m",
+                "build",
+                "--wheel",
+                "--outdir",
+                str(wheelhouse),
+            ],
+            cwd=stage,
+        )
+        assert build.returncode == 0, build.stdout + build.stderr
+        wheels = list(wheelhouse.glob("*.whl"))
+        assert len(wheels) == 1
+        wheel = wheels[0]
+        with zipfile.ZipFile(wheel) as archive:
+            names = set(archive.namelist())
+        expected_payload = PACKAGE_MODULES | {
+            f"{module}.py" for module in LEGACY_MODULES
+        } | {
+            f"pgworld/config/profiles/{profile_id}.json" for profile_id in PROFILE_IDS
+        }
+        dist_info_prefixes = {
+            name.split("/", 1)[0]
+            for name in names
+            if name.split("/", 1)[0].endswith(".dist-info")
+        }
+        assert len(dist_info_prefixes) == 1
+        dist_info_prefix = next(iter(dist_info_prefixes))
+        allowed_dist_info = {
+            f"{dist_info_prefix}/{filename}"
+            for filename in (
+                "METADATA",
+                "WHEEL",
+                "entry_points.txt",
+                "top_level.txt",
+                "RECORD",
+            )
+        }
+        assert names == expected_payload | allowed_dist_info
+        forbidden_parts = {
+            "__pycache__",
+            "artifacts",
+            "checkpoints",
+            "data",
+            "dumps",
+            "evidence",
+            "images",
+            "reports",
+            "restarts",
+            "results",
+            "tests",
+        }
+        assert not any(forbidden_parts.intersection(Path(name).parts) for name in names)
+
+        environment = tmp_path / "fresh-venv"
+        created = _run(
+            [sys.executable, "-B", "-m", "venv", str(environment)],
+            cwd=tmp_path,
+        )
+        assert created.returncode == 0, created.stdout + created.stderr
+        python = environment / "Scripts" / "python.exe"
+&gt;       dependencies = _run(
+            [
+                str(python),
+                "-B",
+                "-m",
+                "pip",
+                "install",
+                "-r",
+                str(stage / "requirements.lock"),
+            ],
+            cwd=tmp_path,
+        )
+
+tests\release\test_wheel_install.py:143:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\release\test_wheel_install.py:60: in _run
+    completed = subprocess.run(
+..\AppData\Local\Programs\Python\Python311\Lib\subprocess.py:550: in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+..\AppData\Local\Programs\Python\Python311\Lib\subprocess.py:1209: in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;Popen: returncode: 1 args: ['C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest...&gt;
+input = None, endtime = 229820.328, orig_timeout = 300
+
+    def _communicate(self, input, endtime, orig_timeout):
+        # Start reader threads feeding into a list hanging off of this
+        # object, unless they've already been started.
+        if self.stdout and not hasattr(self, "_stdout_buff"):
+            self._stdout_buff = []
+            self.stdout_thread = \
+                    threading.Thread(target=self._readerthread,
+                                     args=(self.stdout, self._stdout_buff))
+            self.stdout_thread.daemon = True
+            self.stdout_thread.start()
+        if self.stderr and not hasattr(self, "_stderr_buff"):
+            self._stderr_buff = []
+            self.stderr_thread = \
+                    threading.Thread(target=self._readerthread,
+                                     args=(self.stderr, self._stderr_buff))
+            self.stderr_thread.daemon = True
+            self.stderr_thread.start()
+
+        if self.stdin:
+            self._stdin_write(input)
+
+        # Wait for the reader threads, or time out.  If we time out, the
+        # threads remain reading and the fds left open in case the user
+        # calls communicate again.
+        if self.stdout is not None:
+            self.stdout_thread.join(self._remaining_time(endtime))
+            if self.stdout_thread.is_alive():
+&gt;               raise TimeoutExpired(self.args, orig_timeout)
+E               subprocess.TimeoutExpired: Command '['C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-261\\test_wheel_installs_profiles_l0\\fresh-venv\\Scripts\\python.exe', '-B', '-m', 'pip', 'install', '-r', 'C:\\Users\\mzora\\AppData\\Local\\Temp\\pytest-of-mzora\\pytest-261\\test_wheel_installs_profiles_l0\\source\\requirements.lock']' timed out after 300 seconds
+
+..\AppData\Local\Programs\Python\Python311\Lib\subprocess.py:1630: TimeoutExpired</failure></testcase></testsuite></testsuites>

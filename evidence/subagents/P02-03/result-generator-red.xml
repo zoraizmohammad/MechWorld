@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.590" timestamp="2026-10-01T22:54:41.842416" hostname="MZoraiz_P15"><testcase classname="tests.integration.test_fracture_cascade" name="test_public_record_replay_rejects_tampering_and_cross_object_forgery" time="0.103"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;">def test_public_record_replay_rejects_tampering_and_cross_object_forgery() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}, {"b23": 1.0}])
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+        assert CascadeResult.from_record(result.as_record()).as_record() == result.as_record()
+        transition = result.transitions[0]
+        assert CascadeTransitionEnvelope.from_record(transition.as_record()).as_record() == transition.as_record()
+        forged = transition.as_record()
+        forged["post_event_relaxed"]["control_id"] = "foreign"
+        with pytest.raises(FractureExecutionError):
+            CascadeTransitionEnvelope.from_record(forged)
+        diagnostic = CascadeDiagnostic.create("solver_error", "fixture", counts_as_physical_failure=False)
+        assert CascadeDiagnostic.from_record(diagnostic.as_record()) == diagnostic
+
+        empty_history_record = result.as_record()
+        empty_history_record["transitions"] = []
+        _rehash_record_body(empty_history_record, "result_id")
+&gt;       with pytest.raises(FractureExecutionError, match="sequence|transition"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;
+
+tests\integration\test_fracture_cascade.py:523: Failed</failure></testcase></testsuite></testsuites>

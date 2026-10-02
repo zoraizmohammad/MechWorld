@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="0.532" timestamp="2026-10-01T22:38:24.347074" hostname="MZoraiz_P15"><testcase classname="tests.integration.test_fracture_cascade" name="test_real_serial_lammps_removes_only_dependent_angle_and_exact_bond" time="0.157" /></testsuite></testsuites>

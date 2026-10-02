@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="27" time="1.665" timestamp="2026-10-01T22:31:38.012020" hostname="MZoraiz_P15"><testcase classname="tests.integration.test_fracture_cascade" name="test_transactional_cascade_deletes_exact_dependencies_reassesses_and_retains_fragments" time="0.061" /><testcase classname="tests.integration.test_fracture_cascade" name="test_post_relax_failure_rolls_back_without_committing_event" time="0.036" /><testcase classname="tests.integration.test_fracture_cascade" name="test_budget_exhaustion_is_explicit_and_does_not_accept_a_stale_candidate" time="0.054" /><testcase classname="tests.integration.test_fracture_cascade" name="test_pressure_and_general_deformation_fail_before_backend_command" time="0.009" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[apply]" time="0.013" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[checkpoint]" time="0.032" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[delete_angle]" time="0.040" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[delete_bond]" time="0.045" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[observe]" time="0.046" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[audit_post]" time="0.030" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[relax:post_event_relaxed]" time="0.018" /><testcase classname="tests.integration.test_fracture_cascade" name="test_observable_pre_event_record_recursively_excludes_privileged_and_future_information" time="0.023" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_observation_copies_and_remaps_solver_rows_by_atom_tag" time="0.005" /><testcase classname="tests.integration.test_fracture_cascade" name="test_nonconverged_normal_return_is_diagnostic_not_rupture_or_instability" time="0.014" /><testcase classname="tests.integration.test_fracture_cascade" name="test_initial_violation_no_candidate_and_prescribed_removal_do_not_become_material_events" time="0.031" /><testcase classname="tests.integration.test_fracture_cascade" name="test_zero_budget_terminates_without_mutation_or_zero_progress_repeat" time="0.027" /><testcase classname="tests.integration.test_fracture_cascade" name="test_public_record_replay_rejects_tampering_and_cross_object_forgery" time="0.075" /><testcase classname="tests.integration.test_fracture_cascade" name="test_transition_replay_rejects_rehashed_privileged_visibility_and_law_forgery" time="0.035" /><testcase classname="tests.integration.test_fracture_cascade" name="test_observation_replay_rejects_duplicate_foreign_nodes_and_envelope_binds_registry_geometry" time="0.022"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'node|registry|mapping'&#10; Input: 'atom rows must be unique and solver-tag ordered'">def test_observation_replay_rejects_duplicate_foreign_nodes_and_envelope_binds_registry_geometry() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}, {"b23": 1.0}])
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+        transition = result.transitions[0]
+        for node_ids in (["n1", "n1", "n3", "n4"], ["foreign", "n2", "n3", "n4"]):
+            observation = transition.pre_delete_raw.as_record()
+            observation["stable_node_ids"] = node_ids
+            _rehash_record_body(observation, "observation_id")
+            with pytest.raises(FractureExecutionError, match="node|registry|mapping"):
+&gt;               BackendObservation.from_record(observation)
+
+tests\integration\test_fracture_cascade.py:496:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\simulation\fracture.py:481: in from_record
+    return cls(observation_id=observation_id, **body)  # type: ignore[arg-type]
+&lt;string&gt;:37: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = BackendObservation(observation_id='sha256:32b262ed4a07335973a2d31b81a87ea7c4dc572490c395dbe0ce03e9ccee702e', phase='pr...ual_tolerance_pN=1e-08), physical_time=None, physical_time_valid=False, schema_version='pgworld.fracture_execution.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != FRACTURE_SCHEMA_VERSION or self.phase not in _PHASES:
+            raise FractureExecutionError("invalid observation schema or phase")
+        if _HASH_RE.fullmatch(self.registry_id) is None or _HASH_RE.fullmatch(self.damage_state_id) is None:
+            raise FractureExecutionError("observation identities must be sha256 digests")
+        if not isinstance(self.topology, TopologyState) or self.topology.registry_id != self.registry_id:
+            raise FractureExecutionError("observation topology/registry mismatch")
+        ids = tuple(_string(item, "physical_bond_id") for item in self.physical_bond_ids)
+        if ids != tuple(sorted(ids)) or len(set(ids)) != len(ids):
+            raise FractureExecutionError("physical_bond_ids must be canonical unique IDs")
+        object.__setattr__(self, "physical_bond_ids", ids)
+        alive = _bool_mapping(self.alive_mask, ids, "alive_mask")
+        ruptured = _bool_mapping(self.rupture_mask, ids, "rupture_mask")
+        prescribed = _bool_mapping(self.prescribed_removal_mask, ids, "prescribed_removal_mask")
+        for stable_id in ids:
+            if ruptured[stable_id] and prescribed[stable_id]:
+                raise FractureExecutionError("a physical bond cannot be ruptured and prescribed-removed")
+            if alive[stable_id] != (not ruptured[stable_id] and not prescribed[stable_id]):
+                raise FractureExecutionError("observation alive mask must complement terminal damage masks")
+        if tuple(stable_id for stable_id in ids if alive[stable_id]) != self.topology.alive_bond_ids:
+            raise FractureExecutionError("observation damage alive mask differs from physical topology")
+        object.__setattr__(self, "alive_mask", alive); object.__setattr__(self, "rupture_mask", ruptured); object.__setattr__(self, "prescribed_removal_mask", prescribed)
+        _string(self.law_id, "law_id"); _string(self.control_id, "control_id")
+        object.__setattr__(self, "load_coordinate", _finite(self.load_coordinate, "load_coordinate"))
+        object.__setattr__(self, "path_progress", _finite(self.path_progress, "path_progress"))
+        if self.load_coordinate_unit not in _LOAD_UNITS or self.path_progress &lt; 0 or self.progress_unit != self.load_coordinate_unit:
+            raise FractureExecutionError("invalid path progress/unit")
+        _string(self.physics_profile_id, "physics_profile_id")
+        if _HASH_RE.fullmatch(self.physics_profile_hash) is None:
+            raise FractureExecutionError("physics_profile_hash must be sha256")
+        _string(self.reference_state_id, "reference_state_id")
+        if not isinstance(self.cell, Cell2D):
+            raise FractureExecutionError("cell must be Cell2D")
+        atom_ids = tuple(_integer(item, "solver_atom_id", minimum=1) for item in self.solver_atom_ids)
+        node_ids = tuple(_string(item, "stable_node_id") for item in self.stable_node_ids)
+        if (
+            atom_ids != tuple(sorted(atom_ids))
+            or len(set(atom_ids)) != len(atom_ids)
+            or len(atom_ids) != len(node_ids)
+            or len(set(node_ids)) != len(node_ids)
+            or set(node_ids) != set(self.topology.node_ids)
+        ):
+&gt;           raise FractureExecutionError("atom rows must be unique and solver-tag ordered")
+E           pgworld.simulation.fracture.FractureExecutionError: atom rows must be unique and solver-tag ordered
+
+src\pgworld\simulation\fracture.py:282: FractureExecutionError
+
+During handling of the above exception, another exception occurred:
+
+    def test_observation_replay_rejects_duplicate_foreign_nodes_and_envelope_binds_registry_geometry() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}, {"b23": 1.0}])
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+        transition = result.transitions[0]
+        for node_ids in (["n1", "n1", "n3", "n4"], ["foreign", "n2", "n3", "n4"]):
+            observation = transition.pre_delete_raw.as_record()
+            observation["stable_node_ids"] = node_ids
+            _rehash_record_body(observation, "observation_id")
+&gt;           with pytest.raises(FractureExecutionError, match="node|registry|mapping"):
+E           AssertionError: Regex pattern did not match.
+E            Regex: 'node|registry|mapping'
+E            Input: 'atom rows must be unique and solver-tag ordered'
+
+tests\integration\test_fracture_cascade.py:495: AssertionError</failure></testcase><testcase classname="tests.integration.test_fracture_cascade" name="test_transition_replay_binds_event_coordinate_units_progress_and_criterion" time="0.055" /><testcase classname="tests.integration.test_fracture_cascade" name="test_result_replay_binds_provenance_snapshot_and_close_status_semantics" time="0.068" /><testcase classname="tests.integration.test_fracture_cascade" name="test_rollback_comparison_includes_pbc_incremental_tension_and_source_offsets" time="0.013" /><testcase classname="tests.integration.test_fracture_cascade" name="test_failed_temporary_group_cleanup_remains_tracked_for_close_retry" time="0.001" /><testcase classname="tests.integration.test_fracture_cascade" name="test_observation_phase_law_and_masks_are_bound_to_requested_state" time="0.010" /><testcase classname="tests.integration.test_fracture_cascade" name="test_corrupted_restore_or_restore_exception_is_not_reported_as_successful_rollback" time="0.032" /><testcase classname="tests.integration.test_fracture_cascade" name="test_relaxation_budget_is_enforced_separately_from_event_budget" time="0.015" /><testcase classname="tests.integration.test_fracture_cascade" name="test_close_failure_is_explicit_incomplete_result" time="0.013" /></testsuite></testsuites>

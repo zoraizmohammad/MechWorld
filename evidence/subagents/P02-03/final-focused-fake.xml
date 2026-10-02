@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="39" time="3.139" timestamp="2026-10-01T22:57:29.625570" hostname="MZoraiz_P15"><testcase classname="tests.integration.test_fracture_cascade" name="test_transactional_cascade_deletes_exact_dependencies_reassesses_and_retains_fragments" time="0.056" /><testcase classname="tests.integration.test_fracture_cascade" name="test_post_relax_failure_rolls_back_without_committing_event" time="0.024" /><testcase classname="tests.integration.test_fracture_cascade" name="test_budget_exhaustion_is_explicit_and_does_not_accept_a_stale_candidate" time="0.057" /><testcase classname="tests.integration.test_fracture_cascade" name="test_pressure_and_general_deformation_fail_before_backend_command" time="0.012" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[apply]" time="0.017" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[checkpoint]" time="0.026" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[delete_angle]" time="0.065" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[delete_bond]" time="0.065" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[observe]" time="0.047" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[audit_post]" time="0.031" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[relax:post_event_relaxed]" time="0.025" /><testcase classname="tests.integration.test_fracture_cascade" name="test_observable_pre_event_record_recursively_excludes_privileged_and_future_information" time="0.034" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_observation_copies_and_remaps_solver_rows_by_atom_tag" time="0.021" /><testcase classname="tests.integration.test_fracture_cascade" name="test_observation_constructor_rejects_missing_damage_and_explicit_empty_offset_or_boundary_mappings" time="0.018" /><testcase classname="tests.integration.test_fracture_cascade" name="test_nonconverged_normal_return_is_diagnostic_not_rupture_or_instability" time="0.015" /><testcase classname="tests.integration.test_fracture_cascade" name="test_initial_violation_no_candidate_and_prescribed_removal_do_not_become_material_events" time="0.044" /><testcase classname="tests.integration.test_fracture_cascade" name="test_zero_budget_terminates_without_mutation_or_zero_progress_repeat" time="0.016" /><testcase classname="tests.integration.test_fracture_cascade" name="test_public_record_replay_rejects_tampering_and_cross_object_forgery" time="0.189" /><testcase classname="tests.integration.test_fracture_cascade" name="test_transition_replay_rejects_rehashed_privileged_visibility_and_law_forgery" time="0.114" /><testcase classname="tests.integration.test_fracture_cascade" name="test_transition_replay_rejects_rehashed_observation_profile_forgery" time="0.104" /><testcase classname="tests.integration.test_fracture_cascade" name="test_transition_replay_rejects_coherent_cell_not_matching_full_control_record" time="0.101" /><testcase classname="tests.integration.test_fracture_cascade" name="test_observation_replay_rejects_duplicate_foreign_nodes_and_envelope_binds_registry_geometry" time="0.186" /><testcase classname="tests.integration.test_fracture_cascade" name="test_transition_replay_binds_event_coordinate_units_progress_and_criterion" time="0.099" /><testcase classname="tests.integration.test_fracture_cascade" name="test_transition_replay_binds_boundary_condition_pairs_and_phase_invariance" time="0.089" /><testcase classname="tests.integration.test_fracture_cascade" name="test_transition_replay_preserves_one_fixed_reference_tension_across_phases" time="0.042" /><testcase classname="tests.integration.test_fracture_cascade" name="test_result_replay_binds_provenance_snapshot_and_close_status_semantics" time="0.114" /><testcase classname="tests.integration.test_fracture_cascade" name="test_zero_event_result_replay_binds_damage_masks_topology_snapshot_and_convergence" time="0.045" /><testcase classname="tests.integration.test_fracture_cascade" name="test_invalid_reference_result_replay_still_binds_reference_and_supported_control" time="0.049" /><testcase classname="tests.integration.test_fracture_cascade" name="test_rollback_comparison_includes_pbc_incremental_tension_and_source_offsets" time="0.015"><failure message="pgworld.simulation.fracture.FractureExecutionError: incremental tension must equal total minus fixed reference tension within 1e-12 pN/nm">def test_rollback_comparison_includes_pbc_incremental_tension_and_source_offsets() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        base = BackendObservation.fixture(
+            phase="pre_delete_relaxed", registry=registry, topology_state=registry.initial_state,
+            criterion_values={"b12": 1.0, "b23": 1.0}, criterion_unit="dimensionless", converged=True,
+            control=_control(), profile_id=PROFILE.profile_id, profile_hash=PROFILE.canonical_hash,
+            reference_state_id=REFERENCE_ID, damage_state=damage,
+        )
+        for key, value in (
+            ("cell", Cell2D(base.cell.matrix_nm, base.cell.origin_nm, (True, False))),
+            ("incremental_tension_pN_per_nm", ((1.0, 0.0), (0.0, 0.0))),
+            ("source_edge_image_offsets_n_ij", {"b12": (1, 0), "b23": (0, 0)}),
+        ):
+            body = base._constructor_body(); body[key] = value
+&gt;           changed = BackendObservation._create(**body)
+
+tests\integration\test_fracture_cascade.py:791:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\simulation\fracture.py:458: in _create
+    return cls(observation_id=_hash(serial), **body)  # type: ignore[arg-type]
+&lt;string&gt;:40: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = BackendObservation(observation_id='sha256:b50836c052d56fb45125e103abb50f509b23585ecf17d07826aba9c85641d0c0', phase='pr...l_degrees_of_freedom'}), physical_time=None, physical_time_valid=False, schema_version='pgworld.fracture_execution.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != FRACTURE_SCHEMA_VERSION or self.phase not in _PHASES:
+            raise FractureExecutionError("invalid observation schema or phase")
+        if _HASH_RE.fullmatch(self.registry_id) is None or _HASH_RE.fullmatch(self.damage_state_id) is None:
+            raise FractureExecutionError("observation identities must be sha256 digests")
+        if not isinstance(self.topology, TopologyState) or self.topology.registry_id != self.registry_id:
+            raise FractureExecutionError("observation topology/registry mismatch")
+        ids = tuple(_string(item, "physical_bond_id") for item in self.physical_bond_ids)
+        if ids != tuple(sorted(ids)) or len(set(ids)) != len(ids):
+            raise FractureExecutionError("physical_bond_ids must be canonical unique IDs")
+        object.__setattr__(self, "physical_bond_ids", ids)
+        alive = _bool_mapping(self.alive_mask, ids, "alive_mask")
+        ruptured = _bool_mapping(self.rupture_mask, ids, "rupture_mask")
+        prescribed = _bool_mapping(self.prescribed_removal_mask, ids, "prescribed_removal_mask")
+        for stable_id in ids:
+            if ruptured[stable_id] and prescribed[stable_id]:
+                raise FractureExecutionError("a physical bond cannot be ruptured and prescribed-removed")
+            if alive[stable_id] != (not ruptured[stable_id] and not prescribed[stable_id]):
+                raise FractureExecutionError("observation alive mask must complement terminal damage masks")
+        if tuple(stable_id for stable_id in ids if alive[stable_id]) != self.topology.alive_bond_ids:
+            raise FractureExecutionError("observation damage alive mask differs from physical topology")
+        object.__setattr__(self, "alive_mask", alive); object.__setattr__(self, "rupture_mask", ruptured); object.__setattr__(self, "prescribed_removal_mask", prescribed)
+        _string(self.law_id, "law_id")
+        if not isinstance(self.control, QuasiStaticControlStep):
+            raise FractureExecutionError("control must be a validated QuasiStaticControlStep")
+        _string(self.control_id, "control_id")
+        if (
+            self.control_id != self.control.control_id
+            or self.load_coordinate != self.control.lambda_load
+            or self.load_coordinate_unit != self.control.load_coordinate_unit
+            or self.path_progress != self.control.path_progress
+            or self.progress_unit != self.control.progress_unit
+            or self.reference_state_id != self.control.reference_state_id
+        ):
+            raise FractureExecutionError("observation scalar control fields differ from full control record")
+        object.__setattr__(self, "load_coordinate", _finite(self.load_coordinate, "load_coordinate"))
+        object.__setattr__(self, "path_progress", _finite(self.path_progress, "path_progress"))
+        if self.load_coordinate_unit not in _LOAD_UNITS or self.path_progress &lt; 0 or self.progress_unit != self.load_coordinate_unit:
+            raise FractureExecutionError("invalid path progress/unit")
+        _string(self.physics_profile_id, "physics_profile_id")
+        if _HASH_RE.fullmatch(self.physics_profile_hash) is None:
+            raise FractureExecutionError("physics_profile_hash must be sha256")
+        _string(self.reference_state_id, "reference_state_id")
+        if not isinstance(self.cell, Cell2D):
+            raise FractureExecutionError("cell must be Cell2D")
+        atom_ids = tuple(_integer(item, "solver_atom_id", minimum=1) for item in self.solver_atom_ids)
+        node_ids = tuple(_string(item, "stable_node_id") for item in self.stable_node_ids)
+        if (
+            atom_ids != tuple(sorted(atom_ids))
+            or len(set(atom_ids)) != len(atom_ids)
+            or len(atom_ids) != len(node_ids)
+            or len(set(node_ids)) != len(node_ids)
+            or set(node_ids) != set(self.topology.node_ids)
+        ):
+            raise FractureExecutionError("atom/stable-node rows must be unique and solver-tag ordered")
+        object.__setattr__(self, "solver_atom_ids", atom_ids); object.__setattr__(self, "stable_node_ids", node_ids)
+        object.__setattr__(self, "positions_nm", _array(self.positions_nm, (len(atom_ids), 2), "positions_nm"))
+        object.__setattr__(self, "forces_pN", _array(self.forces_pN, (len(atom_ids), 2), "forces_pN"))
+        expected_offsets = set(ids)
+        source = self._offsets(self.source_edge_image_offsets_n_ij, expected_offsets, "source_edge_image_offsets_n_ij")
+        current = self._offsets(self.current_edge_image_offsets_n_ij, set(self.topology.alive_bond_ids), "current_edge_image_offsets_n_ij")
+        object.__setattr__(self, "source_edge_image_offsets_n_ij", source); object.__setattr__(self, "current_edge_image_offsets_n_ij", current)
+        criteria = _float_mapping(self.criterion_values, "criterion_values")
+        if set(criteria) != set(self.topology.alive_bond_ids):
+            raise FractureExecutionError("criterion values must cover exact alive bonds")
+        object.__setattr__(self, "criterion_values", criteria)
+        _string(self.criterion_unit, "criterion_unit")
+        total_tension = _array(self.total_tension_pN_per_nm, (2, 2), "total_tension")
+        reference_tension = _array(self.reference_total_tension_pN_per_nm, (2, 2), "reference_total_tension")
+        incremental_tension = _array(self.incremental_tension_pN_per_nm, (2, 2), "incremental_tension")
+        if not np.allclose(incremental_tension, total_tension - reference_tension, rtol=0.0, atol=1e-12):
+&gt;           raise FractureExecutionError("incremental tension must equal total minus fixed reference tension within 1e-12 pN/nm")
+E           pgworld.simulation.fracture.FractureExecutionError: incremental tension must equal total minus fixed reference tension within 1e-12 pN/nm
+
+src\pgworld\simulation\fracture.py:351: FractureExecutionError</failure></testcase><testcase classname="tests.integration.test_fracture_cascade" name="test_failed_temporary_group_cleanup_remains_tracked_for_close_retry" time="0.002" /><testcase classname="tests.integration.test_fracture_cascade" name="test_tiny_lammps_fixture_rejects_periodicity_and_angle_selector_collisions_before_commands" time="0.070" /><testcase classname="tests.integration.test_fracture_cascade" name="test_observation_phase_law_and_masks_are_bound_to_requested_state" time="0.022" /><testcase classname="tests.integration.test_fracture_cascade" name="test_observation_cell_must_realize_scheduled_absolute_deformation" time="0.024" /><testcase classname="tests.integration.test_fracture_cascade" name="test_hidden_heterogeneous_field_is_sampled_once_replayable_and_never_observable" time="0.236" /><testcase classname="tests.integration.test_fracture_cascade" name="test_unimplemented_damage_criteria_fail_before_any_backend_command" time="0.022" /><testcase classname="tests.integration.test_fracture_cascade" name="test_cross_law_threshold_field_fails_before_any_backend_command" time="0.015" /><testcase classname="tests.integration.test_fracture_cascade" name="test_corrupted_restore_or_restore_exception_is_not_reported_as_successful_rollback" time="0.057" /><testcase classname="tests.integration.test_fracture_cascade" name="test_relaxation_budget_is_enforced_separately_from_event_budget" time="0.017" /><testcase classname="tests.integration.test_fracture_cascade" name="test_close_failure_is_explicit_incomplete_result" time="0.019" /></testsuite></testsuites>

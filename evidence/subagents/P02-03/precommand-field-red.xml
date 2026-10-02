@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.807" timestamp="2026-10-01T22:48:10.542561" hostname="MZoraiz_P15"><testcase classname="tests.integration.test_fracture_cascade" name="test_cross_law_threshold_field_fails_before_any_backend_command" time="0.023"><failure message="pgworld.physics.damage.DamageValidationError: threshold field does not belong to damage law">def test_cross_law_threshold_field_fails_before_any_backend_command() -&gt; None:
+        registry = _registry(); law, _, damage = _damage(registry)
+        foreign_law = replace(law, law_id="foreign-extension-law-v1", base_threshold=1.2)
+        foreign_field = materialize_thresholds(foreign_law, ("b12", "b23"))
+        forged_damage = replace(damage, threshold_realization_id=foreign_field.realization_id)
+        backend = FakeBackend(registry, [{"b12": 1.0, "b23": 1.0}])
+        with pytest.raises(FractureExecutionError, match="field|law|provenance"):
+&gt;           QuasiStaticFractureCascade(backend, registry, law, foreign_field, CascadeBudget(2)).run_step(
+                control=_control(), damage_state=forged_damage, topology_state=registry.initial_state
+            )
+
+tests\integration\test_fracture_cascade.py:894:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\simulation\fracture.py:999: in run_step
+    raise active_error
+src\pgworld\simulation\fracture.py:988: in run_step
+    outcome = self._execute(control, damage_state, topology_state)
+src\pgworld\simulation\fracture.py:1023: in _execute
+    assessment = self._assess(current_pre, current_damage, control)
+src\pgworld\simulation\fracture.py:1140: in _assess
+    return assess_material_rupture(self.law, self.field, damage, rows, phase="accepted_equilibrium", control_id=control.control_id, load_coordinate=control.lambda_load, load_coordinate_unit=control.load_coordinate_unit, path_progress=control.path_progress)
+src\pgworld\physics\damage.py:1288: in assess_material_rupture
+    _validate_law_field_state(law, threshold_field, state)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+law = DamageLaw(law_id='fixture-extension-v1', law_kind='deterministic_threshold', criterion='bond_extension_ratio', criteri...cal_not_experimentally_constrained_molecular_cleavage', threshold_sampling='sample_once_per_physical_bond_then_frozen')
+field = ThresholdField(realization_id='sha256:3521095189046c44dbbef4f245a8e8f5bda81d0afc8a0f01bc4e9ad63d354d98', law_id='forei...orld.quasistatic_damage.v1', threshold_sampling='sample_once_per_physical_bond_then_frozen', physical_time_valid=False)
+state = DamageState(law_id='fixture-extension-v1', law_fingerprint='sha256:14ca3e40ae9b01a3046211b4cf8a7b0bb56fa439935b3a5b1c3...': False}), accepted_material_event_ids=(), first_damage_event_id=None, schema_version='pgworld.quasistatic_damage.v1')
+
+    def _validate_law_field_state(
+        law: DamageLaw, field: ThresholdField, state: DamageState | None = None
+    ) -&gt; None:
+        if not isinstance(law, DamageLaw) or not isinstance(field, ThresholdField):
+            raise DamageValidationError("law and threshold field must be validated")
+        if field.law_id != law.law_id or field.law_fingerprint != law.fingerprint:
+&gt;           raise DamageValidationError("threshold field does not belong to damage law")
+E           pgworld.physics.damage.DamageValidationError: threshold field does not belong to damage law
+
+src\pgworld\physics\damage.py:814: DamageValidationError</failure></testcase></testsuite></testsuites>

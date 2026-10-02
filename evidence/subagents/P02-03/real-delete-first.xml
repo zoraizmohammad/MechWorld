@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="1.416" timestamp="2026-10-01T20:30:28.010305" hostname="MZoraiz_P15"><testcase classname="tests.integration.test_fracture_cascade" name="test_real_serial_lammps_removes_only_dependent_angle_and_exact_bond" time="0.036"><failure message="ModuleNotFoundError: No module named 'lammps'">tmp_path = WindowsPath('C:/Users/mzora/AppData/Local/Temp/pytest-of-mzora/pytest-235/test_real_serial_lammps_remove0')
+
+    def test_real_serial_lammps_removes_only_dependent_angle_and_exact_bond(tmp_path: Path) -&gt; None:
+        registry = _registry()
+&gt;       backend = LammpsFractureBackend.tiny_harmonic_fixture(
+            registry=registry,
+            profile=PROFILE,
+            work_directory=tmp_path,
+        )
+
+tests\integration\test_fracture_cascade.py:290:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+cls = &lt;class 'pgworld.simulation.fracture.LammpsFractureBackend'&gt;
+
+    @classmethod
+    def tiny_harmonic_fixture(cls, *, registry: TopologyRegistry, profile: Any, work_directory: Path) -&gt; "LammpsFractureBackend":
+&gt;       from lammps import lammps
+E       ModuleNotFoundError: No module named 'lammps'
+
+src\pgworld\simulation\fracture.py:899: ModuleNotFoundError</failure></testcase></testsuite></testsuites>

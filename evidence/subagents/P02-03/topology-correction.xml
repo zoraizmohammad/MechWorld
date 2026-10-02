@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="16" time="0.608" timestamp="2026-10-01T20:16:42.000913" hostname="MZoraiz_P15"><testcase classname="tests.unit.test_fracture_topology" name="test_explicit_non_nearest_signed_image_offset_is_authoritative_and_roundtrips" time="0.051" /><testcase classname="tests.unit.test_fracture_topology" name="test_registry_rejects_ambiguous_duplicate_endpoint_type_and_bad_displacement" time="0.002" /><testcase classname="tests.unit.test_fracture_topology" name="test_fixture_inference_rejects_half_cell_tie_and_long_edge_ambiguity" time="0.001" /><testcase classname="tests.unit.test_fracture_topology" name="test_exact_dependent_angles_are_removed_and_disconnected_nodes_are_retained" time="0.003" /><testcase classname="tests.unit.test_fracture_topology" name="test_angle_dependencies_must_be_exact_glycan_segments_and_angle_key_is_unambiguous" time="0.005" /><testcase classname="tests.unit.test_fracture_topology" name="test_registry_is_deterministic_under_row_reorder_and_nested_inputs_are_copied" time="0.002"><failure message="pgworld.simulation.topology.TopologyValidationError: source_wrapped_positions_nm['node-1'] is outside the periodic primary cell">def test_registry_is_deterministic_under_row_reorder_and_nested_inputs_are_copied() -&gt; None:
+        cell = Cell2D(((10.0, -2.0), (0.0, 8.0)), (-5.0, -2.0), (True, True))
+        raw_positions = {"node-1": [4.0, 3.0], "node-2": [-4.0, 3.0], "node-3": [-3.0, 3.0], "node-4": [0.0, -1.0]}
+        bonds = (
+            BondTopology("b12", "node-1", "node-2", 1, "glycan", (1, 0), (2.0, 0.0)),
+            BondTopology("b23", "node-2", "node-3", 1, "glycan", (0, 0), (1.0, 0.0)),
+        )
+        angle = AngleTopology("a123", ("node-1", "node-2", "node-3"), 1, ("b12", "b23"))
+&gt;       first = TopologyRegistry(cell, _nodes(), raw_positions, bonds, (angle,))
+
+tests\unit\test_fracture_topology.py:155:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;pgworld.simulation.topology.TopologyRegistry object at 0x000002903E2258C0&gt;
+cell = Cell2D(matrix_nm=array([[10., -2.],
+       [ 0.,  8.]]), origin_nm=array([-5., -2.]), periodic=(True, True))
+nodes = (NodeTopology(stable_node_id='node-1', solver_atom_id=1), NodeTopology(stable_node_id='node-2', solver_atom_id=2), NodeTopology(stable_node_id='node-3', solver_atom_id=3), NodeTopology(stable_node_id='node-4', solver_atom_id=4))
+source_wrapped_positions_nm = {'node-1': [4.0, 3.0], 'node-2': [-4.0, 3.0], 'node-3': [-3.0, 3.0], 'node-4': [0.0, -1.0]}
+bonds = (BondTopology(stable_bond_id='b12', node_i='node-1', node_j='node-2', solver_bond_type=1, chemical_type='glycan', imag...e_j='node-3', solver_bond_type=1, chemical_type='glycan', image_offset_n_ij=(0, 0), source_displacement_nm=(1.0, 0.0)))
+angles = (AngleTopology(stable_angle_id='a123', node_ids=('node-1', 'node-2', 'node-3'), solver_angle_type=1, dependent_bond_ids=('b12', 'b23')),)
+
+    def __init__(
+        self,
+        cell: Cell2D,
+        nodes: Sequence[NodeTopology],
+        source_wrapped_positions_nm: Mapping[str, object],
+        bonds: Sequence[BondTopology],
+        angles: Sequence[AngleTopology],
+    ) -&gt; None:
+        if not isinstance(cell, Cell2D):
+            raise TopologyValidationError("cell must be Cell2D")
+        if isinstance(nodes, (str, bytes, Mapping)) or isinstance(bonds, (str, bytes, Mapping)) or isinstance(angles, (str, bytes, Mapping)):
+            raise TopologyValidationError("topology rows must be sequences")
+        nodes = tuple(nodes); bonds = tuple(bonds); angles = tuple(angles)
+        if not nodes or any(not isinstance(row, NodeTopology) for row in nodes):
+            raise TopologyValidationError("nodes must contain NodeTopology rows")
+        if any(not isinstance(row, BondTopology) for row in bonds) or any(not isinstance(row, AngleTopology) for row in angles):
+            raise TopologyValidationError("bond/angle rows have invalid types")
+        node_ids = [node.stable_node_id for node in nodes]
+        atom_ids = [node.solver_atom_id for node in nodes]
+        if len(set(node_ids)) != len(node_ids) or len(set(atom_ids)) != len(atom_ids):
+            raise TopologyValidationError("duplicate node or solver atom ID")
+        positions_raw = source_wrapped_positions_nm
+        if not isinstance(positions_raw, Mapping) or any(not isinstance(key, str) for key in positions_raw) or set(positions_raw) != set(node_ids):
+            raise TopologyValidationError("source positions must cover exact node universe")
+        positions = {node_id: _finite_vector(positions_raw[node_id], 2, f"position[{node_id}]") for node_id in node_ids}
+        for node_id, position in positions.items():
+            fractional = np.linalg.solve(cell.matrix_nm, position - cell.origin_nm)
+            for axis, is_periodic in enumerate(cell.periodic):
+                if is_periodic and not (-_TOL &lt;= fractional[axis] &lt; 1.0 - _TOL):
+&gt;                   raise TopologyValidationError(f"source_wrapped_positions_nm[{node_id!r}] is outside the periodic primary cell")
+E                   pgworld.simulation.topology.TopologyValidationError: source_wrapped_positions_nm['node-1'] is outside the periodic primary cell
+
+src\pgworld\simulation\topology.py:336: TopologyValidationError</failure></testcase><testcase classname="tests.unit.test_fracture_topology" name="test_production_registry_allows_explicit_half_cell_branch_and_never_infers_it" time="0.003" /><testcase classname="tests.unit.test_fracture_topology" name="test_registry_replay_rejects_unknown_fields_and_hash_tampering" time="0.003" /><testcase classname="tests.unit.test_fracture_topology" name="test_registry_and_nested_record_are_immutable_after_identity_hashing" time="0.002" /><testcase classname="tests.unit.test_fracture_topology" name="test_state_rejects_alive_angle_with_dead_dependency_and_noncanonical_components" time="0.003" /><testcase classname="tests.unit.test_fracture_topology" name="test_registry_replay_rejects_duplicate_nested_rows_without_collapsing" time="0.002" /><testcase classname="tests.unit.test_fracture_topology" name="test_state_and_mutation_plan_have_strict_hash_bound_replay" time="0.002" /><testcase classname="tests.unit.test_fracture_topology" name="test_fixture_inference_validates_tolerance_and_rejects_skew_cell" time="0.001" /><testcase classname="tests.unit.test_fracture_topology" name="test_opaque_ids_fail_closed[]" time="0.002" /><testcase classname="tests.unit.test_fracture_topology" name="test_opaque_ids_fail_closed[  ]" time="0.001" /><testcase classname="tests.unit.test_fracture_topology" name="test_opaque_ids_fail_closed[node\n1]" time="0.001" /></testsuite></testsuites>

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="7" skipped="0" tests="17" time="2.404" timestamp="2026-10-01T20:25:35.162017" hostname="MZoraiz_P15"><testcase classname="tests.integration.test_fracture_cascade" name="test_transactional_cascade_deletes_exact_dependencies_reassesses_and_retains_fragments" time="0.061"><failure message="AssertionError: assert &lt;CascadeStatus.ROLLED_BACK: 'rolled_back'&gt; is &lt;CascadeStatus.STABLE: 'stable'&gt;&#10; +  where &lt;CascadeStatus.ROLLED_BACK: 'rolled_back'&gt; = CascadeResult(result_id='sha256:db2765fc3b5d857007cbb325dc5251dc7179083dc2f8d46555a9832af5b10d14', status=&lt;CascadeStat...a5', reference_state_id='fixture-fixed-reference', backend_closed=True, schema_version='pgworld.fracture_execution.v1').status&#10; +  and   &lt;CascadeStatus.STABLE: 'stable'&gt; = CascadeStatus.STABLE">def test_transactional_cascade_deletes_exact_dependencies_reassesses_and_retains_fragments() -&gt; None:
+        registry = _registry()
+        law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.30, "b23": 1.25}, {"b23": 1.25}, {}])
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(4)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+
+&gt;       assert result.status is CascadeStatus.STABLE
+E       AssertionError: assert &lt;CascadeStatus.ROLLED_BACK: 'rolled_back'&gt; is &lt;CascadeStatus.STABLE: 'stable'&gt;
+E        +  where &lt;CascadeStatus.ROLLED_BACK: 'rolled_back'&gt; = CascadeResult(result_id='sha256:db2765fc3b5d857007cbb325dc5251dc7179083dc2f8d46555a9832af5b10d14', status=&lt;CascadeStat...a5', reference_state_id='fixture-fixed-reference', backend_closed=True, schema_version='pgworld.fracture_execution.v1').status
+E        +  and   &lt;CascadeStatus.STABLE: 'stable'&gt; = CascadeStatus.STABLE
+
+tests\integration\test_fracture_cascade.py:194: AssertionError</failure></testcase><testcase classname="tests.integration.test_fracture_cascade" name="test_post_relax_failure_rolls_back_without_committing_event" time="0.045" /><testcase classname="tests.integration.test_fracture_cascade" name="test_budget_exhaustion_is_explicit_and_does_not_accept_a_stale_candidate" time="0.028"><failure message="AssertionError: assert &lt;CascadeStatus.ROLLED_BACK: 'rolled_back'&gt; is &lt;CascadeStatus.EVENT_BUDGET_EXHAUSTED: 'event_budget_exhausted'&gt;&#10; +  where &lt;CascadeStatus.ROLLED_BACK: 'rolled_back'&gt; = CascadeResult(result_id='sha256:db2765fc3b5d857007cbb325dc5251dc7179083dc2f8d46555a9832af5b10d14', status=&lt;CascadeStat...a5', reference_state_id='fixture-fixed-reference', backend_closed=True, schema_version='pgworld.fracture_execution.v1').status&#10; +  and   &lt;CascadeStatus.EVENT_BUDGET_EXHAUSTED: 'event_budget_exhausted'&gt; = CascadeStatus.EVENT_BUDGET_EXHAUSTED">def test_budget_exhaustion_is_explicit_and_does_not_accept_a_stale_candidate() -&gt; None:
+        registry = _registry()
+        law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.30, "b23": 1.25}, {"b23": 1.25}])
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(1)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+&gt;       assert result.status is CascadeStatus.EVENT_BUDGET_EXHAUSTED
+E       AssertionError: assert &lt;CascadeStatus.ROLLED_BACK: 'rolled_back'&gt; is &lt;CascadeStatus.EVENT_BUDGET_EXHAUSTED: 'event_budget_exhausted'&gt;
+E        +  where &lt;CascadeStatus.ROLLED_BACK: 'rolled_back'&gt; = CascadeResult(result_id='sha256:db2765fc3b5d857007cbb325dc5251dc7179083dc2f8d46555a9832af5b10d14', status=&lt;CascadeStat...a5', reference_state_id='fixture-fixed-reference', backend_closed=True, schema_version='pgworld.fracture_execution.v1').status
+E        +  and   &lt;CascadeStatus.EVENT_BUDGET_EXHAUSTED: 'event_budget_exhausted'&gt; = CascadeStatus.EVENT_BUDGET_EXHAUSTED
+
+tests\integration\test_fracture_cascade.py:230: AssertionError</failure></testcase><testcase classname="tests.integration.test_fracture_cascade" name="test_pressure_and_general_deformation_fail_before_backend_command" time="0.009" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[apply]" time="0.006" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[checkpoint]" time="0.014" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[delete_angle]" time="0.027" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[delete_bond]" time="0.035" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[observe]" time="0.039" /><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[audit]" time="0.021"><failure message="pgworld.simulation.fracture.FractureExecutionError: pre-step backend topology audit failed: injected audit failure">self = &lt;test_fracture_cascade.FakeBackend object at 0x000001DBA7CD5B90&gt;
+topology_state = TopologyState(registry_id='sha256:4582797a4e0338f24e13207d313f09bd83bd5f66e0f6a4a94b867820d2724bbe', node_ids=('n1', 'n2', 'n3', 'n4'), alive_bond_ids=('b12', 'b23'), alive_angle_ids=('a123',), components=(('n1', 'n2', 'n3'), ('n4',)))
+
+    def audit_topology(self, topology_state):
+&gt;       if self.fail_at == "audit": raise FractureExecutionError("injected audit failure")
+E       pgworld.simulation.fracture.FractureExecutionError: injected audit failure
+
+tests\integration\test_fracture_cascade.py:167: FractureExecutionError
+
+The above exception was the direct cause of the following exception:
+
+failure_point = 'audit'
+
+    @pytest.mark.parametrize(
+        "failure_point",
+        ["apply", "checkpoint", "delete_angle", "delete_bond", "observe", "audit", "relax:post_event_relaxed"],
+    )
+    def test_backend_phase_failures_close_and_partial_mutation_rolls_back(failure_point: str) -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}], fail_at=failure_point)
+        if failure_point in {"apply", "checkpoint"}:
+            with pytest.raises(FractureExecutionError):
+                QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+                    control=_control(), damage_state=damage, topology_state=registry.initial_state
+                )
+        else:
+&gt;           result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+                control=_control(), damage_state=damage, topology_state=registry.initial_state
+            )
+
+tests\integration\test_fracture_cascade.py:303:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\simulation\fracture.py:687: in run_step
+    raise active_error
+src\pgworld\simulation\fracture.py:676: in run_step
+    outcome = self._execute(control, damage_state, topology_state)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;pgworld.simulation.fracture.QuasiStaticFractureCascade object at 0x000001DBA7E36090&gt;
+control = QuasiStaticControlStep(control_id='axial:000001', step_index=1, control_kind='deformation_gradient', loading_mode='axi...ne, incremental_tension_target_pN_per_nm=None, pressure_derivation=None, physical_time=None, physical_time_valid=False)
+damage_state = DamageState(law_id='fixture-extension-v1', law_fingerprint='sha256:14ca3e40ae9b01a3046211b4cf8a7b0bb56fa439935b3a5b1c3...': False}), accepted_material_event_ids=(), first_damage_event_id=None, schema_version='pgworld.quasistatic_damage.v1')
+topology_state = TopologyState(registry_id='sha256:4582797a4e0338f24e13207d313f09bd83bd5f66e0f6a4a94b867820d2724bbe', node_ids=('n1', 'n2', 'n3', 'n4'), alive_bond_ids=('b12', 'b23'), alive_angle_ids=('a123',), components=(('n1', 'n2', 'n3'), ('n4',)))
+
+    def _execute(self, control: QuasiStaticControlStep, damage_state: DamageState, topology_state: TopologyState) -&gt; dict[str, object]:
+        self._validate_before_commands(control, damage_state, topology_state)
+        try: self.backend.audit_topology(topology_state)
+&gt;       except Exception as error: raise FractureExecutionError(f"pre-step backend topology audit failed: {error}") from error
+E       pgworld.simulation.fracture.FractureExecutionError: pre-step backend topology audit failed: injected audit failure
+
+src\pgworld\simulation\fracture.py:700: FractureExecutionError</failure></testcase><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_phase_failures_close_and_partial_mutation_rolls_back[relax:post_event_relaxed]" time="0.036" /><testcase classname="tests.integration.test_fracture_cascade" name="test_observable_pre_event_record_recursively_excludes_privileged_and_future_information" time="0.033"><failure message="IndexError: tuple index out of range">def test_observable_pre_event_record_recursively_excludes_privileged_and_future_information() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}, {"b23": 1.0}])
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+&gt;       observed = result.transitions[0].as_observable_record()
+E       IndexError: tuple index out of range
+
+tests\integration\test_fracture_cascade.py:328: IndexError</failure></testcase><testcase classname="tests.integration.test_fracture_cascade" name="test_backend_observation_copies_and_remaps_solver_rows_by_atom_tag" time="0.005" /><testcase classname="tests.integration.test_fracture_cascade" name="test_nonconverged_normal_return_is_diagnostic_not_rupture_or_instability" time="0.016"><failure message="pgworld.simulation.fracture.FractureExecutionError: observation_id does not match observation record">def test_nonconverged_normal_return_is_diagnostic_not_rupture_or_instability() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}])
+        original = backend.relax_and_observe
+        def nonconverged(**kwargs):
+            observation = original(**kwargs)
+            return replace(observation, convergence=ConvergenceDiagnostics.rejected("max_iterations", 1e-2, 100, 100))
+        backend.relax_and_observe = nonconverged
+&gt;       result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+
+tests\integration\test_fracture_cascade.py:369:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\simulation\fracture.py:687: in run_step
+    raise active_error
+src\pgworld\simulation\fracture.py:676: in run_step
+    outcome = self._execute(control, damage_state, topology_state)
+src\pgworld\simulation\fracture.py:702: in _execute
+    pre = self.backend.relax_and_observe(phase="pre_delete_relaxed", control=control, topology_state=topology_state, damage_state=damage_state)
+tests\integration\test_fracture_cascade.py:367: in nonconverged
+    return replace(observation, convergence=ConvergenceDiagnostics.rejected("max_iterations", 1e-2, 100, 100))
+..\AppData\Local\Programs\Python\Python311\Lib\dataclasses.py:1503: in replace
+    return obj.__class__(**changes)
+&lt;string&gt;:37: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = BackendObservation(observation_id='sha256:323d76a7b71115db65b578668197f1ac24350686b8fff6debcf1201654450a09', phase='pr...ual_tolerance_pN=1e-08), physical_time=None, physical_time_valid=False, schema_version='pgworld.fracture_execution.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != FRACTURE_SCHEMA_VERSION or self.phase not in _PHASES:
+            raise FractureExecutionError("invalid observation schema or phase")
+        if _HASH_RE.fullmatch(self.registry_id) is None or _HASH_RE.fullmatch(self.damage_state_id) is None:
+            raise FractureExecutionError("observation identities must be sha256 digests")
+        if not isinstance(self.topology, TopologyState) or self.topology.registry_id != self.registry_id:
+            raise FractureExecutionError("observation topology/registry mismatch")
+        ids = tuple(_string(item, "physical_bond_id") for item in self.physical_bond_ids)
+        if ids != tuple(sorted(ids)) or len(set(ids)) != len(ids):
+            raise FractureExecutionError("physical_bond_ids must be canonical unique IDs")
+        object.__setattr__(self, "physical_bond_ids", ids)
+        alive = _bool_mapping(self.alive_mask, ids, "alive_mask")
+        ruptured = _bool_mapping(self.rupture_mask, ids, "rupture_mask")
+        prescribed = _bool_mapping(self.prescribed_removal_mask, ids, "prescribed_removal_mask")
+        if tuple(stable_id for stable_id in ids if alive[stable_id]) != self.topology.alive_bond_ids:
+            raise FractureExecutionError("observation damage alive mask differs from physical topology")
+        object.__setattr__(self, "alive_mask", alive); object.__setattr__(self, "rupture_mask", ruptured); object.__setattr__(self, "prescribed_removal_mask", prescribed)
+        _string(self.law_id, "law_id"); _string(self.control_id, "control_id")
+        object.__setattr__(self, "load_coordinate", _finite(self.load_coordinate, "load_coordinate"))
+        object.__setattr__(self, "path_progress", _finite(self.path_progress, "path_progress"))
+        if self.path_progress &lt; 0 or self.progress_unit != self.load_coordinate_unit:
+            raise FractureExecutionError("invalid path progress/unit")
+        _string(self.physics_profile_id, "physics_profile_id")
+        if _HASH_RE.fullmatch(self.physics_profile_hash) is None:
+            raise FractureExecutionError("physics_profile_hash must be sha256")
+        _string(self.reference_state_id, "reference_state_id")
+        if not isinstance(self.cell, Cell2D):
+            raise FractureExecutionError("cell must be Cell2D")
+        atom_ids = tuple(_integer(item, "solver_atom_id", minimum=1) for item in self.solver_atom_ids)
+        node_ids = tuple(_string(item, "stable_node_id") for item in self.stable_node_ids)
+        if atom_ids != tuple(sorted(atom_ids)) or len(set(atom_ids)) != len(atom_ids) or len(atom_ids) != len(node_ids):
+            raise FractureExecutionError("atom rows must be unique and solver-tag ordered")
+        object.__setattr__(self, "solver_atom_ids", atom_ids); object.__setattr__(self, "stable_node_ids", node_ids)
+        object.__setattr__(self, "positions_nm", _array(self.positions_nm, (len(atom_ids), 2), "positions_nm"))
+        object.__setattr__(self, "forces_pN", _array(self.forces_pN, (len(atom_ids), 2), "forces_pN"))
+        expected_offsets = set(ids)
+        source = self._offsets(self.source_edge_image_offsets_n_ij, expected_offsets, "source_edge_image_offsets_n_ij")
+        current = self._offsets(self.current_edge_image_offsets_n_ij, set(self.topology.alive_bond_ids), "current_edge_image_offsets_n_ij")
+        object.__setattr__(self, "source_edge_image_offsets_n_ij", source); object.__setattr__(self, "current_edge_image_offsets_n_ij", current)
+        criteria = _float_mapping(self.criterion_values, "criterion_values")
+        if set(criteria) != set(self.topology.alive_bond_ids):
+            raise FractureExecutionError("criterion values must cover exact alive bonds")
+        object.__setattr__(self, "criterion_values", criteria)
+        _string(self.criterion_unit, "criterion_unit")
+        object.__setattr__(self, "total_tension_pN_per_nm", _array(self.total_tension_pN_per_nm, (2, 2), "total_tension"))
+        object.__setattr__(self, "incremental_tension_pN_per_nm", _array(self.incremental_tension_pN_per_nm, (2, 2), "incremental_tension"))
+        energies = _float_mapping(self.raw_energies_pN_nm, "raw_energies_pN_nm")
+        if not {"pe", "ebond", "eangle"} &lt;= set(energies):
+            raise FractureExecutionError("raw energy record requires pe, ebond, and eangle")
+        object.__setattr__(self, "raw_energies_pN_nm", energies)
+        if not isinstance(self.convergence, ConvergenceDiagnostics):
+            raise FractureExecutionError("convergence must be validated")
+        if self.phase in _RELAXED_PHASES and not self.convergence.accepted:
+            pass
+        if self.phase == "post_delete_unrelaxed" and self.convergence.accepted:
+            raise FractureExecutionError("unrelaxed observation cannot claim accepted convergence")
+        if self.physical_time is not None or self.physical_time_valid is not False:
+            raise FractureExecutionError("quasi-static observation cannot carry physical time")
+        if self.observation_id != _hash(self._body()):
+&gt;           raise FractureExecutionError("observation_id does not match observation record")
+E           pgworld.simulation.fracture.FractureExecutionError: observation_id does not match observation record
+
+src\pgworld\simulation\fracture.py:282: FractureExecutionError</failure></testcase><testcase classname="tests.integration.test_fracture_cascade" name="test_initial_violation_no_candidate_and_prescribed_removal_do_not_become_material_events" time="0.028"><failure message="pgworld.simulation.fracture.FractureExecutionError: invalid reference: initial threshold violation">def test_initial_violation_no_candidate_and_prescribed_removal_do_not_become_material_events() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        invalid = initialize_damage_state(
+            law, field,
+            [CriterionObservation("b12", law.criterion, law.criterion_unit, 1.2), CriterionObservation("b23", law.criterion, law.criterion_unit, 1.0)],
+        )
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}])
+&gt;       result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=invalid, topology_state=registry.initial_state
+        )
+
+tests\integration\test_fracture_cascade.py:385:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\simulation\fracture.py:687: in run_step
+    raise active_error
+src\pgworld\simulation\fracture.py:676: in run_step
+    outcome = self._execute(control, damage_state, topology_state)
+src\pgworld\simulation\fracture.py:698: in _execute
+    self._validate_before_commands(control, damage_state, topology_state)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;pgworld.simulation.fracture.QuasiStaticFractureCascade object at 0x000001DBA7D64C10&gt;
+control = QuasiStaticControlStep(control_id='axial:000001', step_index=1, control_kind='deformation_gradient', loading_mode='axi...ne, incremental_tension_target_pN_per_nm=None, pressure_derivation=None, physical_time=None, physical_time_valid=False)
+damage = DamageState(law_id='fixture-extension-v1', law_fingerprint='sha256:14ca3e40ae9b01a3046211b4cf8a7b0bb56fa439935b3a5b1c3...': False}), accepted_material_event_ids=(), first_damage_event_id=None, schema_version='pgworld.quasistatic_damage.v1')
+topology = TopologyState(registry_id='sha256:4582797a4e0338f24e13207d313f09bd83bd5f66e0f6a4a94b867820d2724bbe', node_ids=('n1', 'n2', 'n3', 'n4'), alive_bond_ids=('b12', 'b23'), alive_angle_ids=('a123',), components=(('n1', 'n2', 'n3'), ('n4',)))
+
+    def _validate_before_commands(self, control: QuasiStaticControlStep, damage: DamageState, topology: TopologyState) -&gt; None:
+        if not isinstance(control, QuasiStaticControlStep) or not isinstance(damage, DamageState) or not isinstance(topology, TopologyState):
+            raise FractureExecutionError("validated control/damage/topology objects are required")
+        self.registry.validate_state(topology)
+        if damage.has_initial_threshold_violation:
+&gt;           raise FractureExecutionError("invalid reference: initial threshold violation")
+E           pgworld.simulation.fracture.FractureExecutionError: invalid reference: initial threshold violation
+
+src\pgworld\simulation\fracture.py:750: FractureExecutionError</failure></testcase><testcase classname="tests.integration.test_fracture_cascade" name="test_zero_budget_terminates_without_mutation_or_zero_progress_repeat" time="0.046" /><testcase classname="tests.integration.test_fracture_cascade" name="test_public_record_replay_rejects_tampering_and_cross_object_forgery" time="0.055"><failure message="IndexError: tuple index out of range">def test_public_record_replay_rejects_tampering_and_cross_object_forgery() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}, {"b23": 1.0}])
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+        assert CascadeResult.from_record(result.as_record()).as_record() == result.as_record()
+&gt;       transition = result.transitions[0]
+E       IndexError: tuple index out of range
+
+tests\integration\test_fracture_cascade.py:421: IndexError</failure></testcase></testsuite></testsuites>

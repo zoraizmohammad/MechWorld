@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.737" timestamp="2026-10-01T22:42:30.775092" hostname="MZoraiz_P15"><testcase classname="tests.integration.test_fracture_cascade" name="test_real_lammps_engine_runs_end_to_end_and_preserves_cell_atoms_offsets_and_group_cleanup" time="0.145"><failure message="TypeError: Object of type mappingproxy is not JSON serializable">tmp_path = WindowsPath('C:/Users/mzora/AppData/Local/Temp/pytest-of-mzora/pytest-242/test_real_lammps_engine_runs_e0')
+
+    def test_real_lammps_engine_runs_end_to_end_and_preserves_cell_atoms_offsets_and_group_cleanup(tmp_path: Path) -&gt; None:
+        registry = _periodic_crossing_registry(); law, _, _ = _damage(registry)
+        backend = LammpsFractureBackend.tiny_harmonic_fixture(registry=registry, profile=PROFILE, work_directory=tmp_path)
+        reference_values = dict(backend.fixed_reference_criterion_values)
+        assert backend.fixed_reference_convergence.accepted is True
+        np.testing.assert_allclose(backend.fixed_reference_cell.matrix_nm, registry.cell.matrix_nm, rtol=0.0, atol=1e-12)
+        np.testing.assert_allclose([reference_values["b12"], reference_values["b23"]], (1.0, 1.0), rtol=0.0, atol=1e-10)
+        assert max(reference_values.values()) &lt; law.base_threshold
+        field = materialize_thresholds(law, ["b12", "b23"])
+        damage = initialize_damage_state(
+            law, field,
+            [CriterionObservation(bond_id, law.criterion, law.criterion_unit, value) for bond_id, value in reference_values.items()],
+        )
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(4)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+        assert result.status is CascadeStatus.STABLE
+        assert len(result.transitions) == 1
+        assert result.transitions[0].material_event.physical_bond_id == "b12"
+        assert result.final_snapshot.solver_atom_ids == (1, 2, 3)
+        assert result.topology_state.alive_bond_ids == ("b23",)
+        assert result.topology_state.alive_angle_ids == ()
+        assert result.topology_state.components == (("n1",), ("n2", "n3"))
+        for transition in result.transitions:
+            np.testing.assert_allclose(transition.pre_delete_raw.cell.matrix_nm, transition.post_delete_unrelaxed.cell.matrix_nm)
+            np.testing.assert_allclose(transition.post_delete_unrelaxed.cell.matrix_nm, transition.post_event_relaxed.cell.matrix_nm)
+            np.testing.assert_allclose(transition.pre_delete_raw.cell.matrix_nm, ((14.4, 0.0), (0.0, 10.0)), rtol=0.0, atol=1e-10)
+            assert np.isfinite(list(transition.pre_delete_raw.raw_energies_pN_nm.values())).all()
+            assert np.isfinite(transition.pre_delete_raw.total_tension_pN_per_nm).all()
+            assert transition.pre_delete_raw.convergence.accepted is True
+            assert transition.post_event_relaxed.convergence.accepted is True
+            np.testing.assert_allclose(
+                [transition.pre_delete_raw.criterion_values["b12"], transition.pre_delete_raw.criterion_values["b23"]],
+                (1.2, 1.2), rtol=0.0, atol=1e-9,
+            )
+            assert transition.pre_delete_raw.current_edge_image_offsets_n_ij["b12"] == (1, 0)
+            assert transition.pre_delete_raw.source_edge_image_offsets_n_ij["b12"] == (1, 0)
+            boundary = transition.pre_delete_raw.boundary_conditions
+            assert boundary["kind"] == "fixture_only_fixed_endpoints_after_affine_cell_remap"
+            assert tuple(boundary["anchored_stable_node_ids"]) == ("n1", "n3")
+            assert tuple(boundary["anchored_solver_atom_ids"]) == (1, 3)
+            assert tuple(boundary["constrained_components"]) == ("x", "y")
+            assert boundary["reaction_forces_recorded"] is False
+            assert boundary["node_force_scope"] == "post_constraint_reactions_excluded"
+            assert boundary["convergence_residual_scope"] == "free_degrees_of_freedom_post_constraint"
+&gt;           assert _plain_boundary(transition.post_delete_unrelaxed.boundary_conditions) == _plain_boundary(boundary)
+
+tests\integration\test_fracture_cascade.py:879:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+tests\integration\test_fracture_cascade.py:366: in _plain_boundary
+    return json.loads(json.dumps(value))
+..\AppData\Local\Programs\Python\Python311\Lib\json\__init__.py:231: in dumps
+    return _default_encoder.encode(obj)
+..\AppData\Local\Programs\Python\Python311\Lib\json\encoder.py:200: in encode
+    chunks = self.iterencode(o, _one_shot=True)
+..\AppData\Local\Programs\Python\Python311\Lib\json\encoder.py:258: in iterencode
+    return _iterencode(o, 0)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;json.encoder.JSONEncoder object at 0x000001E74676AD10&gt;
+o = mappingproxy({'kind': 'fixture_only_fixed_endpoints_after_affine_cell_remap', 'anchored_stable_node_ids': ('n1', 'n3')...scope': 'post_constraint_reactions_excluded', 'convergence_residual_scope': 'free_degrees_of_freedom_post_constraint'})
+
+    def default(self, o):
+        """Implement this method in a subclass such that it returns
+        a serializable object for ``o``, or calls the base implementation
+        (to raise a ``TypeError``).
+
+        For example, to support arbitrary iterators, you could
+        implement default like this::
+
+            def default(self, o):
+                try:
+                    iterable = iter(o)
+                except TypeError:
+                    pass
+                else:
+                    return list(iterable)
+                # Let the base class default method raise the TypeError
+                return super().default(o)
+
+        """
+&gt;       raise TypeError(f'Object of type {o.__class__.__name__} '
+                        f'is not JSON serializable')
+E       TypeError: Object of type mappingproxy is not JSON serializable
+
+..\AppData\Local\Programs\Python\Python311\Lib\json\encoder.py:180: TypeError</failure></testcase></testsuite></testsuites>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.631" timestamp="2026-10-01T22:53:44.587842" hostname="MZoraiz_P15"><testcase classname="tests.integration.test_fracture_cascade" name="test_invalid_reference_result_replay_still_binds_reference_and_supported_control" time="0.022"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;">def test_invalid_reference_result_replay_still_binds_reference_and_supported_control() -&gt; None:
+        registry = _registry(); law, field, _ = _damage(registry)
+        invalid = initialize_damage_state(
+            law, field,
+            [CriterionObservation("b12", law.criterion, law.criterion_unit, 1.2), CriterionObservation("b23", law.criterion, law.criterion_unit, 1.0)],
+        )
+        result = QuasiStaticFractureCascade(FakeBackend(registry, []), registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=invalid, topology_state=registry.initial_state
+        )
+        assert result.status is CascadeStatus.INVALID_REFERENCE and result.final_snapshot is None
+        record = result.as_record()
+        record["control"]["reference_state_id"] = "forged-reference"
+        _rehash_record_body(record, "result_id")
+&gt;       with pytest.raises(FractureExecutionError, match="reference|control"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.fracture.FractureExecutionError'&gt;
+
+tests\integration\test_fracture_cascade.py:736: Failed</failure></testcase></testsuite></testsuites>

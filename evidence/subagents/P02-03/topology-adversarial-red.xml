@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="15" time="1.424" timestamp="2026-10-01T20:14:20.601296" hostname="MZoraiz_P15"><testcase classname="tests.unit.test_fracture_topology" name="test_explicit_non_nearest_signed_image_offset_is_authoritative_and_roundtrips" time="0.003"><failure message="pgworld.simulation.topology.TopologyValidationError: bond source displacement disagrees with x_j-x_i+H@n_ij">def test_explicit_non_nearest_signed_image_offset_is_authoritative_and_roundtrips() -&gt; None:
+        cell = _cell()
+        positions = {
+            "node-1": (0.0, 0.0),
+            "node-2": (1.0, 0.0),
+            "node-3": (2.0, 0.0),
+            "node-4": (3.0, 0.0),
+        }
+        expected = np.array((21.0, 8.0))
+&gt;       registry = TopologyRegistry(
+            cell=cell,
+            nodes=_nodes(),
+            source_wrapped_positions_nm=positions,
+            bonds=(
+                BondTopology(
+                    stable_bond_id="bond-long",
+                    node_i="node-1",
+                    node_j="node-2",
+                    solver_bond_type=7,
+                    chemical_type="glycan",
+                    image_offset_n_ij=(2, 1),
+                    source_displacement_nm=tuple(expected),
+                ),
+            ),
+            angles=(),
+        )
+
+tests\unit\test_fracture_topology.py:40:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = &lt;pgworld.simulation.topology.TopologyRegistry object at 0x000001EB600D4E50&gt;
+cell = Cell2D(matrix_nm=array([[10.,  2.],
+       [ 0.,  8.]]), origin_nm=array([-1., -2.]), periodic=(True, True))
+nodes = (NodeTopology(stable_node_id='node-1', solver_atom_id=1), NodeTopology(stable_node_id='node-2', solver_atom_id=2), NodeTopology(stable_node_id='node-3', solver_atom_id=3), NodeTopology(stable_node_id='node-4', solver_atom_id=4))
+source_wrapped_positions_nm = {'node-1': (0.0, 0.0), 'node-2': (1.0, 0.0), 'node-3': (2.0, 0.0), 'node-4': (3.0, 0.0)}
+bonds = (BondTopology(stable_bond_id='bond-long', node_i='node-1', node_j='node-2', solver_bond_type=7, chemical_type='glycan', image_offset_n_ij=(2, 1), source_displacement_nm=(21.0, 8.0)),)
+angles = ()
+
+    def __init__(
+        self,
+        cell: Cell2D,
+        nodes: Sequence[NodeTopology],
+        source_wrapped_positions_nm: Mapping[str, object],
+        bonds: Sequence[BondTopology],
+        angles: Sequence[AngleTopology],
+    ) -&gt; None:
+        if not isinstance(cell, Cell2D):
+            raise TopologyValidationError("cell must be Cell2D")
+        if isinstance(nodes, (str, bytes, Mapping)) or isinstance(bonds, (str, bytes, Mapping)) or isinstance(angles, (str, bytes, Mapping)):
+            raise TopologyValidationError("topology rows must be sequences")
+        nodes = tuple(nodes); bonds = tuple(bonds); angles = tuple(angles)
+        if not nodes or any(not isinstance(row, NodeTopology) for row in nodes):
+            raise TopologyValidationError("nodes must contain NodeTopology rows")
+        if any(not isinstance(row, BondTopology) for row in bonds) or any(not isinstance(row, AngleTopology) for row in angles):
+            raise TopologyValidationError("bond/angle rows have invalid types")
+        node_ids = [node.stable_node_id for node in nodes]
+        atom_ids = [node.solver_atom_id for node in nodes]
+        if len(set(node_ids)) != len(node_ids) or len(set(atom_ids)) != len(atom_ids):
+            raise TopologyValidationError("duplicate node or solver atom ID")
+        positions_raw = source_wrapped_positions_nm
+        if not isinstance(positions_raw, Mapping) or any(not isinstance(key, str) for key in positions_raw) or set(positions_raw) != set(node_ids):
+            raise TopologyValidationError("source positions must cover exact node universe")
+        positions = {node_id: _finite_vector(positions_raw[node_id], 2, f"position[{node_id}]") for node_id in node_ids}
+        bond_ids = [bond.stable_bond_id for bond in bonds]
+        if len(set(bond_ids)) != len(bond_ids):
+            raise TopologyValidationError("duplicate stable bond ID")
+        ambiguous_bonds: set[tuple[frozenset[str], int]] = set()
+        for bond in bonds:
+            if bond.node_i not in positions or bond.node_j not in positions:
+                raise TopologyValidationError("bond references unknown node")
+            key = (frozenset((bond.node_i, bond.node_j)), bond.solver_bond_type)
+            if key in ambiguous_bonds:
+                raise TopologyValidationError("ambiguous duplicate bond endpoint/type topology")
+            ambiguous_bonds.add(key)
+            reconstructed = positions[bond.node_j] - positions[bond.node_i] + cell.matrix_nm @ np.asarray(bond.image_offset_n_ij, dtype=float)
+            if not np.allclose(reconstructed, bond.source_displacement_nm, rtol=0.0, atol=_TOL):
+&gt;               raise TopologyValidationError("bond source displacement disagrees with x_j-x_i+H@n_ij")
+E               pgworld.simulation.topology.TopologyValidationError: bond source displacement disagrees with x_j-x_i+H@n_ij
+
+src\pgworld\simulation\topology.py:256: TopologyValidationError</failure></testcase><testcase classname="tests.unit.test_fracture_topology" name="test_registry_rejects_ambiguous_duplicate_endpoint_type_and_bad_displacement" time="0.004" /><testcase classname="tests.unit.test_fracture_topology" name="test_fixture_inference_rejects_half_cell_tie_and_long_edge_ambiguity" time="0.009" /><testcase classname="tests.unit.test_fracture_topology" name="test_exact_dependent_angles_are_removed_and_disconnected_nodes_are_retained" time="0.003" /><testcase classname="tests.unit.test_fracture_topology" name="test_angle_dependencies_must_be_exact_glycan_segments_and_angle_key_is_unambiguous" time="0.009" /><testcase classname="tests.unit.test_fracture_topology" name="test_registry_is_deterministic_under_row_reorder_and_nested_inputs_are_copied" time="0.004" /><testcase classname="tests.unit.test_fracture_topology" name="test_production_registry_allows_explicit_half_cell_branch_and_never_infers_it" time="0.140" /><testcase classname="tests.unit.test_fracture_topology" name="test_registry_replay_rejects_unknown_fields_and_hash_tampering" time="0.006" /><testcase classname="tests.unit.test_fracture_topology" name="test_registry_and_nested_record_are_immutable_after_identity_hashing" time="0.005"><failure message="Failed: DID NOT RAISE (&lt;class 'AttributeError'&gt;, &lt;class 'TypeError'&gt;)">def test_registry_and_nested_record_are_immutable_after_identity_hashing() -&gt; None:
+        registry = TopologyRegistry(
+            _cell(), _nodes(),
+            {"node-1": (0.0, 0.0), "node-2": (1.0, 0.0), "node-3": (2.0, 0.0), "node-4": (3.0, 0.0)},
+            (BondTopology("b", "node-1", "node-2", 1, "glycan", (0, 0), (1.0, 0.0)),), (),
+        )
+        identity = registry.registry_id
+&gt;       with pytest.raises((AttributeError, TypeError)):
+E       Failed: DID NOT RAISE (&lt;class 'AttributeError'&gt;, &lt;class 'TypeError'&gt;)
+
+tests\unit\test_fracture_topology.py:201: Failed</failure></testcase><testcase classname="tests.unit.test_fracture_topology" name="test_state_rejects_alive_angle_with_dead_dependency_and_noncanonical_components" time="0.005"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.topology.TopologyValidationError'&gt;">def test_state_rejects_alive_angle_with_dead_dependency_and_noncanonical_components() -&gt; None:
+        cell = Cell2D(((10.0, 0.0), (0.0, 10.0)), (0.0, 0.0), (True, True))
+        registry = TopologyRegistry(
+            cell, _nodes(),
+            {"node-1": (0.0, 0.0), "node-2": (1.0, 0.0), "node-3": (2.0, 0.0), "node-4": (3.0, 0.0)},
+            (
+                BondTopology("b12", "node-1", "node-2", 1, "glycan", (0, 0), (1.0, 0.0)),
+                BondTopology("b23", "node-2", "node-3", 1, "glycan", (0, 0), (1.0, 0.0)),
+            ),
+            (AngleTopology("a123", ("node-1", "node-2", "node-3"), 1, ("b12", "b23")),),
+        )
+        forged = TopologyState(
+            registry.registry_id,
+            registry.initial_state.node_ids,
+            ("b23",),
+            ("a123",),
+            (("node-1",), ("node-2", "node-3"), ("node-4",)),
+        )
+&gt;       with pytest.raises(TopologyValidationError, match="depend"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.topology.TopologyValidationError'&gt;
+
+tests\unit\test_fracture_topology.py:226: Failed</failure></testcase><testcase classname="tests.unit.test_fracture_topology" name="test_registry_replay_rejects_duplicate_nested_rows_without_collapsing" time="0.004"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.simulation.topology.TopologyValidationError'&gt;">def test_registry_replay_rejects_duplicate_nested_rows_without_collapsing() -&gt; None:
+        registry = TopologyRegistry(
+            _cell(), _nodes(),
+            {"node-1": (0.0, 0.0), "node-2": (1.0, 0.0), "node-3": (2.0, 0.0), "node-4": (3.0, 0.0)},
+            (BondTopology("b", "node-1", "node-2", 1, "glycan", (0, 0), (1.0, 0.0)),), (),
+        )
+        record = registry.as_record()
+        record["source_wrapped_positions_nm"].append(dict(record["source_wrapped_positions_nm"][0]))
+&gt;       with pytest.raises(TopologyValidationError, match="duplicate"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.simulation.topology.TopologyValidationError'&gt;
+
+tests\unit\test_fracture_topology.py:246: Failed</failure></testcase><testcase classname="tests.unit.test_fracture_topology" name="test_state_and_mutation_plan_have_strict_hash_bound_replay" time="0.005"><failure message="AttributeError: type object 'TopologyState' has no attribute 'from_record'">def test_state_and_mutation_plan_have_strict_hash_bound_replay() -&gt; None:
+        registry = TopologyRegistry(
+            _cell(), _nodes(),
+            {"node-1": (0.0, 0.0), "node-2": (1.0, 0.0), "node-3": (2.0, 0.0), "node-4": (3.0, 0.0)},
+            (BondTopology("b", "node-1", "node-2", 1, "glycan", (0, 0), (1.0, 0.0)),), (),
+        )
+&gt;       state = TopologyState.from_record(registry.initial_state.as_record())
+E       AttributeError: type object 'TopologyState' has no attribute 'from_record'
+
+tests\unit\test_fracture_topology.py:256: AttributeError</failure></testcase><testcase classname="tests.unit.test_fracture_topology" name="test_opaque_ids_fail_closed[]" time="0.003" /><testcase classname="tests.unit.test_fracture_topology" name="test_opaque_ids_fail_closed[  ]" time="0.002" /><testcase classname="tests.unit.test_fracture_topology" name="test_opaque_ids_fail_closed[node\n1]" time="0.003" /></testsuite></testsuites>

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="10" failures="0" skipped="0" tests="10" time="7.218" timestamp="2026-10-01T23:00:30.579806" hostname="MZoraiz_P15"><testcase classname="" name="test.test_glycan_orientation" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-03\test\test_glycan_orientation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+test\test_glycan_orientation.py:9: in &lt;module&gt;
+    from lammps_PG_objects import *
+src\lammps_PG_objects.py:6: in &lt;module&gt;
+    from utils_helpers import get_angle_between_vectors;
+src\utils_helpers.py:2: in &lt;module&gt;
+    import pandas as pd
+E   ModuleNotFoundError: No module named 'pandas'</error></testcase><testcase classname="" name="test.test_nonlinear_inverse" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-03\test\test_nonlinear_inverse.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+test\test_nonlinear_inverse.py:8: in &lt;module&gt;
+    from lammps_PG_objects import inv_peptide_energy_lammps, peptide_energy_lammps
+src\lammps_PG_objects.py:6: in &lt;module&gt;
+    from utils_helpers import get_angle_between_vectors;
+src\utils_helpers.py:2: in &lt;module&gt;
+    import pandas as pd
+E   ModuleNotFoundError: No module named 'pandas'</error></testcase><testcase classname="" name="tests.physics.test_elastic_tangent" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-03\tests\physics\test_elastic_tangent.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\physics\test_elastic_tangent.py:26: in &lt;module&gt;
+    from process_elastic_tensor import read_raw_tangent_record, write_raw_tangent_record
+src\process_elastic_tensor.py:1: in &lt;module&gt;
+    from utils_helpers import find_files, get_confidence_intervals, add_curve_with_ci, get_initial_density_from_filename, get_crosslinkage_from_filename, apply_band_filters_to_df
+src\utils_helpers.py:2: in &lt;module&gt;
+    import pandas as pd
+E   ModuleNotFoundError: No module named 'pandas'</error></testcase><testcase classname="" name="tests.physics.test_energy_force_virial" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-03\tests\physics\test_energy_force_virial.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\physics\test_energy_force_virial.py:40: in &lt;module&gt;
+    from lammps_PG_objects import Atom, minimum_image_displacement_2d
+src\lammps_PG_objects.py:6: in &lt;module&gt;
+    from utils_helpers import get_angle_between_vectors;
+src\utils_helpers.py:2: in &lt;module&gt;
+    import pandas as pd
+E   ModuleNotFoundError: No module named 'pandas'</error></testcase><testcase classname="" name="tests.physics.test_structural_observables" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-03\tests\physics\test_structural_observables.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\physics\test_structural_observables.py:6: in &lt;module&gt;
+    from matplotlib import pyplot as plt
+E   ModuleNotFoundError: No module named 'matplotlib'</error></testcase><testcase classname="" name="tests.unit.test_analysis_regression" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-03\tests\unit\test_analysis_regression.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\unit\test_analysis_regression.py:7: in &lt;module&gt;
+    import pandas as pd
+E   ModuleNotFoundError: No module named 'pandas'</error></testcase><testcase classname="" name="tests.unit.test_distributions" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-03\tests\unit\test_distributions.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\unit\test_distributions.py:15: in &lt;module&gt;
+    from assemble_pg_network import (
+src\assemble_pg_network.py:12: in &lt;module&gt;
+    from lammps_PG_objects import (
+src\lammps_PG_objects.py:6: in &lt;module&gt;
+    from utils_helpers import get_angle_between_vectors;
+src\utils_helpers.py:2: in &lt;module&gt;
+    import pandas as pd
+E   ModuleNotFoundError: No module named 'pandas'</error></testcase><testcase classname="" name="tests.unit.test_generator_reproducibility" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-03\tests\unit\test_generator_reproducibility.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\unit\test_generator_reproducibility.py:14: in &lt;module&gt;
+    import assemble_pg_network as pg_network
+src\assemble_pg_network.py:12: in &lt;module&gt;
+    from lammps_PG_objects import (
+src\lammps_PG_objects.py:6: in &lt;module&gt;
+    from utils_helpers import get_angle_between_vectors;
+src\utils_helpers.py:2: in &lt;module&gt;
+    import pandas as pd
+E   ModuleNotFoundError: No module named 'pandas'</error></testcase><testcase classname="" name="tests.unit.test_legacy_control_flow" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-03\tests\unit\test_legacy_control_flow.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\unit\test_legacy_control_flow.py:6: in &lt;module&gt;
+    import pandas as pd
+E   ModuleNotFoundError: No module named 'pandas'</error></testcase><testcase classname="" name="tests.unit.test_periodic_geometry" time="0.000"><error message="collection failure">ImportError while importing test module 'C:\Users\mzora\MechWorld-wt-p02-03\tests\unit\test_periodic_geometry.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+..\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests\unit\test_periodic_geometry.py:10: in &lt;module&gt;
+    import lammps_PG_objects as pg_objects
+src\lammps_PG_objects.py:6: in &lt;module&gt;
+    from utils_helpers import get_angle_between_vectors;
+src\utils_helpers.py:2: in &lt;module&gt;
+    import pandas as pd
+E   ModuleNotFoundError: No module named 'pandas'</error></testcase></testsuite></testsuites>

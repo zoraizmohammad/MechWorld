@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="3" time="1.180" timestamp="2026-10-01T22:47:04.504094" hostname="MZoraiz_P15"><testcase classname="tests.integration.test_fracture_cascade" name="test_transition_replay_rejects_rehashed_observation_profile_forgery" time="0.057"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'profile|provenance'&#10; Input: 'privileged replay contract is invalid'">self = CascadeTransitionEnvelope(envelope_id='sha256:0495bf6090ab9fa7933fadb379aea8fd68a5e012eed10a01540fbaeec1a7c0f1', previ...n3'], 'solver_angle_type': 1, 'dependent_bond_ids': ['b12', 'b23']}]}}, schema_version='pgworld.fracture_execution.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != FRACTURE_SCHEMA_VERSION:
+            raise FractureExecutionError("invalid transition schema")
+        try: validate_irreversible_transition(self.previous_damage_state, self.damage_state)
+        except Exception as error: raise FractureExecutionError("invalid damage transition") from error
+        if self.material_event.pre_state_id != self.previous_damage_state.state_id or self.damage_state.accepted_material_event_ids[-1] != self.material_event.event_id:
+            raise FractureExecutionError("material event does not bind envelope damage states")
+        if (
+            self.pre_delete_raw.damage_state_id != self.previous_damage_state.state_id
+            or self.pre_delete_raw.law_id != self.previous_damage_state.law_id
+            or dict(self.pre_delete_raw.alive_mask) != dict(self.previous_damage_state.alive_mask)
+            or dict(self.pre_delete_raw.rupture_mask) != dict(self.previous_damage_state.rupture_mask)
+            or dict(self.pre_delete_raw.prescribed_removal_mask) != dict(self.previous_damage_state.prescribed_removal_mask)
+        ):
+            raise FractureExecutionError("pre-delete observation does not bind previous DamageState")
+        if self.mutation_plan.pre_topology_state_id != self.pre_delete_raw.topology.topology_state_id or self.mutation_plan.removed_bond_id != self.material_event.physical_bond_id:
+            raise FractureExecutionError("mutation plan does not bind event/pre-topology")
+        if self.post_delete_unrelaxed.topology != self.post_event_relaxed.topology or self.post_delete_unrelaxed.topology.topology_state_id == self.pre_delete_raw.topology.topology_state_id:
+            raise FractureExecutionError("post-event topology binding is invalid")
+        expected_common = (
+            self.pre_delete_raw.control_id,
+            self.pre_delete_raw.load_coordinate,
+            self.pre_delete_raw.load_coordinate_unit,
+            self.pre_delete_raw.path_progress,
+            self.pre_delete_raw.progress_unit,
+            self.pre_delete_raw.physics_profile_id,
+            self.pre_delete_raw.physics_profile_hash,
+            self.pre_delete_raw.reference_state_id,
+        )
+        for observation in (self.post_delete_unrelaxed, self.post_event_relaxed):
+            if (
+                observation.control_id,
+                observation.load_coordinate,
+                observation.load_coordinate_unit,
+                observation.path_progress,
+                observation.progress_unit,
+                observation.physics_profile_id,
+                observation.physics_profile_hash,
+                observation.reference_state_id,
+            ) != expected_common:
+                raise FractureExecutionError("transition phases changed control/profile/reference")
+            if _plain(observation.boundary_conditions) != _plain(self.pre_delete_raw.boundary_conditions):
+                raise FractureExecutionError("transition phases changed boundary-condition provenance")
+            if observation.control.as_record() != self.pre_delete_raw.control.as_record():
+                raise FractureExecutionError("transition phases changed full control provenance")
+            if (
+                observation.law_id != self.damage_state.law_id
+                or dict(observation.alive_mask) != dict(self.damage_state.alive_mask)
+                or dict(observation.rupture_mask) != dict(self.damage_state.rupture_mask)
+                or dict(observation.prescribed_removal_mask) != dict(self.damage_state.prescribed_removal_mask)
+            ):
+                raise FractureExecutionError("post-event observation does not bind staged DamageState")
+            if not np.array_equal(observation.cell.matrix_nm, self.pre_delete_raw.cell.matrix_nm) or not np.array_equal(observation.cell.origin_nm, self.pre_delete_raw.cell.origin_nm):
+                raise FractureExecutionError("event cascade changed the accepted control cell")
+        if self.pre_delete_raw.phase != "pre_delete_relaxed" or self.post_delete_unrelaxed.phase != "post_delete_unrelaxed" or self.post_event_relaxed.phase != "post_event_relaxed":
+            raise FractureExecutionError("transition phases are mislabeled")
+        if not self.pre_delete_raw.convergence.accepted:
+            raise FractureExecutionError("pre-delete state must be an accepted equilibrium")
+        if self.post_delete_unrelaxed.damage_state_id != self.damage_state.state_id or self.post_event_relaxed.damage_state_id != self.damage_state.state_id:
+            raise FractureExecutionError("post phases do not bind staged damage state")
+        if not self.post_event_relaxed.convergence.accepted:
+            raise FractureExecutionError("unconverged post-event state cannot be committed")
+        if not np.array_equal(self.pre_delete_raw.positions_nm, self.post_delete_unrelaxed.positions_nm):
+            raise FractureExecutionError("unrelaxed deletion phase changed positions")
+        metadata = _mapping(self.privileged_reference_metadata, "privileged_reference_metadata")
+        required = {"access", "law_id", "law_fingerprint", "threshold_realization_id", "predictor_visibility", "physics_profile_id", "physics_profile_hash", "reference_state_id", "damage_law", "threshold_field", "topology_registry"}
+        _keys(metadata, required, "privileged_reference_metadata")
+        try:
+            replayed_law = DamageLaw.from_record(metadata["damage_law"])  # type: ignore[arg-type]
+            replayed_field = ThresholdField.from_record(metadata["threshold_field"])  # type: ignore[arg-type]
+            replayed_registry = TopologyRegistry.from_record(metadata["topology_registry"])  # type: ignore[arg-type]
+            expected_post = replayed_registry.apply_plan(self.pre_delete_raw.topology, self.mutation_plan)
+            for observation in (self.pre_delete_raw, self.post_delete_unrelaxed, self.post_event_relaxed):
+&gt;               self._validate_observation_against_registry(observation, replayed_registry, replayed_law)
+
+src\pgworld\simulation\fracture.py:782:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+observation = BackendObservation(observation_id='sha256:c488a33481cb68433066c87676c8fdce4c39e5cb08e09f355b169d36f92a8083', phase='pr...l_degrees_of_freedom'}), physical_time=None, physical_time_valid=False, schema_version='pgworld.fracture_execution.v1')
+registry = &lt;pgworld.simulation.topology.TopologyRegistry object at 0x0000018562F90940&gt;
+law = DamageLaw(law_id='fixture-extension-v1', law_kind='deterministic_threshold', criterion='bond_extension_ratio', criteri...cal_not_experimentally_constrained_molecular_cleavage', threshold_sampling='sample_once_per_physical_bond_then_frozen')
+
+    @staticmethod
+    def _validate_observation_against_registry(
+        observation: BackendObservation, registry: TopologyRegistry, law: DamageLaw
+    ) -&gt; None:
+        if law.criterion != "bond_extension_ratio" or observation.criterion_unit != "dimensionless":
+            raise FractureExecutionError("P02-03 geometry replay supports bond_extension_ratio only")
+        if (
+            observation.law_id != law.law_id
+            or observation.physics_profile_id != law.physics_profile_id
+            or observation.physics_profile_hash != law.physics_profile_hash
+            or observation.reference_state_id != law.reference_state_id
+            or observation.control.reference_state_id != law.reference_state_id
+        ):
+&gt;           raise FractureExecutionError("observation law/profile/reference provenance differs from replayed law")
+E           pgworld.simulation.fracture.FractureExecutionError: observation law/profile/reference provenance differs from replayed law
+
+src\pgworld\simulation\fracture.py:663: FractureExecutionError
+
+The above exception was the direct cause of the following exception:
+
+    def test_transition_replay_rejects_rehashed_observation_profile_forgery() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}, {"b23": 1.0}])
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+        record = result.transitions[0].as_record()
+        for name in ("pre_delete_raw", "post_delete_unrelaxed", "post_event_relaxed"):
+            record[name]["physics_profile_id"] = "forged-profile"
+            _rehash_record_body(record[name], "observation_id")
+        _rehash_record_body(record, "envelope_id")
+        with pytest.raises(FractureExecutionError, match="profile|provenance"):
+&gt;           CascadeTransitionEnvelope.from_record(record)
+
+tests\integration\test_fracture_cascade.py:562:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\simulation\fracture.py:850: in from_record
+    return cls(
+&lt;string&gt;:13: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = CascadeTransitionEnvelope(envelope_id='sha256:0495bf6090ab9fa7933fadb379aea8fd68a5e012eed10a01540fbaeec1a7c0f1', previ...n3'], 'solver_angle_type': 1, 'dependent_bond_ids': ['b12', 'b23']}]}}, schema_version='pgworld.fracture_execution.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != FRACTURE_SCHEMA_VERSION:
+            raise FractureExecutionError("invalid transition schema")
+        try: validate_irreversible_transition(self.previous_damage_state, self.damage_state)
+        except Exception as error: raise FractureExecutionError("invalid damage transition") from error
+        if self.material_event.pre_state_id != self.previous_damage_state.state_id or self.damage_state.accepted_material_event_ids[-1] != self.material_event.event_id:
+            raise FractureExecutionError("material event does not bind envelope damage states")
+        if (
+            self.pre_delete_raw.damage_state_id != self.previous_damage_state.state_id
+            or self.pre_delete_raw.law_id != self.previous_damage_state.law_id
+            or dict(self.pre_delete_raw.alive_mask) != dict(self.previous_damage_state.alive_mask)
+            or dict(self.pre_delete_raw.rupture_mask) != dict(self.previous_damage_state.rupture_mask)
+            or dict(self.pre_delete_raw.prescribed_removal_mask) != dict(self.previous_damage_state.prescribed_removal_mask)
+        ):
+            raise FractureExecutionError("pre-delete observation does not bind previous DamageState")
+        if self.mutation_plan.pre_topology_state_id != self.pre_delete_raw.topology.topology_state_id or self.mutation_plan.removed_bond_id != self.material_event.physical_bond_id:
+            raise FractureExecutionError("mutation plan does not bind event/pre-topology")
+        if self.post_delete_unrelaxed.topology != self.post_event_relaxed.topology or self.post_delete_unrelaxed.topology.topology_state_id == self.pre_delete_raw.topology.topology_state_id:
+            raise FractureExecutionError("post-event topology binding is invalid")
+        expected_common = (
+            self.pre_delete_raw.control_id,
+            self.pre_delete_raw.load_coordinate,
+            self.pre_delete_raw.load_coordinate_unit,
+            self.pre_delete_raw.path_progress,
+            self.pre_delete_raw.progress_unit,
+            self.pre_delete_raw.physics_profile_id,
+            self.pre_delete_raw.physics_profile_hash,
+            self.pre_delete_raw.reference_state_id,
+        )
+        for observation in (self.post_delete_unrelaxed, self.post_event_relaxed):
+            if (
+                observation.control_id,
+                observation.load_coordinate,
+                observation.load_coordinate_unit,
+                observation.path_progress,
+                observation.progress_unit,
+                observation.physics_profile_id,
+                observation.physics_profile_hash,
+                observation.reference_state_id,
+            ) != expected_common:
+                raise FractureExecutionError("transition phases changed control/profile/reference")
+            if _plain(observation.boundary_conditions) != _plain(self.pre_delete_raw.boundary_conditions):
+                raise FractureExecutionError("transition phases changed boundary-condition provenance")
+            if observation.control.as_record() != self.pre_delete_raw.control.as_record():
+                raise FractureExecutionError("transition phases changed full control provenance")
+            if (
+                observation.law_id != self.damage_state.law_id
+                or dict(observation.alive_mask) != dict(self.damage_state.alive_mask)
+                or dict(observation.rupture_mask) != dict(self.damage_state.rupture_mask)
+                or dict(observation.prescribed_removal_mask) != dict(self.damage_state.prescribed_removal_mask)
+            ):
+                raise FractureExecutionError("post-event observation does not bind staged DamageState")
+            if not np.array_equal(observation.cell.matrix_nm, self.pre_delete_raw.cell.matrix_nm) or not np.array_equal(observation.cell.origin_nm, self.pre_delete_raw.cell.origin_nm):
+                raise FractureExecutionError("event cascade changed the accepted control cell")
+        if self.pre_delete_raw.phase != "pre_delete_relaxed" or self.post_delete_unrelaxed.phase != "post_delete_unrelaxed" or self.post_event_relaxed.phase != "post_event_relaxed":
+            raise FractureExecutionError("transition phases are mislabeled")
+        if not self.pre_delete_raw.convergence.accepted:
+            raise FractureExecutionError("pre-delete state must be an accepted equilibrium")
+        if self.post_delete_unrelaxed.damage_state_id != self.damage_state.state_id or self.post_event_relaxed.damage_state_id != self.damage_state.state_id:
+            raise FractureExecutionError("post phases do not bind staged damage state")
+        if not self.post_event_relaxed.convergence.accepted:
+            raise FractureExecutionError("unconverged post-event state cannot be committed")
+        if not np.array_equal(self.pre_delete_raw.positions_nm, self.post_delete_unrelaxed.positions_nm):
+            raise FractureExecutionError("unrelaxed deletion phase changed positions")
+        metadata = _mapping(self.privileged_reference_metadata, "privileged_reference_metadata")
+        required = {"access", "law_id", "law_fingerprint", "threshold_realization_id", "predictor_visibility", "physics_profile_id", "physics_profile_hash", "reference_state_id", "damage_law", "threshold_field", "topology_registry"}
+        _keys(metadata, required, "privileged_reference_metadata")
+        try:
+            replayed_law = DamageLaw.from_record(metadata["damage_law"])  # type: ignore[arg-type]
+            replayed_field = ThresholdField.from_record(metadata["threshold_field"])  # type: ignore[arg-type]
+            replayed_registry = TopologyRegistry.from_record(metadata["topology_registry"])  # type: ignore[arg-type]
+            expected_post = replayed_registry.apply_plan(self.pre_delete_raw.topology, self.mutation_plan)
+            for observation in (self.pre_delete_raw, self.post_delete_unrelaxed, self.post_event_relaxed):
+                self._validate_observation_against_registry(observation, replayed_registry, replayed_law)
+        except Exception as error:
+&gt;           raise FractureExecutionError("privileged replay contract is invalid") from error
+E           pgworld.simulation.fracture.FractureExecutionError: privileged replay contract is invalid
+
+src\pgworld\simulation\fracture.py:784: FractureExecutionError
+
+During handling of the above exception, another exception occurred:
+
+    def test_transition_replay_rejects_rehashed_observation_profile_forgery() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}, {"b23": 1.0}])
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+        record = result.transitions[0].as_record()
+        for name in ("pre_delete_raw", "post_delete_unrelaxed", "post_event_relaxed"):
+            record[name]["physics_profile_id"] = "forged-profile"
+            _rehash_record_body(record[name], "observation_id")
+        _rehash_record_body(record, "envelope_id")
+&gt;       with pytest.raises(FractureExecutionError, match="profile|provenance"):
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'profile|provenance'
+E        Input: 'privileged replay contract is invalid'
+
+tests\integration\test_fracture_cascade.py:561: AssertionError</failure></testcase><testcase classname="tests.integration.test_fracture_cascade" name="test_transition_replay_rejects_coherent_cell_not_matching_full_control_record" time="0.050"><failure message="AssertionError: Regex pattern did not match.&#10; Regex: 'control|deformation|cell'&#10; Input: 'privileged replay contract is invalid'">self = CascadeTransitionEnvelope(envelope_id='sha256:8550611d6fc8b40ceb826d8a3ec9ae07116b84a61ebd7e0ee2ebf322587f4169', previ...n3'], 'solver_angle_type': 1, 'dependent_bond_ids': ['b12', 'b23']}]}}, schema_version='pgworld.fracture_execution.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != FRACTURE_SCHEMA_VERSION:
+            raise FractureExecutionError("invalid transition schema")
+        try: validate_irreversible_transition(self.previous_damage_state, self.damage_state)
+        except Exception as error: raise FractureExecutionError("invalid damage transition") from error
+        if self.material_event.pre_state_id != self.previous_damage_state.state_id or self.damage_state.accepted_material_event_ids[-1] != self.material_event.event_id:
+            raise FractureExecutionError("material event does not bind envelope damage states")
+        if (
+            self.pre_delete_raw.damage_state_id != self.previous_damage_state.state_id
+            or self.pre_delete_raw.law_id != self.previous_damage_state.law_id
+            or dict(self.pre_delete_raw.alive_mask) != dict(self.previous_damage_state.alive_mask)
+            or dict(self.pre_delete_raw.rupture_mask) != dict(self.previous_damage_state.rupture_mask)
+            or dict(self.pre_delete_raw.prescribed_removal_mask) != dict(self.previous_damage_state.prescribed_removal_mask)
+        ):
+            raise FractureExecutionError("pre-delete observation does not bind previous DamageState")
+        if self.mutation_plan.pre_topology_state_id != self.pre_delete_raw.topology.topology_state_id or self.mutation_plan.removed_bond_id != self.material_event.physical_bond_id:
+            raise FractureExecutionError("mutation plan does not bind event/pre-topology")
+        if self.post_delete_unrelaxed.topology != self.post_event_relaxed.topology or self.post_delete_unrelaxed.topology.topology_state_id == self.pre_delete_raw.topology.topology_state_id:
+            raise FractureExecutionError("post-event topology binding is invalid")
+        expected_common = (
+            self.pre_delete_raw.control_id,
+            self.pre_delete_raw.load_coordinate,
+            self.pre_delete_raw.load_coordinate_unit,
+            self.pre_delete_raw.path_progress,
+            self.pre_delete_raw.progress_unit,
+            self.pre_delete_raw.physics_profile_id,
+            self.pre_delete_raw.physics_profile_hash,
+            self.pre_delete_raw.reference_state_id,
+        )
+        for observation in (self.post_delete_unrelaxed, self.post_event_relaxed):
+            if (
+                observation.control_id,
+                observation.load_coordinate,
+                observation.load_coordinate_unit,
+                observation.path_progress,
+                observation.progress_unit,
+                observation.physics_profile_id,
+                observation.physics_profile_hash,
+                observation.reference_state_id,
+            ) != expected_common:
+                raise FractureExecutionError("transition phases changed control/profile/reference")
+            if _plain(observation.boundary_conditions) != _plain(self.pre_delete_raw.boundary_conditions):
+                raise FractureExecutionError("transition phases changed boundary-condition provenance")
+            if observation.control.as_record() != self.pre_delete_raw.control.as_record():
+                raise FractureExecutionError("transition phases changed full control provenance")
+            if (
+                observation.law_id != self.damage_state.law_id
+                or dict(observation.alive_mask) != dict(self.damage_state.alive_mask)
+                or dict(observation.rupture_mask) != dict(self.damage_state.rupture_mask)
+                or dict(observation.prescribed_removal_mask) != dict(self.damage_state.prescribed_removal_mask)
+            ):
+                raise FractureExecutionError("post-event observation does not bind staged DamageState")
+            if not np.array_equal(observation.cell.matrix_nm, self.pre_delete_raw.cell.matrix_nm) or not np.array_equal(observation.cell.origin_nm, self.pre_delete_raw.cell.origin_nm):
+                raise FractureExecutionError("event cascade changed the accepted control cell")
+        if self.pre_delete_raw.phase != "pre_delete_relaxed" or self.post_delete_unrelaxed.phase != "post_delete_unrelaxed" or self.post_event_relaxed.phase != "post_event_relaxed":
+            raise FractureExecutionError("transition phases are mislabeled")
+        if not self.pre_delete_raw.convergence.accepted:
+            raise FractureExecutionError("pre-delete state must be an accepted equilibrium")
+        if self.post_delete_unrelaxed.damage_state_id != self.damage_state.state_id or self.post_event_relaxed.damage_state_id != self.damage_state.state_id:
+            raise FractureExecutionError("post phases do not bind staged damage state")
+        if not self.post_event_relaxed.convergence.accepted:
+            raise FractureExecutionError("unconverged post-event state cannot be committed")
+        if not np.array_equal(self.pre_delete_raw.positions_nm, self.post_delete_unrelaxed.positions_nm):
+            raise FractureExecutionError("unrelaxed deletion phase changed positions")
+        metadata = _mapping(self.privileged_reference_metadata, "privileged_reference_metadata")
+        required = {"access", "law_id", "law_fingerprint", "threshold_realization_id", "predictor_visibility", "physics_profile_id", "physics_profile_hash", "reference_state_id", "damage_law", "threshold_field", "topology_registry"}
+        _keys(metadata, required, "privileged_reference_metadata")
+        try:
+            replayed_law = DamageLaw.from_record(metadata["damage_law"])  # type: ignore[arg-type]
+            replayed_field = ThresholdField.from_record(metadata["threshold_field"])  # type: ignore[arg-type]
+            replayed_registry = TopologyRegistry.from_record(metadata["topology_registry"])  # type: ignore[arg-type]
+            expected_post = replayed_registry.apply_plan(self.pre_delete_raw.topology, self.mutation_plan)
+            for observation in (self.pre_delete_raw, self.post_delete_unrelaxed, self.post_event_relaxed):
+&gt;               self._validate_observation_against_registry(observation, replayed_registry, replayed_law)
+
+src\pgworld\simulation\fracture.py:782:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+observation = BackendObservation(observation_id='sha256:cecee3cdd9089645ac985ad0d148d49061eff301b02ef6521a90c4b4bdfd95f3', phase='pr...l_degrees_of_freedom'}), physical_time=None, physical_time_valid=False, schema_version='pgworld.fracture_execution.v1')
+registry = &lt;pgworld.simulation.topology.TopologyRegistry object at 0x0000018562FEDDC0&gt;
+law = DamageLaw(law_id='fixture-extension-v1', law_kind='deterministic_threshold', criterion='bond_extension_ratio', criteri...cal_not_experimentally_constrained_molecular_cleavage', threshold_sampling='sample_once_per_physical_bond_then_frozen')
+
+    @staticmethod
+    def _validate_observation_against_registry(
+        observation: BackendObservation, registry: TopologyRegistry, law: DamageLaw
+    ) -&gt; None:
+        if law.criterion != "bond_extension_ratio" or observation.criterion_unit != "dimensionless":
+            raise FractureExecutionError("P02-03 geometry replay supports bond_extension_ratio only")
+        if (
+            observation.law_id != law.law_id
+            or observation.physics_profile_id != law.physics_profile_id
+            or observation.physics_profile_hash != law.physics_profile_hash
+            or observation.reference_state_id != law.reference_state_id
+            or observation.control.reference_state_id != law.reference_state_id
+        ):
+            raise FractureExecutionError("observation law/profile/reference provenance differs from replayed law")
+        if observation.control.control_kind != "deformation_gradient" or observation.control.absolute_deformation_gradient is None:
+            raise FractureExecutionError("P02-03 observation requires full deformation control provenance")
+        expected_cell = observation.control.absolute_deformation_gradient @ registry.cell.matrix_nm
+        if not np.allclose(observation.cell.matrix_nm, expected_cell, rtol=1e-12, atol=1e-12):
+&gt;           raise FractureExecutionError("observation cell differs from full absolute deformation control")
+E           pgworld.simulation.fracture.FractureExecutionError: observation cell differs from full absolute deformation control
+
+src\pgworld\simulation\fracture.py:668: FractureExecutionError
+
+The above exception was the direct cause of the following exception:
+
+    def test_transition_replay_rejects_coherent_cell_not_matching_full_control_record() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}, {"b23": 1.0}])
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+        record = result.transitions[0].as_record()
+        for name in ("pre_delete_raw", "post_delete_unrelaxed", "post_event_relaxed"):
+            record[name]["cell"]["matrix_nm"] = [[15.6, 0.0], [0.0, 10.0]]
+            _rehash_record_body(record[name], "observation_id")
+        _rehash_record_body(record, "envelope_id")
+        with pytest.raises(FractureExecutionError, match="control|deformation|cell"):
+&gt;           CascadeTransitionEnvelope.from_record(record)
+
+tests\integration\test_fracture_cascade.py:577:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src\pgworld\simulation\fracture.py:850: in from_record
+    return cls(
+&lt;string&gt;:13: in __init__
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = CascadeTransitionEnvelope(envelope_id='sha256:8550611d6fc8b40ceb826d8a3ec9ae07116b84a61ebd7e0ee2ebf322587f4169', previ...n3'], 'solver_angle_type': 1, 'dependent_bond_ids': ['b12', 'b23']}]}}, schema_version='pgworld.fracture_execution.v1')
+
+    def __post_init__(self) -&gt; None:
+        if self.schema_version != FRACTURE_SCHEMA_VERSION:
+            raise FractureExecutionError("invalid transition schema")
+        try: validate_irreversible_transition(self.previous_damage_state, self.damage_state)
+        except Exception as error: raise FractureExecutionError("invalid damage transition") from error
+        if self.material_event.pre_state_id != self.previous_damage_state.state_id or self.damage_state.accepted_material_event_ids[-1] != self.material_event.event_id:
+            raise FractureExecutionError("material event does not bind envelope damage states")
+        if (
+            self.pre_delete_raw.damage_state_id != self.previous_damage_state.state_id
+            or self.pre_delete_raw.law_id != self.previous_damage_state.law_id
+            or dict(self.pre_delete_raw.alive_mask) != dict(self.previous_damage_state.alive_mask)
+            or dict(self.pre_delete_raw.rupture_mask) != dict(self.previous_damage_state.rupture_mask)
+            or dict(self.pre_delete_raw.prescribed_removal_mask) != dict(self.previous_damage_state.prescribed_removal_mask)
+        ):
+            raise FractureExecutionError("pre-delete observation does not bind previous DamageState")
+        if self.mutation_plan.pre_topology_state_id != self.pre_delete_raw.topology.topology_state_id or self.mutation_plan.removed_bond_id != self.material_event.physical_bond_id:
+            raise FractureExecutionError("mutation plan does not bind event/pre-topology")
+        if self.post_delete_unrelaxed.topology != self.post_event_relaxed.topology or self.post_delete_unrelaxed.topology.topology_state_id == self.pre_delete_raw.topology.topology_state_id:
+            raise FractureExecutionError("post-event topology binding is invalid")
+        expected_common = (
+            self.pre_delete_raw.control_id,
+            self.pre_delete_raw.load_coordinate,
+            self.pre_delete_raw.load_coordinate_unit,
+            self.pre_delete_raw.path_progress,
+            self.pre_delete_raw.progress_unit,
+            self.pre_delete_raw.physics_profile_id,
+            self.pre_delete_raw.physics_profile_hash,
+            self.pre_delete_raw.reference_state_id,
+        )
+        for observation in (self.post_delete_unrelaxed, self.post_event_relaxed):
+            if (
+                observation.control_id,
+                observation.load_coordinate,
+                observation.load_coordinate_unit,
+                observation.path_progress,
+                observation.progress_unit,
+                observation.physics_profile_id,
+                observation.physics_profile_hash,
+                observation.reference_state_id,
+            ) != expected_common:
+                raise FractureExecutionError("transition phases changed control/profile/reference")
+            if _plain(observation.boundary_conditions) != _plain(self.pre_delete_raw.boundary_conditions):
+                raise FractureExecutionError("transition phases changed boundary-condition provenance")
+            if observation.control.as_record() != self.pre_delete_raw.control.as_record():
+                raise FractureExecutionError("transition phases changed full control provenance")
+            if (
+                observation.law_id != self.damage_state.law_id
+                or dict(observation.alive_mask) != dict(self.damage_state.alive_mask)
+                or dict(observation.rupture_mask) != dict(self.damage_state.rupture_mask)
+                or dict(observation.prescribed_removal_mask) != dict(self.damage_state.prescribed_removal_mask)
+            ):
+                raise FractureExecutionError("post-event observation does not bind staged DamageState")
+            if not np.array_equal(observation.cell.matrix_nm, self.pre_delete_raw.cell.matrix_nm) or not np.array_equal(observation.cell.origin_nm, self.pre_delete_raw.cell.origin_nm):
+                raise FractureExecutionError("event cascade changed the accepted control cell")
+        if self.pre_delete_raw.phase != "pre_delete_relaxed" or self.post_delete_unrelaxed.phase != "post_delete_unrelaxed" or self.post_event_relaxed.phase != "post_event_relaxed":
+            raise FractureExecutionError("transition phases are mislabeled")
+        if not self.pre_delete_raw.convergence.accepted:
+            raise FractureExecutionError("pre-delete state must be an accepted equilibrium")
+        if self.post_delete_unrelaxed.damage_state_id != self.damage_state.state_id or self.post_event_relaxed.damage_state_id != self.damage_state.state_id:
+            raise FractureExecutionError("post phases do not bind staged damage state")
+        if not self.post_event_relaxed.convergence.accepted:
+            raise FractureExecutionError("unconverged post-event state cannot be committed")
+        if not np.array_equal(self.pre_delete_raw.positions_nm, self.post_delete_unrelaxed.positions_nm):
+            raise FractureExecutionError("unrelaxed deletion phase changed positions")
+        metadata = _mapping(self.privileged_reference_metadata, "privileged_reference_metadata")
+        required = {"access", "law_id", "law_fingerprint", "threshold_realization_id", "predictor_visibility", "physics_profile_id", "physics_profile_hash", "reference_state_id", "damage_law", "threshold_field", "topology_registry"}
+        _keys(metadata, required, "privileged_reference_metadata")
+        try:
+            replayed_law = DamageLaw.from_record(metadata["damage_law"])  # type: ignore[arg-type]
+            replayed_field = ThresholdField.from_record(metadata["threshold_field"])  # type: ignore[arg-type]
+            replayed_registry = TopologyRegistry.from_record(metadata["topology_registry"])  # type: ignore[arg-type]
+            expected_post = replayed_registry.apply_plan(self.pre_delete_raw.topology, self.mutation_plan)
+            for observation in (self.pre_delete_raw, self.post_delete_unrelaxed, self.post_event_relaxed):
+                self._validate_observation_against_registry(observation, replayed_registry, replayed_law)
+        except Exception as error:
+&gt;           raise FractureExecutionError("privileged replay contract is invalid") from error
+E           pgworld.simulation.fracture.FractureExecutionError: privileged replay contract is invalid
+
+src\pgworld\simulation\fracture.py:784: FractureExecutionError
+
+During handling of the above exception, another exception occurred:
+
+    def test_transition_replay_rejects_coherent_cell_not_matching_full_control_record() -&gt; None:
+        registry = _registry(); law, field, damage = _damage(registry)
+        backend = FakeBackend(registry, [{"b12": 1.3, "b23": 1.0}, {"b23": 1.0}])
+        result = QuasiStaticFractureCascade(backend, registry, law, field, CascadeBudget(2)).run_step(
+            control=_control(), damage_state=damage, topology_state=registry.initial_state
+        )
+        record = result.transitions[0].as_record()
+        for name in ("pre_delete_raw", "post_delete_unrelaxed", "post_event_relaxed"):
+            record[name]["cell"]["matrix_nm"] = [[15.6, 0.0], [0.0, 10.0]]
+            _rehash_record_body(record[name], "observation_id")
+        _rehash_record_body(record, "envelope_id")
+&gt;       with pytest.raises(FractureExecutionError, match="control|deformation|cell"):
+E       AssertionError: Regex pattern did not match.
+E        Regex: 'control|deformation|cell'
+E        Input: 'privileged replay contract is invalid'
+
+tests\integration\test_fracture_cascade.py:576: AssertionError</failure></testcase><testcase classname="tests.integration.test_fracture_cascade" name="test_observation_constructor_rejects_missing_damage_and_explicit_empty_offset_or_boundary_mappings" time="0.013" /></testsuite></testsuites>
