@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="5" time="2.345" timestamp="2026-10-01T23:10:46.585973" hostname="MZoraiz_P15"><testcase classname="tests.unit.test_schema" name="test_observed_replay_rejects_rehashed_untyped_event_history[sequence_index-not-an-integer]" time="0.129"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">field = 'sequence_index', value = 'not-an-integer'
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("sequence_index", "not-an-integer"),
+            ("criterion_value", "not-a-number"),
+        ],
+    )
+    def test_observed_replay_rejects_rehashed_untyped_event_history(
+        field: str, value: object
+    ) -&gt; None:
+        record = _trajectory().observed_projection("frame:post-equilibrium").as_record()
+        record["payload"]["event_history"][0][field] = value  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:812: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_observed_replay_rejects_rehashed_untyped_event_history[criterion_value-not-a-number]" time="0.074"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">field = 'criterion_value', value = 'not-a-number'
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("sequence_index", "not-an-integer"),
+            ("criterion_value", "not-a-number"),
+        ],
+    )
+    def test_observed_replay_rejects_rehashed_untyped_event_history(
+        field: str, value: object
+    ) -&gt; None:
+        record = _trajectory().observed_projection("frame:post-equilibrium").as_record()
+        record["payload"]["event_history"][0][field] = value  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:812: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_observed_replay_rejects_rehashed_noncontiguous_state_sequence" time="0.044"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_observed_replay_rejects_rehashed_noncontiguous_state_sequence() -&gt; None:
+        record = _trajectory().observed_projection("frame:pre").as_record()
+        record["payload"]["states"][0]["sequence_index"] = 77  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="sequence"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:822: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_target_replay_rejects_rehashed_forged_event_pre_state" time="0.038"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_target_replay_rejects_rehashed_forged_event_pre_state() -&gt; None:
+        record = _trajectory().target_projection("frame:pre").as_record()
+        record["payload"]["events"][0]["pre_state_id"] = "frame:forged"  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="pre_state"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:832: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_target_replay_rejects_rehashed_inconsistent_censor_coordinate" time="0.039"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_target_replay_rejects_rehashed_inconsistent_censor_coordinate() -&gt; None:
+        record = _trajectory().target_projection("frame:pre").as_record()
+        record["payload"]["censoring"]["load_coordinate"] = 99.0  # type: ignore[index]
+        record["projection_hash"] = AccessProjection.compute_hash(
+            record["access_kind"], record["anchor_frame_id"], record["payload"]
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="censor"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:842: Failed</failure></testcase></testsuite></testsuites>

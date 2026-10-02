@@ -1,149 +1,165 @@
 # P03-01 trajectory schema decision
 
-Status: implemented computational contract at `pgworld.trajectory.v1` and
-`pgworld.trajectory_access.v1`. This decision does not implement storage,
-export a dataset, accept G3, or certify biological parameters.
+Status: corrected computational contract at `pgworld.trajectory.v1` and
+`pgworld.trajectory_access.v1`. The first return (`c489b8f`/`c38e4ab`) was
+rejected in independent review; this document describes the corrected
+contract. It does not implement persistence, export a dataset, accept G3, or
+certify biological parameters.
 
-## Decision
+## Record families and identity
 
-The first trajectory interface is a strict family of frozen typed records,
-not a permissive nested dictionary. `TrajectoryRecord.from_record` accepts
-only the exact current version, exact field sets, finite typed values, and a
-matching SHA-256 content hash. An older or mixed version fails with an
-explicit-migration error. P03-04 owns any eventual migration and HDF5 storage;
-P03-01 deliberately supplies no automatic or lossy migration.
+The interface uses frozen typed records with exact field sets, finite values,
+explicit schema versions, and SHA-256 content hashes. Replay never coerces an
+integer into an opaque string ID, so `"001"` and `"1"` remain distinct. Static
+node, physical-edge, angle, control, state, frame, event, lineage, and
+component IDs remain stable across rupture.
 
-Opaque node, edge, angle, event, control, frame, run, lineage, and component
-IDs are trimmed strings. Integer IDs are rejected rather than converted, so
-`"001"` remains distinct from `"1"`. Static graph rows and per-state rows use
-stable ID universes; surviving interactions are never renumbered.
+The record separates immutable graph/reference data, controls, accepted
+scientific state phases, accepted topology events, failure endpoints, and
+privileged/rejected diagnostics. Rejected trials never enter the accepted
+state sequence.
 
-The top-level record separates:
+Parallel physical edges are allowed only when canonical endpoint pair plus
+`solver_bond_type` is unique. A chemical label cannot disambiguate two solver
+bonds that the deletion API cannot distinguish. The P02 topology adapter
+preserves opaque bond/node IDs, solver bond type, chemical type, signed image,
+and source displacement without lossy coercion.
 
-- immutable static graph/reference material records;
-- ordered quasi-static control records;
-- accepted dynamic state/subevent records;
-- accepted physical topology-event records;
-- rejected numerical trials and other privileged reproducibility metadata.
+Each three-node angle depends on exactly two unique physical edges. Those
+edges must be the two adjacent node segments; a `glycan_bend` requires two
+glycan edges. An angle cannot disappear independently of a linked dependent
+edge-removal event and cannot heal.
 
-Rejected trials never enter the accepted scientific state sequence. Static
-edge parameters remain immutable. Every accepted state explicitly carries the
-current effective parameter name/value/unit set, signed `n_ij`, alive flag,
-valid physical measurements, and declared damage value or its absence. Thus a
-reader reconstructs the exact coefficients and topology at any frame without
-mutating the reference record or interpreting inactive-edge zeros as data.
+## Reference, geometry, mechanics, and controls
 
-## Geometry and mechanics conventions
+`ReferenceStateRecord` is a separately hash-bound
+`fixed_cell_equilibrated_not_zero_tension` record. It contains the fixed-box
+cell, minimized node coordinates, measured total reference tension, solver
+iteration limit, force tolerance, achieved iterations/residual, profile
+identity, and exact static-graph hash. It is never called unstressed.
+Provenance, graph, controls, states, and failure endpoints bind to that one
+reference. Every state must satisfy
 
-`Cell2D` stores an origin and restricted-triclinic matrix
-`H = [[Lx, xy], [0, Ly]]`. Vectors are columns and each signed edge image is
-defined by:
+```text
+incremental_tension = total_tension - fixed_reference_total_tension
+```
+
+`Cell2D` stores origin and restricted-triclinic column-vector matrix
+`H = [[Lx, xy], [0, Ly]]`, with `x = axial`, `y = hoop`. A physical edge uses
 
 ```text
 r_ij = x_j - x_i + H @ n_ij
 ```
 
-The computational meanings are exactly `x = axial`, `y = hoop`. Periodic axes
-are explicit. General triclinic cells, silently transposed matrices, inferred
-nearest images, integer ID coercion, and ambiguous duplicate physical edge
-endpoints fail closed in v1.
+Signed reference/current images must be zero on nonperiodic axes. An alive
+edge's stored length is recomputed from positions, the full current `H`, and
+signed `n_ij` to an absolute tolerance of `1e-12 nm`. A dead edge has no
+current image, length, tension, or energy; the immutable reference image
+retains provenance. Component labels may use arbitrary opaque names, but their
+equivalence partition must exactly match connected components of alive
+physical edges.
 
-Controls retain the P02-01 distinctions between control kind and loading mode,
-an explicit orthonormal axial/hoop basis, the fixed reference, absolute and
-incremental deformation gradients or tension targets, cumulative path
-progress and its increment, per-node constrained x/y DOFs, local weakening,
-and prescribed removal. For ordered deformation controls, replay verifies
-`F_absolute[k] = F_increment[k] @ F_absolute[k-1]` (identity/reference at the
-first step) and verifies `H_state = F_absolute @ H_reference`. Ordered tension
-targets use additive increments. Progress increments must equal changes in
-cumulative path progress, including the first-step-from-zero policy.
+Controls retain P02-01 kind/mode, orthonormal axial/hoop basis, fixed
+reference, absolute and incremental deformation gradients or tension targets,
+cumulative path progress and increment, per-node constrained DOFs, weakening,
+and prescribed removal. One trajectory has one continuous family/unit;
+interventions inherit that established path unit. Each progress increment is
+the absolute change in load coordinate and cumulative progress is its sum from
+zero. Replay also verifies deformation composition, additive tension targets,
+and `H_state = F_absolute @ H_reference`. Pressure controls preserve
+`N_axial=pR/2`, `N_hoop=pR`, cylinder radius, and the closed-thin-cylinder
+assumption. The principal tension tensor is rotated by the declared basis as
+`B @ diag(pR/2,pR) @ B.T`; it is a membrane-tension target, not normal
+inflation of a flat patch.
 
-Pressure-derived tension controls retain pressure, cylinder radius, the
-closed-thin-cylinder/away-from-end-effects assumption, the relations
-`N_axial = pR/2` and `N_hoop = pR`, and the declaration that this is a membrane
-tension target rather than normal inflation of a flat patch. The schema does
-not claim that a pressure target was solved successfully; that remains a
-solver/export result.
+`BoundaryConditionRecord` hash-binds stable anchor IDs to positive solver atom
+IDs, constrained x/y DOFs, affine-remap behavior, reaction-force availability,
+node-force scope, and residual-force scope. Its identity must match provenance
+and control constraints.
 
-## Event phases and replay
+Effective coefficients are not arbitrary per-state features. Replay starts
+from immutable reference names/values/units and applies the ordered declared
+weakening factors. Any undeclared `K`, `r0`, or other coefficient change fails.
+P02 energy names `pe`, `ebond`, and `eangle` are mandatory in `pN nm`;
+additional energy names are allowed with the same unit.
 
-Storage has one canonical semantic vocabulary:
+## Quasi-static phases, convergence, damage, and endpoints
 
-- `accepted_equilibrium`
-- `pre_intervention`
-- `pre_rupture`
-- `post_topology_change`
-- `post_event_equilibrium`
+Canonical stored phases are `accepted_equilibrium`, `pre_intervention`,
+`pre_rupture`, `post_topology_change`, and `post_event_equilibrium`. The only
+P02 raw-phase adapter is:
 
-There are no interchangeable aliases in stored records. The explicit P02
-adapter mapping is:
-
-| P02 execution phase | Canonical stored phase |
+| P02 phase | Stored phase |
 |---|---|
 | `pre_delete_relaxed` | `pre_rupture` |
 | `post_delete_unrelaxed` | `post_topology_change` |
 | `post_event_relaxed` | `post_event_equilibrium` |
 
-The original P02 phase may be retained in `source_phase`, but only when this
-exact mapping agrees with the canonical phase. Unknown/case-folded spellings
-fail closed.
+The source spelling is optional provenance and must map exactly. Relaxed
+accepted phases require `iterations < max_iterations`, residual at or below
+`force_tolerance_pN`, and reason `converged`. The unrelaxed post-delete phase
+preserves P02 raw diagnostics exactly: `converged=false`, `accepted=false`,
+zero iterations, and reason `phase_not_relaxed`, even though the phase itself
+is retained as an accepted scientific record.
 
-`sequence_index` and `subevent_index` preserve multiple states at one load
-coordinate. Replay verifies monotone path progress, same-step subevent order,
-material-rupture versus prescribed-intervention pre-phases, exact event links,
-alive-to-dead edge transitions, every-and-only dependent angle removal,
-unchanged positions in the immediate post-topology/pre-relaxation state, no
-unlinked topology mutation, no repeated event, no edge or angle healing, and
-retention of all nodes/components after disconnection.
+Schema v1 is strictly quasi-static. Control/state/event/endpoint units are
+`dimensionless` for the present deformation path or `pN/nm^2` for a pressure
+coordinate. Physical time, seconds, or a physical-time capability are rejected.
 
-## Provenance, status, and capabilities
+Material thresholds are positive, stable-edge keyed, unit-consistent, and
+sampled once outside this schema. Predictor visibility is explicit. Hidden
+thresholds and every seed/realization proxy remain privileged. A visible study
+exposes only the declared criterion, unit, and values, never its seed or
+future event information. Material event criteria are exactly one of
+`bond_extension_ratio`, `bond_tension`, or `bond_energy` with units
+`dimensionless`, `pN`, or `pN nm`. Replay derives the event value from the
+linked pre-state edge observation, compares it at `1e-12` absolute tolerance,
+and requires it to cross the immutable per-edge threshold.
 
-Full provenance records root or branch lineage, source commit/tree/dirty
-state, registered physics profile identity/hash, fixed reference identity/hash,
-rupture-law identity/hash, configuration and raw-artifact hashes, simulator
-version/features, observation-model identity/hash, and boundary-condition
-identity/hash. Optional split ID, split-assignment hash, and manifest hash are
-all absent before a later manifest exists or all present together. The schema
-does not invent an experimental observation model: simulation fixtures use an
-explicit native-solver observation identity.
+Event sequence, progress, control/load linkage, phases, alive-to-dead
+transition, dependent-angle removal, and cascade ancestry are validated.
+Prescribed events require a declared weakening/removal of that edge; a
+material rupture cannot be declared prescribed. Cascades may continue after
+damage initiation. Damage initiation is the first accepted material rupture,
+not an ordinary trajectory termination reason.
 
-Trajectory quality status, termination reason, observed versus right-censored
-failure endpoint, load coordinate/path progress, and evidence event are
-separate. Capability flags state whether optional velocity, virial, damage,
-physical-time, local-stress, event-history, angle, or rejected-trial fields
-exist; replay checks relevant flags against payload presence. A false physical
-time capability cannot carry a time value.
+Failure endpoints are isomorphic to accepted P02
+`TrajectoryFailureEndpoints`: `damage_initiation`,
+`load_bearing_connectivity_loss`, `load_or_stiffness_degradation`, and
+`mechanical_instability`. Each preserves P02 status/evidence/coordinate
+semantics and profile/reference identity, plus law fingerprint and threshold
+realization. Damage evidence is a SHA-256 material-event ID. Right censoring
+binds the terminal tested coordinate/progress; `not_evaluated` invents no
+criterion or observation. Successful evaluation ends with
+`completed_schedule`; budget/error terms require consistent non-accepted
+quality status.
 
 ## Access projections
 
-The schema exposes three separately hash-bound records:
+Observed, target-only, and privileged views are independently content-hashed,
+strictly typed, and relationally replay-validated. Observed history requires
+contiguous state/event sequences, valid controls, static universes, geometry,
+reference tension, phases, event links, and irreversible topology. Target
+replay validates its anchor, contiguous future sequence, controls, event
+pre/post links, and endpoint/event/terminal relations. Recursive observed
+validation rejects seed/RNG, realization, future/oracle, rejected-trial,
+normalizer/scaler, and private access-policy aliases.
 
-| Projection | Intended use | Contents |
-|---|---|---|
-| `observed` | predictor inputs/history through one anchor frame | physical static graph, reached controls, accepted states through the anchor, completed event history, non-private scientific context |
-| `target_only` | supervised labels after the anchor | future accepted states/events plus outcome/censoring labels |
-| `privileged` | replay/audit only | complete content-hashed trajectory, seeds, quenched thresholds/proxies, rejected trials, normalizers, raw/lineage/split metadata, and private access policy |
-
-The observed payload omits run/parent/branch/split identity, source/config/raw
-artifact hashes, graph/reference content hashes, rejected-trial capability,
-threshold values, seeds, quenched-realization proxies, future states/events,
-test-derived normalizers, and private policy/custodian metadata. Stable node,
-edge, angle, frame, and event IDs remain correspondence keys, not numeric
-features. The observed replay validator recursively rejects threshold/cutoff,
-RNG/seed, disorder/realization, future/oracle, rejected, scaler/normalizer, and
-privacy/access-policy aliases, then validates an exact nested projection shape.
-Recomputing the projection hash cannot make an unknown nested field valid.
+A projection hash proves only internal content integrity. It cannot prove
+that a self-consistent projection came from a particular trajectory.
+`AccessProjection.validate_against(parent)` performs the required exact
+derivation check against a validated parent record. Callers must use it at
+trust boundaries.
 
 ## Boundaries and limitations
 
-- This is an in-memory/JSON-compatible contract only. P03-04 owns canonical
-  HDF5 shards, atomic completion, checksums, and migration tooling.
-- No real or private trajectory is exported. The tests use a small numerical
-  fixture only.
-- P03-02 must write the adapter from accepted P02 records; P03-01 does not
-  change P02 execution records.
-- Local-stress/coarse-grained virial fields are capability-gated but not yet
-  implemented or validated.
-- Optional physical time remains invalid for the quasi-static study.
-- A schema round trip is necessary but insufficient for G3. Solver/exporter
-  agreement, storage integrity, and real fixture statistics remain pending.
+- The schema binds supplied profile ID/hash strings consistently, but does not
+  prove registry membership. A solver/profile adapter must perform that check.
+- `from_p02`/topology/phase helpers preserve accepted P02 record shapes; P03-02
+  still owns full solver-to-schema value agreement.
+- This task implements no HDF5/NPZ writer, shard, atomic completion,
+  split assignment, normalizer fitting, or migration tool. The draft shared
+  data contract remains integrator-owned and must be superseded/reconciled
+  after this correction is accepted.
+- No real/private/experimental data, dataset, model, or biological
+  certification was created. G3 remains unaccepted.

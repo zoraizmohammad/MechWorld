@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="4" skipped="0" tests="4" time="1.716" timestamp="2026-10-01T23:15:59.058528" hostname="MZoraiz_P15"><testcase classname="tests.unit.test_schema" name="test_reference_state_is_typed_hash_bound_and_keeps_fixed_box_prestress" time="0.002"><failure message="AssertionError: assert False&#10; +  where False = hasattr(schema_module, 'ReferenceStateRecord')">def test_reference_state_is_typed_hash_bound_and_keeps_fixed_box_prestress() -&gt; None:
+&gt;       assert hasattr(schema_module, "ReferenceStateRecord")
+E       AssertionError: assert False
+E        +  where False = hasattr(schema_module, 'ReferenceStateRecord')
+
+tests\unit\test_schema.py:848: AssertionError</failure></testcase><testcase classname="tests.unit.test_schema" name="test_convergence_preserves_budget_and_force_acceptance_contract" time="0.003"><failure message="TypeError: ConvergenceRecord.__init__() got an unexpected keyword argument 'max_iterations'">def test_convergence_preserves_budget_and_force_acceptance_contract() -&gt; None:
+&gt;       convergence = ConvergenceRecord(
+            converged=True,
+            accepted=True,
+            iterations=12,
+            max_iterations=100,
+            residual_force_pN=1.0e-10,
+            force_tolerance_pN=1.0e-8,
+            reason="converged",
+        )
+E       TypeError: ConvergenceRecord.__init__() got an unexpected keyword argument 'max_iterations'
+
+tests\unit\test_schema.py:881: TypeError</failure></testcase><testcase classname="tests.unit.test_schema" name="test_static_graph_allows_only_selector_unambiguous_parallel_edges" time="0.003"><failure message="AssertionError: assert False&#10; +  where False = hasattr(EdgeReference(edge_id='edge:001', endpoints=('node:001', 'node:002'), chemical_type='glycan', reference_rest_length_nm...gproxy({'K': 5570.0, 'r0': 1.03}), units=mappingproxy({'K': 'pN/nm', 'r0': 'nm'})), reference_image_offset_n_ij=(0, 0)), 'solver_bond_type')">def test_static_graph_allows_only_selector_unambiguous_parallel_edges() -&gt; None:
+        graph = _graph()
+&gt;       assert hasattr(graph.edges[0], "solver_bond_type")
+E       AssertionError: assert False
+E        +  where False = hasattr(EdgeReference(edge_id='edge:001', endpoints=('node:001', 'node:002'), chemical_type='glycan', reference_rest_length_nm...gproxy({'K': 5570.0, 'r0': 1.03}), units=mappingproxy({'K': 'pN/nm', 'r0': 'nm'})), reference_image_offset_n_ij=(0, 0)), 'solver_bond_type')
+
+tests\unit\test_schema.py:898: AssertionError</failure></testcase><testcase classname="tests.unit.test_schema" name="test_dead_edge_does_not_claim_current_periodic_image_geometry" time="0.002"><failure message="pgworld.data.schema.SchemaValidationError: image_offset_n_ij must be an array">def test_dead_edge_does_not_claim_current_periodic_image_geometry() -&gt; None:
+&gt;       dead = replace(_edge_states(ruptured=True)[0], image_offset_n_ij=None)
+
+tests\unit\test_schema.py:922:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\AppData\Local\Programs\Python\Python311\Lib\dataclasses.py:1503: in replace
+    return obj.__class__(**changes)
+&lt;string&gt;:12: in __init__
+    ???
+src\pgworld\data\schema.py:1298: in __post_init__
+    object.__setattr__(self, "image_offset_n_ij", _int_vector2(self.image_offset_n_ij, "image_offset_n_ij"))
+src\pgworld\data\schema.py:160: in _int_vector2
+    values = _sequence(value, field)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+value = None, field = 'image_offset_n_ij'
+
+    def _sequence(value: object, field: str) -&gt; Sequence[object]:
+        if isinstance(value, (str, bytes, Mapping)) or not isinstance(value, Sequence):
+&gt;           raise SchemaValidationError(f"{field} must be an array")
+E           pgworld.data.schema.SchemaValidationError: image_offset_n_ij must be an array
+
+src\pgworld\data\schema.py:141: SchemaValidationError</failure></testcase></testsuite></testsuites>

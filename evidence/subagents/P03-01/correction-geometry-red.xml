@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="3" time="0.497" timestamp="2026-10-01T23:42:44.150934" hostname="MZoraiz_P15"><testcase classname="tests.unit.test_schema" name="test_component_partition_must_equal_alive_edge_connectivity" time="0.010"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_component_partition_must_equal_alive_edge_connectivity() -&gt; None:
+        trajectory = _trajectory()
+        wrong = replace(
+            trajectory.states[2],
+            component_ids={
+                "node:001": "component:all",
+                "node:002": "component:all",
+                "node:003": "component:all",
+            },
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="component"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:1369: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_image_offsets_must_be_zero_on_nonperiodic_axes" time="0.003"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_image_offsets_must_be_zero_on_nonperiodic_axes() -&gt; None:
+        graph = _graph()
+        nonperiodic_y = replace(graph.reference_cell, periodic_axes=(True, False))
+        invalid_edge = replace(
+            graph.edges[0], reference_image_offset_n_ij=(0, 1)
+        )
+&gt;       with pytest.raises(SchemaValidationError, match="nonperiodic"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:1384: Failed</failure></testcase><testcase classname="tests.unit.test_schema" name="test_alive_edge_length_is_recomputed_from_nodes_cell_and_signed_image" time="0.012"><failure message="Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;">def test_alive_edge_length_is_recomputed_from_nodes_cell_and_signed_image() -&gt; None:
+        trajectory = _trajectory()
+        state = trajectory.states[0]
+        wrong_edge = replace(state.edges[0], length_nm=9.0)
+        wrong_state = replace(state, edges=(wrong_edge, state.edges[1]))
+&gt;       with pytest.raises(SchemaValidationError, match="length"):
+E       Failed: DID NOT RAISE &lt;class 'pgworld.data.schema.SchemaValidationError'&gt;
+
+tests\unit\test_schema.py:1400: Failed</failure></testcase></testsuite></testsuites>
