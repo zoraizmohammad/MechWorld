@@ -6,7 +6,7 @@
         field_body.pop("realization_id")
         field_record["realization_id"] = _record_hash(field_body)
         forged_field = ThresholdField.from_record(field_record)
-    
+
 &gt;       with pytest.raises(StochasticityValidationError, match="canonical P02-02"):
 E       Failed: DID NOT RAISE &lt;class 'pgworld.physics.stochasticity.StochasticityValidationError'&gt;
 

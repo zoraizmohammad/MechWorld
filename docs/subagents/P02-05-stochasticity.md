@@ -121,10 +121,10 @@ the evidence return:
 | `corrected-pre-source-red.xml` | `af05712993ef4320b3f5314f6aa0829fbb1bae5d270e812ff1f9d23c028a4dce` |
 | `privacy-corrected-pre-source-red.xml` | `cb08a2f3ceacf5066e702ba7070abb6a983a79a0577fc830263013d31af245a6` |
 | `first-source-correction.xml` | `1623306834e6de20b40a88fb29e30f65504af76d8c6986aa6ea06f67ef10b275` |
-| `focused-correction-2.xml` | `f30b287980abcccd61834619fb0916ed3bf1ccace73f6a2ede6f43cd40fa7339` |
+| `focused-correction-2.xml` | `bfe0bcdde85ef817438c499e115ba8f2cb3bbcb63db6fb4f0d05d391f5170ff5` |
 | `focused-first-green.xml` | `6f2b6fe7d2228de2488e6a03c1e325d5bcb597ece767b5e0d60fe6fbd69e1625` |
 | `focused-post-graph-fixture.xml` | `e4201c6d93dcea046c925f7ac709e13599f538249359c256a77b9eb29262f0b2` |
-| `canonical-field-forgery-red.xml` | `3abb8019f1892650bc8fc4e22f703e338bf643185c149c920d0d7b900a9a6a06` |
+| `canonical-field-forgery-red.xml` | `3bcd78b3a626d53a95a174feffdea6e18dc75354243371437d483878e1b8510c` |
 | `canonical-field-forgery-green.xml` | `a548d7c5ee070041cb3155879f25c2bf2a32bb78743a7ad487ef325d2777ddd2` |
 | `focused-post-upstream-compat.xml` | `abaa5fac7d987dd019fca44962db32a9ac716b68e34bebbcaaace513daa00932` |
 | `compatibility-first.xml` | `de95280e3c512a4b0b6ef150a6de6a21c058d5f56cbbe3e6a37f8b9648250d69` |

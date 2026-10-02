@@ -5,7 +5,7 @@
         _rewrite_hash(body, "projection_id")
 &gt;       forged = PredictorReplicateView.from_record(body)
 
-tests\physics\test_stochastic_events.py:371: 
+tests\physics\test_stochastic_events.py:371:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src\pgworld\physics\stochasticity.py:807: in from_record
     return cls(**kwargs)  # type: ignore[arg-type]
@@ -32,7 +32,7 @@ src\pgworld\physics\stochasticity.py:638: StochasticityValidationError</failure>
         record["replicate_id"] = "sha256:" + "f" * 64
         with pytest.raises(StochasticityValidationError, match="replicate_id"):
             ConditionalReplicate.from_record(record)
-    
+
         with pytest.raises(StochasticityValidationError, match="material seed"):
             replace(replicate, rng_namespace=_seeds(material_disorder=999))
         with pytest.raises(StochasticityValidationError, match="bond universe"):
@@ -47,7 +47,7 @@ src\pgworld\physics\stochasticity.py:638: StochasticityValidationError</failure>
                 damage_law=_law(criterion="bond_tension"),
             )
 
-tests\physics\test_stochastic_events.py:539: 
+tests\physics\test_stochastic_events.py:539:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 ..\AppData\Local\Programs\Python\Python311\Lib\dataclasses.py:1503: in replace
     return obj.__class__(**changes)
@@ -121,7 +121,7 @@ During handling of the above exception, another exception occurred:
         record["replicate_id"] = "sha256:" + "f" * 64
         with pytest.raises(StochasticityValidationError, match="replicate_id"):
             ConditionalReplicate.from_record(record)
-    
+
         with pytest.raises(StochasticityValidationError, match="material seed"):
             replace(replicate, rng_namespace=_seeds(material_disorder=999))
         with pytest.raises(StochasticityValidationError, match="bond universe"):
@@ -145,14 +145,14 @@ tests\physics\test_stochastic_events.py:538: AssertionError</failure></testcase>
         namespace = RNGNamespaceRecord.from_p01_04_mapping(seeds)
         seeds["events"] = 999
         assert namespace.events_seed == 33
-    
+
         replicate = _replicate()
         record = replicate.as_record()
         record["physical_bond_ids"].append("forged-bond")  # type: ignore[union-attr]
         record["threshold_field"]["thresholds"][0]["threshold"] = 999.0  # type: ignore[index]
         assert replicate.physical_bond_ids == BONDS
         assert replicate.threshold_field.threshold_for("bond-a") != 999.0
-    
+
         record = replicate.as_record()
         record["threshold_field"]["reference_state_id"] = "foreign-reference"  # type: ignore[index]
         threshold_body = copy.deepcopy(record["threshold_field"])  # type: ignore[arg-type]
@@ -162,7 +162,7 @@ tests\physics\test_stochastic_events.py:538: AssertionError</failure></testcase>
         with pytest.raises(StochasticityValidationError, match="reference"):
 &gt;           ConditionalReplicate.from_record(record)
 
-tests\physics\test_stochastic_events.py:592: 
+tests\physics\test_stochastic_events.py:592:
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 src\pgworld\physics\stochasticity.py:609: in from_record
     return cls(**kwargs)  # type: ignore[arg-type]
@@ -240,14 +240,14 @@ During handling of the above exception, another exception occurred:
         namespace = RNGNamespaceRecord.from_p01_04_mapping(seeds)
         seeds["events"] = 999
         assert namespace.events_seed == 33
-    
+
         replicate = _replicate()
         record = replicate.as_record()
         record["physical_bond_ids"].append("forged-bond")  # type: ignore[union-attr]
         record["threshold_field"]["thresholds"][0]["threshold"] = 999.0  # type: ignore[index]
         assert replicate.physical_bond_ids == BONDS
         assert replicate.threshold_field.threshold_for("bond-a") != 999.0
-    
+
         record = replicate.as_record()
         record["threshold_field"]["reference_state_id"] = "foreign-reference"  # type: ignore[index]
         threshold_body = copy.deepcopy(record["threshold_field"])  # type: ignore[arg-type]
